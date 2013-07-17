@@ -1,0 +1,19 @@
+LIBRARY      "DryadLINQNativeChannels.dll"
+
+EXPORTS
+    GetTotalLength
+    GetExpectedLength
+    GetVertexId
+    GetNumOfInputs
+    GetNumOfOutputs
+    SetInitialSizeHint
+    GetInputChannelURI
+    GetOutputChannelURI
+    Flush
+    Close
+    ReadDataBlock
+    WriteDataBlock
+    AllocateDataBlock
+    ReleaseDataBlock
+    EnableFifoInputChannel
+    EnableFifoOutputChannel

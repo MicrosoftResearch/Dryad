@@ -1,0 +1,161 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{D33C34CC-6DB2-417C-88B7-299830711774}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Microsoft.Research.DryadLinq</RootNamespace>
+    <AssemblyName>Microsoft.Research.DryadLinq</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>//depot/v3sp1/private/disc/LinqToDryad</SccProjectName>
+    <SccLocalPath>.</SccLocalPath>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccProvider>MSSCCI:Source Depot</SccProvider>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.Linq" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Attributes.cs" />
+    <Compile Include="BitVector.cs" />
+    <Compile Include="CodeGenHelper.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="DryadLinqDecomposition.cs" />
+    <Compile Include="DryadLinqExtension.cs" />
+    <Compile Include="DryadLinqHelper.cs" />
+    <Compile Include="DscStubs.cs" />
+    <Compile Include="HpcLinqCache.cs" />
+    <Compile Include="HpcLinqStringList.cs" />
+    <Compile Include="ForkTuple.cs" />
+    <Compile Include="HpcLinqStringDictionary.cs" />
+    <Compile Include="IAssociative.cs" />
+    <Compile Include="IDecomposable.cs" />
+    <Compile Include="MultiEnumerable.cs" />
+    <Compile Include="DataPath.cs" />
+    <Compile Include="DataProvider.cs" />
+    <Compile Include="DataSetInfo.cs" />
+    <Compile Include="DryadBinaryReader.cs" />
+    <Compile Include="DryadBinaryWriter.cs" />
+    <Compile Include="DryadCodeGen.cs" />
+    <Compile Include="DryadFactory.cs" />
+    <Compile Include="DryadLinqCollection.cs" />
+    <Compile Include="DryadLinqException.cs" />
+    <Compile Include="DryadLinqExpression.cs" />
+    <Compile Include="DryadLinqFaultCodes.cs" />
+    <Compile Include="DryadLinqFileStream.cs" />
+    <Compile Include="DryadLinqGlobals.cs" />
+    <Compile Include="DryadLinqIEnumerable.cs" />
+    <Compile Include="DryadLinqIQueryable.cs" />
+    <Compile Include="DryadLinqJobSubmission.cs" />
+    <Compile Include="DryadLinqLog.cs" />
+    <Compile Include="DryadLinqMetaData.cs" />
+    <Compile Include="DryadLinqNative.cs" />
+    <Compile Include="DryadLinqObjectStore.cs" />
+    <Compile Include="DryadLinqQuery.cs" />
+    <Compile Include="DryadLinqSampler.cs" />
+    <Compile Include="DryadLinqSerialization.cs" />
+    <Compile Include="DryadLinqStream.cs" />
+    <Compile Include="DryadLinqUtil.cs" />
+    <Compile Include="DryadLinqVertex.cs" />
+    <Compile Include="DryadLinqVertexParams.cs" />
+    <Compile Include="DryadQueryDoc.cs" />
+    <Compile Include="DryadQueryExplain.cs" />
+    <Compile Include="DryadQueryGen.cs" />
+    <Compile Include="DryadQueryNode.cs" />
+    <Compile Include="DryadRecordReader.cs" />
+    <Compile Include="DryadRecordWriter.cs" />
+    <Compile Include="DryadRuntime.cs" />
+    <Compile Include="DryadTextReader.cs" />
+    <Compile Include="DryadTextWriter.cs" />
+    <Compile Include="DryadVertexEnv.cs" />
+    <Compile Include="DryadVertexReader.cs" />
+    <Compile Include="DryadVertexWriter.cs" />
+    <Compile Include="DscClientHelper.cs" />
+    <Compile Include="DynamicManager.cs" />
+    <Compile Include="ExpressionMatcher.cs" />
+    <Compile Include="ExpressionSimplifier.cs" />
+    <Compile Include="ExpressionVisitor.cs" />
+    <Compile Include="Hash64.cs" />
+    <Compile Include="HpcJobSubmission.cs" />
+    <Compile Include="HpcLinqConfiguration.cs" />
+    <Compile Include="HpcLinqContext.cs" />
+    <Compile Include="IDryadLinqJobSubmission.cs" />
+    <Compile Include="LineRecord.cs" />
+    <Compile Include="MultiBlockStream.cs" />
+    <Compile Include="MultiQueryable.cs" />
+    <Compile Include="NativeBlockStream.cs" />
+    <Compile Include="QueryTraceLevel.cs" />
+    <Compile Include="SimpleRewriter.cs" />
+    <Compile Include="SR.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SR.resx</DependentUpon>
+    </Compile>
+    <Compile Include="TypeSystem.cs" />
+    <Compile Include="VertexCodeGen.cs" />
+    <Compile Include="WebHdfsClient.cs" />
+    <Compile Include="YarnJobSubmission.cs" />
+    <Compile Include="YarnScheduler.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SR.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>SR.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Hdfs\HdfsBridgeManaged\HdfsBridgeManaged.vcxproj">
+      <Project>{C0F4C1E3-1F9E-4C55-BD6A-0241D35425F5}</Project>
+      <Name>HdfsBridgeManaged</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

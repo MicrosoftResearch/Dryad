@@ -1,0 +1,768 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+<!--
+Copyright (c) Microsoft Corporation
+
+All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in 
+compliance with the License.  You may obtain a copy of the License 
+at http://www.apache.org/licenses/LICENSE-2.0   
+
+
+THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER 
+EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTIES OR CONDITIONS OF 
+TITLE, FITNESS FOR A PARTICULAR PURPOSE, MERCHANTABLITY OR NON-INFRINGEMENT.  
+
+
+See the Apache Version 2.0 License for specific language governing permissions and 
+limitations under the License. 
+-->
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="DistinctAttributeComparerNotDefined" xml:space="preserve">
+    <value>DistinctAttribute: Comparer {0} is not defined.</value>
+  </data>
+  <data name="SerializerTypeMustBeNonNull" xml:space="preserve">
+    <value>CustomHpcSerializer attribute for type {0} does not define a SerializerType.</value>
+  </data>
+  <data name="SerializerTypeMustSupportIHpcSerializer" xml:space="preserve">
+    <value>Type {0} referred to by CustomHpcSerializer attribute must implement IHpcSerializer({1}).</value>
+  </data>
+  <data name="ContextDisposed" xml:space="preserve">
+    <value>The HpcLinqContext has been disposed.</value>
+  </data>
+  <data name="FileSetCouldNotBeOpened" xml:space="preserve">
+    <value>Could not open FileSet and/or read its properties.</value>
+  </data>
+  <data name="FileSetMustBeSealed" xml:space="preserve">
+    <value>FileSet must be sealed before calling FromDsc().</value>
+  </data>
+  <data name="FileSetMustHaveAtLeastOneFile" xml:space="preserve">
+    <value>FileSet must have at least one file.</value>
+  </data>
+  <data name="CouldNotGetClientVersion" xml:space="preserve">
+    <value>Could not get version information for HpcLinq client component. See inner exception.</value>
+  </data>
+  <data name="CouldNotGetServerVersion" xml:space="preserve">
+    <value>Could not get version information for HpcLinq server component. See inner exception.</value>
+  </data>
+  <data name="Internal_CannotBeUsedForValueType" xml:space="preserve">
+    <value>Internal error: Can't be used for value type.</value>
+  </data>
+  <data name="TypeDoesNotContainRequestedField" xml:space="preserve">
+    <value>The type {0} does not contain a field named {1}</value>
+  </data>
+  <data name="CannotBeUsedForReferenceType" xml:space="preserve">
+    <value>Internal error: Can't be used for reference type.</value>
+  </data>
+  <data name="IllFormedUri" xml:space="preserve">
+    <value>The URI is not well formed: {0}</value>
+  </data>
+  <data name="PrefixAlreadyUsedForOtherProvider" xml:space="preserve">
+    <value>Prefix {0} has already been used for another provider.</value>
+  </data>
+  <data name="UnknownProvier" xml:space="preserve">
+    <value>Provider {0} is unknown. Register it using DataProvider.Register.</value>
+  </data>
+  <data name="IllFormedUriArguments" xml:space="preserve">
+    <value>The arguments in the table URI are not well formed.</value>
+  </data>
+  <data name="CannotCallPartitionInfoOnType" xml:space="preserve">
+    <value>Internal error: Can't call on PartitionInfo of type {0}</value>
+  </data>
+  <data name="TargetMustBeDscUri" xml:space="preserve">
+    <value>Only DSC URIs are supported.</value>
+  </data>
+  <data name="CannotCreatePartitionNodeRandom" xml:space="preserve">
+    <value>Internal error: Can't create partition node based on random partition.</value>
+  </data>
+  <data name="PartitionKeysNotProvided" xml:space="preserve">
+    <value>The partition keys are not provided.</value>
+  </data>
+  <data name="PartitionKeysAreNotConsistentlyOrdered" xml:space="preserve">
+    <value>The provided range-partition keys are not consistenly ascending or descending.</value>
+  </data>
+  <data name="IsDescendingIsInconsistent" xml:space="preserve">
+    <value>The arguments 'partitionKeys' and 'isDescending' are inconsistent.</value>
+  </data>
+  <data name="EndOfStreamEncountered" xml:space="preserve">
+    <value>Read failure: End of stream encountered while reading {0}. Data may be corrupt or does not match the file set compression scheme.</value>
+  </data>
+  <data name="FingerprintDisabled" xml:space="preserve">
+    <value>Fingerprint was disabled.</value>
+  </data>
+  <data name="RecordSizeMax2GB" xml:space="preserve">
+    <value>The maximum record size is 2GB.</value>
+  </data>
+  <data name="SettingPositionNotSupported" xml:space="preserve">
+    <value>Position_Set is not supported.</value>
+  </data>
+  <data name="ReadNotAllowed" xml:space="preserve">
+    <value>Read is not supported.</value>
+  </data>
+  <data name="SeekNotSupported" xml:space="preserve">
+    <value>Seek is not supported.</value>
+  </data>
+  <data name="SetLengthNotSupported" xml:space="preserve">
+    <value>SetLength is not supported.</value>
+  </data>
+  <data name="ArrayLengthVsCountAndOffset" xml:space="preserve">
+    <value>Length of array {0} must be greater than or equal to {1} ({2} + {3}).</value>
+  </data>
+  <data name="TypeRequiredToBePublic" xml:space="preserve">
+    <value>Cannot auto-serialize a type that is not public. Type = {0}.</value>
+  </data>
+  <data name="TypeMustHaveDataMembers" xml:space="preserve">
+    <value>Auto-serialized types must have at least one data member. Type={0}.</value>
+  </data>
+  <data name="CustomSerializerMustSupportDefaultCtor" xml:space="preserve">
+    <value>Custom serializer type must have a public default constructor. Type = {0}.</value>
+  </data>
+  <data name="CustomSerializerMustBeClassOrStruct" xml:space="preserve">
+    <value>Custom serializer type must either be a class or a struct that implements IHpcSerializer({1}). Type = {0}</value>
+  </data>
+  <data name="TypeNotSerializable" xml:space="preserve">
+    <value>Cannot auto-serialize a type containing pointers. Type = {0}. </value>
+  </data>
+  <data name="CannotHandleSubtypes" xml:space="preserve">
+    <value>Auto-serialization is not supported for type that has subtypes or derives from a non-primitive type. Type = {0}.</value>
+  </data>
+  <data name="CannotHandleCircularTypes" xml:space="preserve">
+    <value>Auto-serialization is not supported for types containing circular references. Type = {0}.</value>
+  </data>
+  <data name="CannotHandleDerivedtypes" xml:space="preserve">
+    <value>Auto-serialization is not supported for type {0} because it derives from the non-primitive type {1}. Consider using a custom serializer for {0}. Please note this auto-serialization rule may have exceptions for built-in types. Please see product documentation for details.</value>
+  </data>
+  <data name="UDTMustBeConcreteType" xml:space="preserve">
+    <value>Auto-serialization is not supported for type that is an abstract type or has generic arguments which are abstract types. Type = {0}.</value>
+  </data>
+  <data name="UDTHasFieldOfNonPublicType" xml:space="preserve">
+    <value>Auto-serialization is not supported for type with private field. Type = {0}.</value>
+  </data>
+  <data name="CannotHandleObjectFields" xml:space="preserve">
+    <value>Auto-serialization is not supported for types containing fields of System.Object, System.Object[] or other collections of System.Object. Type = {0}.</value>
+  </data>
+  <data name="UDTIsDelegateType" xml:space="preserve">
+    <value>Auto-serialization is not supported for delegate type. Type = {0}.</value>
+  </data>
+  <data name="AddVertexNotHandled" xml:space="preserve">
+    <value>Internal error: AddVertexMethod on {0} not handled.</value>
+  </data>
+  <data name="CannotBeEmpty" xml:space="preserve">
+    <value>Internal error: cannot be empty</value>
+  </data>
+  <data name="MustSpecifyOutputAssemblyFileName" xml:space="preserve">
+    <value>Internal error: Must specify the file name for the output assembly.</value>
+  </data>
+  <data name="FailedToBuild" xml:space="preserve">
+    <value>Failed to build {0}. See the client side log ({1}) for compilation error messages.</value>
+  </data>
+  <data name="AutogeneratedAssemblyMissing" xml:space="preserve">
+    <value>Internal error: The auto-generated LINQ to HPC vertex assembly was missing.</value>
+  </data>
+  <data name="KeyNotFound" xml:space="preserve">
+    <value>Key not found in collection.</value>
+  </data>
+  <data name="TooManyItems" xml:space="preserve">
+    <value>Too many items in collection.</value>
+  </data>
+  <data name="TooManyElementsBeforeReduction" xml:space="preserve">
+    <value>Internal error: Too many elements before reduction.</value>
+  </data>
+  <data name="DryadHomeMustBeSpecified" xml:space="preserve">
+    <value>DryadLINQ requires the DRYAD_HOME environment variable to be set to the Dryad binary folder.</value>
+  </data>
+  <data name="ClusterNameMustBeSpecified" xml:space="preserve">
+    <value>The ClusterName configuration must be set to the name of a Windows HPC Server head node.</value>
+  </data>
+  <data name="ConfigReadonly" xml:space="preserve">
+    <value>The configuration object is read-only.</value>
+  </data>
+  <data name="HpcLinqStringDictionaryReadonly" xml:space="preserve">
+    <value>The collection is read-only.</value>
+  </data>
+  <data name="TypeDoesNotContainMember" xml:space="preserve">
+    <value>Internal error: {0} doesn't contain field/property {1}</value>
+  </data>
+  <data name="UnrecognizedOperatorName" xml:space="preserve">
+    <value>Unrecognized operator name: {0}.</value>
+  </data>
+  <data name="BugInHandlingAnonymousClass" xml:space="preserve">
+    <value>Internal error processing anonymous type in query.</value>
+  </data>
+  <data name="UnsupportedExpressionsType" xml:space="preserve">
+    <value>Expression of type {0} is not supported.</value>
+  </data>
+  <data name="UnnamedParameterExpression" xml:space="preserve">
+    <value>Internal error: This parameter expression didn't have a name.</value>
+  </data>
+  <data name="UnsupportedExpressionType" xml:space="preserve">
+    <value>Expression of type {0} is not supported for expression-summarization.</value>
+  </data>
+  <data name="SourceNotOrdered" xml:space="preserve">
+    <value>Source is not ordered.</value>
+  </data>
+  <data name="PartitionCountMustBePositive" xml:space="preserve">
+    <value>The partition count must be greater than 0.</value>
+  </data>
+  <data name="WindowSizeMustyBeGTOne" xml:space="preserve">
+    <value>The window size must be greater than 1.</value>
+  </data>
+  <data name="PartitionTooSmallForSlidingWindow" xml:space="preserve">
+    <value>Each partition needs at least {0} records for this sliding window computation.</value>
+  </data>
+  <data name="CannotAccesFilePath" xml:space="preserve">
+    <value>Failed to access path {0}</value>
+  </data>
+  <data name="GetFileSizeError" xml:space="preserve">
+    <value>Error returned from GetFileSizeEx: {0}.</value>
+  </data>
+  <data name="ReadFileError" xml:space="preserve">
+    <value>Native channel error while reading from file. Win32 error code = {0}.</value>
+  </data>
+  <data name="UnknownCompressionScheme" xml:space="preserve">
+    <value>Unknown compression scheme.</value>
+  </data>
+  <data name="WriteFileError" xml:space="preserve">
+    <value>Error returned from WriteFile: {0}.</value>
+  </data>
+  <data name="IndexTooSmall" xml:space="preserve">
+    <value>Index overflowed range of Int32.</value>
+  </data>
+  <data name="MultiQueryableKeyOutOfRange" xml:space="preserve">
+    <value>Key out of range.</value>
+  </data>
+  <data name="IndexOutOfRange" xml:space="preserve">
+    <value>Index out of range.</value>
+  </data>
+  <data name="NotAHpcLinqQuery" xml:space="preserve">
+    <value>sources[{0}] is not a LINQ to HPC query. A LINQ to HPC IQueryable should be created via an HpcLinqContext object and use only LINQ to HPC operators.</value>
+  </data>
+  <data name="AtLeastOneOperatorRequired" xml:space="preserve">
+    <value>A LINQ to HPC query that is submitted should involve at least one operator.</value>
+  </data>
+  <data name="ToDscUsedIncorrectly" xml:space="preserve">
+    <value>Queries ending in ToDsc() cannot be followed by operators other than Submit().</value>
+  </data>
+  <data name="UnsupportedSchedulerType" xml:space="preserve">
+    <value>Scheduler type not supported: {0}.</value>
+  </data>
+  <data name="UnsupportedExecutionKind" xml:space="preserve">
+    <value>Unexpected execution kind.</value>
+  </data>
+  <data name="UnexpectedJobStatus" xml:space="preserve">
+    <value>Unexpected job status: {0}.</value>
+  </data>
+  <data name="JobStatusQueryError" xml:space="preserve">
+    <value>Repeated server error when querying job status.</value>
+  </data>
+  <data name="JobOptionNotImplemented" xml:space="preserve">
+    <value>JobOption({0}, {1}) not implemented.</value>
+  </data>
+  <data name="HpcLinqJobMinMustBe2OrMore" xml:space="preserve">
+    <value>JobMinNodes must be greater than 1.</value>
+  </data>
+  <data name="SubmissionFailure" xml:space="preserve">
+    <value>Error submitting job to {0}. Refer to inner exception for more detail.</value>
+  </data>
+  <data name="DidNotCompleteSuccessfully" xml:space="preserve">
+    <value>The job did not complete successfully. Refer to HPC Cluster Manager and/or HPC APIs for more detail.</value>
+  </data>
+  <data name="Binaries32BitNotSupported" xml:space="preserve">
+    <value>Job cannot be submitted because either the client program or one of its dependencies is targetted for 32 bit execution ({0}). To correct this problem make sure your binaries are compiled as 'x64' or 'AnyCPU'.</value>
+  </data>
+  <data name="ErrorReadingMetadata" xml:space="preserve">
+    <value>Error reading metadata.</value>
+  </data>
+  <data name="ErrorWritingMetadata" xml:space="preserve">
+    <value>Error writing metadata.</value>
+  </data>
+  <data name="CannotSerializeHpcLinqQuery" xml:space="preserve">
+    <value>HpcLinqQuery IQueryable objects cannot be added to object store.</value>
+  </data>
+  <data name="CannotSerializeObject" xml:space="preserve">
+    <value>Cannot serialize object store due to non-serializable object. Type = {0}.</value>
+  </data>
+  <data name="GeneralSerializeFailure" xml:space="preserve">
+    <value>Error serializing object store. See inner exception.</value>
+  </data>
+  <data name="FailedToDeserialize" xml:space="preserve">
+    <value>Failed to deserialize object from object store.</value>
+  </data>
+  <data name="ExpressionMustBeMethodCall" xml:space="preserve">
+    <value>The expression must be a method call: [{0}].</value>
+  </data>
+  <data name="MustStartFromContext" xml:space="preserve">
+    <value>The query must be created from a HpcLinqContext object and only use LINQ to HPC operators.</value>
+  </data>
+  <data name="UntypedProviderMethodsNotSupported" xml:space="preserve">
+    <value>The non-generic methods CreateQuery() and Execute() are not supported.  Use CreateQuery&lt;T&gt;() and Execute&lt;T&gt;() instead.</value>
+  </data>
+  <data name="SequenceEqualNotSupported" xml:space="preserve">
+    <value>SequenceEqual() is not supported.</value>
+  </data>
+  <data name="AlreadySubmitted" xml:space="preserve">
+    <value>This query instance has already been submitted. To submit a query more than once, create a new IQueryable&lt;&gt; instance.</value>
+  </data>
+  <data name="AlreadySubmittedInMaterialize" xml:space="preserve">
+    <value>A query instance has already been submitted. To submit a query more than once, create a new IQueryable&lt;&gt; instance.</value>
+  </data>
+  <data name="SameQuerySubmittedMultipleTimesInMaterialize" xml:space="preserve">
+    <value>A query instance appears more than once in 'sources'. A query instance should be submitted at most once. To submit a query more than once, create a new IQueryable&lt;&gt; instance.</value>
+  </data>
+  <data name="PositionNotSupported" xml:space="preserve">
+    <value>Position is not supported.</value>
+  </data>
+  <data name="WriteNotSupported" xml:space="preserve">
+    <value>Write is not supported.</value>
+  </data>
+  <data name="WriteByteNotSupported" xml:space="preserve">
+    <value>WriteByte is not supported.</value>
+  </data>
+  <data name="NegativeLengthInMemcopy" xml:space="preserve">
+    <value>Internal error: Negative length in memcopy.</value>
+  </data>
+  <data name="SourceOfMergesortMustBeMultiEnumerable" xml:space="preserve">
+    <value>The source for mergesort must be of type IMultiEnumerable.</value>
+  </data>
+  <data name="ThenByNotSupported" xml:space="preserve">
+    <value>ThenBy is not supported.</value>
+  </data>
+  <data name="WrongFlagCombination" xml:space="preserve">
+    <value>Internal error: Wrong combination of flags.</value>
+  </data>
+  <data name="AggregateNoElements" xml:space="preserve">
+    <value>Aggregate: No elements.</value>
+  </data>
+  <data name="FirstNoElementsFirst" xml:space="preserve">
+    <value>First: No elements.</value>
+  </data>
+  <data name="SingleMoreThanOneElement" xml:space="preserve">
+    <value>Single: More than one element.</value>
+  </data>
+  <data name="SingleNoElements" xml:space="preserve">
+    <value>Single: No elements.</value>
+  </data>
+  <data name="LastNoElements" xml:space="preserve">
+    <value>Last: No elements.</value>
+  </data>
+  <data name="MinNoElements" xml:space="preserve">
+    <value>Min: No elements</value>
+  </data>
+  <data name="MaxNoElements" xml:space="preserve">
+    <value>Max: No elements</value>
+  </data>
+  <data name="AverageNoElements" xml:space="preserve">
+    <value>Average: No elements</value>
+  </data>
+  <data name="SourceMustBeDryadVertexReader" xml:space="preserve">
+    <value>Internal error: source must be DryadVertexReader.</value>
+  </data>
+  <data name="RangePartitionKeysMissing" xml:space="preserve">
+    <value>RangePartition: partition keys are missing.</value>
+  </data>
+  <data name="PartitionFuncReturnValueExceedsNumPorts" xml:space="preserve">
+    <value>The return value of partitionFunc exceeded the number of ports.</value>
+  </data>
+  <data name="NumberOfKeysMustEqualNumOutputPorts" xml:space="preserve">
+    <value>Fork: The number of keys must match the number of output ports.</value>
+  </data>
+  <data name="BranchOfForkNotUsed" xml:space="preserve">
+    <value>The branch {0} of Fork is not used.</value>
+  </data>
+  <data name="NullSelector" xml:space="preserve">
+    <value>Internal error: The result and element selectors must be non-null</value>
+  </data>
+  <data name="CannotResetIEnumerator" xml:space="preserve">
+    <value>Internal error: Cannot reset this IEnumerator.</value>
+  </data>
+  <data name="FailureInExcept" xml:space="preserve">
+    <value>Failure during Except.</value>
+  </data>
+  <data name="FailureInIntersect" xml:space="preserve">
+    <value>Failure during Intersect.</value>
+  </data>
+  <data name="FailureInSort" xml:space="preserve">
+    <value>Failure during sorting.</value>
+  </data>
+  <data name="SortedChunkCannotBeEmpty" xml:space="preserve">
+    <value>Internal error: Sorted chunk cannot be empty.</value>
+  </data>
+  <data name="RangePartitionInputOutputMismatch" xml:space="preserve">
+    <value>RangePartition: partition keys and output channels mismatch. There were {0} keys and {1} channels.</value>
+  </data>
+  <data name="FailureInHashGroupBy" xml:space="preserve">
+    <value>Failure in hash based GroupBy.</value>
+  </data>
+  <data name="FailureInSortGroupBy" xml:space="preserve">
+    <value>Failure in sort based GroupBy.</value>
+  </data>
+  <data name="FailureInHashJoin" xml:space="preserve">
+    <value>Failure in hash based Join.</value>
+  </data>
+  <data name="FailureInHashGroupJoin" xml:space="preserve">
+    <value>Failure in hash based GroupJoin.</value>
+  </data>
+  <data name="FailureInDistinct" xml:space="preserve">
+    <value>Failure in Distinct.</value>
+  </data>
+  <data name="FailureInOperator" xml:space="preserve">
+    <value>Failure in {0}.</value>
+  </data>
+  <data name="FailureInOrderedGroupBy" xml:space="preserve">
+    <value>Failure in ordered GroupBy.</value>
+  </data>
+  <data name="FailureInUserApplyFunction" xml:space="preserve">
+    <value>Apply: Failure in user-defined function.</value>
+  </data>
+  <data name="VertexBridgeBadArgs" xml:space="preserve">
+    <value>VertexBridge arguments are malformed. argsString={0}</value>
+  </data>
+  <data name="UnknownChannelType" xml:space="preserve">
+    <value>Unknown channel kind: {0}.</value>
+  </data>
+  <data name="CannotReadQueryPlan" xml:space="preserve">
+    <value>Cannot read query plan for job: {0}.</value>
+  </data>
+  <data name="UnknownConnectionType" xml:space="preserve">
+    <value>Unknown connection type: {0}.</value>
+  </data>
+  <data name="UnknownChannelType2" xml:space="preserve">
+    <value>Unknown channel of type: {0}.</value>
+  </data>
+  <data name="UnknownMethodInExpression" xml:space="preserve">
+    <value>Unknown method in expression to summarize: {0}.</value>
+  </data>
+  <data name="InputMustBeHpcLinqSource" xml:space="preserve">
+    <value>The input expression must be a LINQ to HPC source.</value>
+  </data>
+  <data name="OutputTypeCannotBeAnonymous" xml:space="preserve">
+    <value>Output data type cannot be an anonymous type.</value>
+  </data>
+  <data name="InputTypeCannotBeAnonymous" xml:space="preserve">
+    <value>Input data type cannot be an anonymous type.</value>
+  </data>
+  <data name="DecomposerTypeMustBePublic" xml:space="preserve">
+    <value>Decomposition class must be public.  Class={0}.</value>
+  </data>
+  <data name="DecomposerTypeDoesNotImplementInterface" xml:space="preserve">
+    <value>Decomposition class must implement IDecomposable&lt;,,&gt; or IDecomposableRecursive&lt;,,&gt;.  Class={0}.</value>
+  </data>
+  <data name="DecomposerTypesDoNotMatch" xml:space="preserve">
+    <value>Decomposition class types must match the function that it decorates. Method={0}. Class={1}.</value>
+  </data>
+  <data name="DecomposerTypeImplementsTooManyInterfaces" xml:space="preserve">
+    <value>Decomposition class should implement only one decomposable interface. Class={0}.</value>
+  </data>
+  <data name="DecomposerTypeDoesNotHavePublicDefaultCtor" xml:space="preserve">
+    <value>Decomposition class must have a public parameterless constructor. Class={0}.</value>
+  </data>
+  <data name="AssociativeMethodHasWrongForm" xml:space="preserve">
+    <value>A method tagged [Associative] should take two parameters of type T and return type T. Method={0}.</value>
+  </data>
+  <data name="AssociativeTypeMustBePublic" xml:space="preserve">
+    <value>Associative class must be public.  Class={0}.</value>
+  </data>
+  <data name="AssociativeTypeDoesNotImplementInterface" xml:space="preserve">
+    <value>Associative class must implement IDecomposable&lt;,,&gt; or IDecomposableRecursive&lt;,,&gt;.  Class={0}.</value>
+  </data>
+  <data name="AssociativeTypesDoNotMatch" xml:space="preserve">
+    <value>Associative class types must match the function that it decorates. Method={0}. Class={1}.</value>
+  </data>
+  <data name="AssociativeTypeImplementsTooManyInterfaces" xml:space="preserve">
+    <value>Associative class should implement only one IAssociativeRecursive interface. Class={0}.</value>
+  </data>
+  <data name="AssociativeTypeDoesNotHavePublicDefaultCtor" xml:space="preserve">
+    <value>Associative class must have a public parameterless constructor. Class={0}.</value>
+  </data>
+  <data name="CannotRebuildOptimizedQueryExpression" xml:space="preserve">
+    <value>Internal error: cannot rebuild optimized query expression for node.</value>
+  </data>
+  <data name="InputArityMustEqualChildren" xml:space="preserve">
+    <value>Internal error: InputArity must equal Children.Length.</value>
+  </data>
+  <data name="DistinctOnlyTakesTwoArgs" xml:space="preserve">
+    <value>Internal Error: The Distinct operator can only take at most 2 arguments.</value>
+  </data>
+  <data name="ComparerMustBeSpecifiedOrKeyTypeMustBeIComparable" xml:space="preserve">
+    <value>If a key-comparer is not provided, TKey must implement IComparable. TKey={0}.</value>
+  </data>
+  <data name="ComparerMustBeSpecifiedOrKeyTypeMustBeIEquatable" xml:space="preserve">
+    <value>If a key-comparer is not provided, TKey must override GetHashCode() and either implement IEquatable or override Equals(). TKey={0}.</value>
+  </data>
+  <data name="ComparerExpressionMustBeSpecifiedOrElementTypeMustBeIEquatable" xml:space="preserve">
+    <value>If a comparer expression is not provided, TElement must implement IEquatable or override both Equals() and GetHashCode(). TElement={0}.</value>
+  </data>
+  <data name="TooManyHomomorphicAttributes" xml:space="preserve">
+    <value>A method should not be tagged with both HomomorphicAttribute and LeftHomomorphicAttribute.</value>
+  </data>
+  <data name="HomomorphicApplyNeedsSamePartitionCount" xml:space="preserve">
+    <value>All inputs to homomorphic apply must have same number of input partitions</value>
+  </data>
+  <data name="UnrecognizedDataSource" xml:space="preserve">
+    <value>Unrecognized data source: {0}.</value>
+  </data>
+  <data name="OperatorNotSupported" xml:space="preserve">
+    <value>The operator '{0}' encountered in expression isn't a valid LINQ to HPC operator.</value>
+  </data>
+  <data name="AggregationOperatorRequiresIComparable" xml:space="preserve">
+    <value>Aggregation operator '{0}' can only work on objects that implement IComparable.</value>
+  </data>
+  <data name="BadSeparatorCount" xml:space="preserve">
+    <value>The number of separators passed to AssumeRangePartition must equal src.nPartitions - 1. nRangeSeparators={0}, Expected={1}.</value>
+  </data>
+  <data name="MultipleOutputsWithSameDscUri" xml:space="preserve">
+    <value>Multiple query outputs are targeted to the same DSC fileset name {0}</value>
+  </data>
+  <data name="OutputUriAlsoQueryInput" xml:space="preserve">
+    <value>The output DSC fileset name {0} is also used as the query source or as one of the referenced data sources.</value>
+  </data>
+  <data name="CannotConcatDatasetsWithDifferentCompression" xml:space="preserve">
+    <value>Can't concat two datasets with different compression schemes.</value>
+  </data>
+  <data name="CannotCreateTablesWithDifferentCompression" xml:space="preserve">
+    <value>Can't create multiple tables with different compression schemes.</value>
+  </data>
+  <data name="FailedToRemoveMergeNode" xml:space="preserve">
+    <value>Internal error: Failed to remove the Merge node.</value>
+  </data>
+  <data name="CannotAttach" xml:space="preserve">
+    <value>Internal error: cannot attach a pipeline</value>
+  </data>
+  <data name="CannotAddTeeToNode" xml:space="preserve">
+    <value>Internal error: Can't add Tee to a node with more than one outputs.</value>
+  </data>
+  <data name="ShouldNotCreateCodeForDummyNode" xml:space="preserve">
+    <value>Internal error: should not create vertex code for a dummy node.</value>
+  </data>
+  <data name="ShouldNotCreateCodeForInput" xml:space="preserve">
+    <value>Internal error: should not create vertex code for input.</value>
+  </data>
+  <data name="ShouldNotCreateCodeForOutput" xml:space="preserve">
+    <value>Internal error: should not create vertex code for output.</value>
+  </data>
+  <data name="ShouldNotCreateCodeForConcat" xml:space="preserve">
+    <value>Internal error: should not create vertex code for Concat.</value>
+  </data>
+  <data name="ShouldNotCreateCodeForTee" xml:space="preserve">
+    <value>Internal error: should not create vertex code for Tee.</value>
+  </data>
+  <data name="IllegalDynamicManagerType" xml:space="preserve">
+    <value>Internal error: Illegal type of dynamic manager in dynamic node</value>
+  </data>
+  <data name="AggregateOperatorNotSupported" xml:space="preserve">
+    <value>The aggregate operator {0} is not supported.</value>
+  </data>
+  <data name="DynamicManagerType" xml:space="preserve">
+    <value>Internal error: Cannot have dynamic manager of type {0}.</value>
+  </data>
+  <data name="ChannelCannotBeReadMoreThanOnce" xml:space="preserve">
+    <value>A LINQ to HPC channel cannot be read more than once. For example, the delegate in Apply() may only enumerate its input once.</value>
+  </data>
+  <data name="ShouldNototCallReset" xml:space="preserve">
+    <value>Internal error: Should never call Reset()</value>
+  </data>
+  <data name="CannotHaveMoreThanOneOutput" xml:space="preserve">
+    <value>Internal error: Can't have more than one output channel.</value>
+  </data>
+  <data name="DSCStreamError" xml:space="preserve">
+    <value>DSC fileset error: {0}.</value>
+  </data>
+  <data name="StreamDoesNotExist" xml:space="preserve">
+    <value>The DSC fileset {0} doesn't exist.</value>
+  </data>
+  <data name="StreamAlreadyExists" xml:space="preserve">
+    <value>DSC fileset already exists: {0}.</value>
+  </data>
+  <data name="OpenForWriteError" xml:space="preserve">
+    <value>Internal error: OpenForWrite called when fs was not null.</value>
+  </data>
+  <data name="AttemptToReadFromAWriteStream" xml:space="preserve">
+    <value>Attempt to read from a stream that was opened for writing.</value>
+  </data>
+  <data name="FailedToCreateStream" xml:space="preserve">
+    <value>Failed to create DSC fileset: {0}.</value>
+  </data>
+  <data name="ReadWriteNotSupported" xml:space="preserve">
+    <value>ReadWrite access is not supported.</value>
+  </data>
+  <data name="ExpressionTypeNotHandled" xml:space="preserve">
+    <value>{0} cannot handle expression of type {1}.</value>
+  </data>
+  <data name="UnhandledQuery" xml:space="preserve">
+    <value>Internal error: LINQ to HPC query expression cannot be handled : {0}.</value>
+  </data>
+  <data name="MultiBlockEmptyPartitionList" xml:space="preserve">
+    <value>The partition list of the table was empty.</value>
+  </data>
+  <data name="MultiBlockCannotAccesFilePath" xml:space="preserve">
+    <value>Failed to access file {0}, which is part of DSC stream {1}. If this file has other replicas, they were all attempted but could not be accessed either.</value>
+  </data>
+  <data name="GetURINotSupported" xml:space="preserve">
+    <value>GetURI() is not implemented for this stream type.</value>
+  </data>
+  <data name="SetCalcFPNotSupported" xml:space="preserve">
+    <value>SetCalcFP() is not implemented for this stream type.</value>
+  </data>
+  <data name="GetFPNotSupported" xml:space="preserve">
+    <value>GetFP() is not implemented for this stream type.</value>
+  </data>
+  <data name="FailedToAllocateNewNativeBuffer" xml:space="preserve">
+    <value>Failed to allocate a new native data block of size {0}.</value>
+  </data>
+  <data name="FailedToReadFromInputChannel" xml:space="preserve">
+    <value>Native channel failed to read from input channel at port {0}. Win32 error = {1}.</value>
+  </data>
+  <data name="FailedToWriteToOutputChannel" xml:space="preserve">
+    <value>Native channel failed to write to output channel at port {0}.</value>
+  </data>
+  <data name="FailedToGetStreamProps" xml:space="preserve">
+    <value>Failed to get stream properties for file set {0}.</value>
+  </data>
+  <data name="MetadataRecordType" xml:space="preserve">
+    <value>RecordType does not match with file set metadata.  Use FromDsc&lt;T&gt; with matching T, or an overload that supresses type-check. RecordType={0}, DscStream.recordType={1}.</value>
+  </data>
+  <data name="NullKeySelector" xml:space="preserve">
+    <value>KeySelector function must be non-null.</value>
+  </data>
+  <data name="NumKeys" xml:space="preserve">
+    <value>The number of keys must be equal to PartitionCount-1.</value>
+  </data>
+  <data name="JobToCreateTableFailed" xml:space="preserve">
+    <value>The job to create this HpcLinqQuery(T) failed with error: {0}.</value>
+  </data>
+  <data name="JobToCreateTableWasCanceled" xml:space="preserve">
+    <value>The job to create this HpcLinqQuery(T) was canceled by the user.</value>
+  </data>
+  <data name="FailedToGetReadPathsForStream" xml:space="preserve">
+    <value>Failed to get read paths for DSC fileset {0}.</value>
+  </data>
+  <data name="OnlyAvailableForPhysicalData" xml:space="preserve">
+    <value>Property only available for physical data.</value>
+  </data>
+  <data name="CreatingDscDataFromLocalDebugFailed" xml:space="preserve">
+    <value>Error creating DSC data from local debug mode. See inner exception for details.</value>
+  </data>
+  <data name="CompareArgIncorrect" xml:space="preserve">
+    <value>Argument is not a LineRecord.</value>
+  </data>
+  <data name="ToHdfsUsedIncorrectly" xml:space="preserve">
+    <value>Queries ending in ToHdfs() cannot be followed by operators other than Submit().</value>
+  </data>
+</root>

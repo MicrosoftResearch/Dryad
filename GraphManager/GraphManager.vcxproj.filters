@@ -1,0 +1,348 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx</Extensions>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files\filesystem">
+      <UniqueIdentifier>{fce69969-9dd1-40e1-9412-adeed0df7f1f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\gang">
+      <UniqueIdentifier>{cffed16e-57ba-4ed6-aa94-9162cf5bf4f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\graph">
+      <UniqueIdentifier>{97301111-46f1-4970-ad41-96480ec1b43a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\kernel">
+      <UniqueIdentifier>{816f0b19-ef1a-4bd6-ab1c-0afcbad4165e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\reporting">
+      <UniqueIdentifier>{fd413de6-b103-4e17-9c12-ea48f0d084f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\shared">
+      <UniqueIdentifier>{c632d74d-d13e-4a37-ac3d-9d77efe27d41}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\stagemanager">
+      <UniqueIdentifier>{af36e225-6dac-4224-8df1-2ef519270bf8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\vertex">
+      <UniqueIdentifier>{652668bf-e40c-4bc0-9cc1-6edb1fb61c1f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\filesystem">
+      <UniqueIdentifier>{3dc23595-9e50-445e-9aa6-6ee9c47d4021}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\gang">
+      <UniqueIdentifier>{dcb126e3-8f5a-4f89-a829-8458a6382e7a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\graph">
+      <UniqueIdentifier>{d864c522-2a2d-4644-8f63-48fc6597ef08}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\kernel">
+      <UniqueIdentifier>{8752a8db-3f3f-4e61-86be-a1bfff840378}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\reporting">
+      <UniqueIdentifier>{9a6b764b-fcc7-4fce-a6e9-247528c33aea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\shared">
+      <UniqueIdentifier>{78301c66-d158-43e0-9591-613f63f90516}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\stagemanager">
+      <UniqueIdentifier>{1ecff01b-d91e-495c-8e26-64376dd0aef9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\vertex">
+      <UniqueIdentifier>{1c257925-942e-4d20-8c7d-8d555f7ecf29}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="jobmanager\DrHeaders.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="jobmanager\targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="shared\DrArray.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="shared\DrArrayList.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="reporting\DrArtemisLegacyReporting.h">
+      <Filter>Header Files\reporting</Filter>
+    </ClInclude>
+    <ClInclude Include="shared\DrAssert.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="vertex\DrClique.h">
+      <Filter>Header Files\vertex</Filter>
+    </ClInclude>
+    <ClInclude Include="kernel\DrCluster.h">
+      <Filter>Header Files\kernel</Filter>
+    </ClInclude>
+    <ClInclude Include="vertex\DrCohort.h">
+      <Filter>Header Files\vertex</Filter>
+    </ClInclude>
+    <ClInclude Include="shared\DrCritSec.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="stagemanager\DrDefaultManager.h">
+      <Filter>Header Files\stagemanager</Filter>
+    </ClInclude>
+    <ClInclude Include="graph\DrDefaultParameters.h">
+      <Filter>Header Files\graph</Filter>
+    </ClInclude>
+    <ClInclude Include="shared\DrDictionary.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="stagemanager\DrDynamicAggregateManager.h">
+      <Filter>Header Files\stagemanager</Filter>
+    </ClInclude>
+    <ClInclude Include="stagemanager\DrDynamicBroadcast.h">
+      <Filter>Header Files\stagemanager</Filter>
+    </ClInclude>
+    <ClInclude Include="stagemanager\DrDynamicDistributor.h">
+      <Filter>Header Files\stagemanager</Filter>
+    </ClInclude>
+    <ClInclude Include="stagemanager\DrDynamicRangeDistributor.h">
+      <Filter>Header Files\stagemanager</Filter>
+    </ClInclude>
+    <ClInclude Include="shared\DrError.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="shared\DrErrorInternal.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="graph\DrFileSystem.h">
+      <Filter>Header Files\graph</Filter>
+    </ClInclude>
+    <ClInclude Include="filesystem\DrFileSystems.h">
+      <Filter>Header Files\filesystem</Filter>
+    </ClInclude>
+    <ClInclude Include="shared\DrFileWriter.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="gang\DrGangHeaders.h">
+      <Filter>Header Files\gang</Filter>
+    </ClInclude>
+    <ClInclude Include="vertex\DrGraph.h">
+      <Filter>Header Files\vertex</Filter>
+    </ClInclude>
+    <ClInclude Include="graph\DrGraphExecutor.h">
+      <Filter>Header Files\graph</Filter>
+    </ClInclude>
+    <ClInclude Include="graph\DrGraphHeaders.h">
+      <Filter>Header Files\graph</Filter>
+    </ClInclude>
+    <ClInclude Include="kernel\DrKernel.h">
+      <Filter>Header Files\kernel</Filter>
+    </ClInclude>
+    <ClInclude Include="shared\DrLogging.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="kernel\DrMessagePump.h">
+      <Filter>Header Files\kernel</Filter>
+    </ClInclude>
+    <ClInclude Include="gang\DrMetaData.h">
+      <Filter>Header Files\gang</Filter>
+    </ClInclude>
+    <ClInclude Include="gang\DrMetaDataTag.h">
+      <Filter>Header Files\gang</Filter>
+    </ClInclude>
+    <ClInclude Include="shared\DrMultiMap.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="vertex\DrOutputGenerator.h">
+      <Filter>Header Files\vertex</Filter>
+    </ClInclude>
+    <ClInclude Include="filesystem\DrPartitionFile.h">
+      <Filter>Header Files\filesystem</Filter>
+    </ClInclude>
+    <ClInclude Include="stagemanager\DrPipelineSplitManager.h">
+      <Filter>Header Files\stagemanager</Filter>
+    </ClInclude>
+    <ClInclude Include="kernel\DrXCompute.h">
+      <Filter>Header Files\kernel</Filter>
+    </ClInclude>
+    <ClInclude Include="vertex\DrVertexRecord.h">
+      <Filter>Header Files\vertex</Filter>
+    </ClInclude>
+    <ClInclude Include="vertex\DrVertexHeaders.h">
+      <Filter>Header Files\vertex</Filter>
+    </ClInclude>
+    <ClInclude Include="vertex\DrVertexCommand.h">
+      <Filter>Header Files\vertex</Filter>
+    </ClInclude>
+    <ClInclude Include="vertex\DrVertex.h">
+      <Filter>Header Files\vertex</Filter>
+    </ClInclude>
+    <ClInclude Include="kernel\DrProcess.h">
+      <Filter>Header Files\kernel</Filter>
+    </ClInclude>
+    <ClInclude Include="gang\DrProperty.h">
+      <Filter>Header Files\gang</Filter>
+    </ClInclude>
+    <ClInclude Include="gang\DrProperties.h">
+      <Filter>Header Files\gang</Filter>
+    </ClInclude>
+    <ClInclude Include="shared\DrRef.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="reporting\DrReporting.h">
+      <Filter>Header Files\reporting</Filter>
+    </ClInclude>
+    <ClInclude Include="shared\DrSort.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="shared\DrShared.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="shared\DrSet.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="vertex\DrStageManager.h">
+      <Filter>Header Files\vertex</Filter>
+    </ClInclude>
+    <ClInclude Include="stagemanager\DrStageStatistics.h">
+      <Filter>Header Files\stagemanager</Filter>
+    </ClInclude>
+    <ClInclude Include="stagemanager\DrStageHeaders.h">
+      <Filter>Header Files\stagemanager</Filter>
+    </ClInclude>
+    <ClInclude Include="shared\DrString.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="shared\DrStringUtil.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="shared\DrTypes.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="kernel\DrXComputeYarn.h">
+      <Filter>Header Files\kernel</Filter>
+    </ClInclude>
+    <ClInclude Include="kernel\DrYarnBridge.h">
+      <Filter>Header Files\kernel</Filter>
+    </ClInclude>
+    <ClInclude Include="filesystem\DrHdfsClient.h">
+      <Filter>Header Files\filesystem</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="jobmanager\version.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="graph\DrFileSystem.cpp">
+      <Filter>Source Files\filesystem</Filter>
+    </ClCompile>
+    <ClCompile Include="filesystem\DrPartitionFile.cpp">
+      <Filter>Source Files\filesystem</Filter>
+    </ClCompile>
+    <ClCompile Include="reporting\DrArtemisLegacyReporting.cpp">
+      <Filter>Source Files\reporting</Filter>
+    </ClCompile>
+    <ClCompile Include="vertex\DrCohort.cpp">
+      <Filter>Source Files\vertex</Filter>
+    </ClCompile>
+    <ClCompile Include="vertex\DrClique.cpp">
+      <Filter>Source Files\vertex</Filter>
+    </ClCompile>
+    <ClCompile Include="kernel\DrCluster.cpp">
+      <Filter>Source Files\kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="stagemanager\DrDefaultManager.cpp">
+      <Filter>Source Files\stagemanager</Filter>
+    </ClCompile>
+    <ClCompile Include="stagemanager\DrDynamicAggregateManager.cpp">
+      <Filter>Source Files\stagemanager</Filter>
+    </ClCompile>
+    <ClCompile Include="stagemanager\DrDynamicBroadcast.cpp">
+      <Filter>Source Files\stagemanager</Filter>
+    </ClCompile>
+    <ClCompile Include="stagemanager\DrDynamicDistributor.cpp">
+      <Filter>Source Files\stagemanager</Filter>
+    </ClCompile>
+    <ClCompile Include="stagemanager\DrDynamicRangeDistributor.cpp">
+      <Filter>Source Files\stagemanager</Filter>
+    </ClCompile>
+    <ClCompile Include="shared\DrError.cpp">
+      <Filter>Source Files\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="shared\DrFileWriter.cpp">
+      <Filter>Source Files\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="vertex\DrGraph.cpp">
+      <Filter>Source Files\vertex</Filter>
+    </ClCompile>
+    <ClCompile Include="graph\DrGraphExecutor.cpp">
+      <Filter>Source Files\graph</Filter>
+    </ClCompile>
+    <ClCompile Include="graph\DrGraphParameters.cpp">
+      <Filter>Source Files\graph</Filter>
+    </ClCompile>
+    <ClCompile Include="shared\DrLogging.cpp">
+      <Filter>Source Files\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="kernel\DrMessagePump.cpp">
+      <Filter>Source Files\kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="gang\DrMetaDataTag.cpp">
+      <Filter>Source Files\gang</Filter>
+    </ClCompile>
+    <ClCompile Include="gang\DrMetaData.cpp">
+      <Filter>Source Files\gang</Filter>
+    </ClCompile>
+    <ClCompile Include="vertex\DrOutputGenerator.cpp">
+      <Filter>Source Files\vertex</Filter>
+    </ClCompile>
+    <ClCompile Include="stagemanager\DrPipelineSplitManager.cpp">
+      <Filter>Source Files\stagemanager</Filter>
+    </ClCompile>
+    <ClCompile Include="kernel\DrProcess.cpp">
+      <Filter>Source Files\kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="shared\DrString.cpp">
+      <Filter>Source Files\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="shared\DrRef.cpp">
+      <Filter>Source Files\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="stagemanager\DrStageStatistics.cpp">
+      <Filter>Source Files\stagemanager</Filter>
+    </ClCompile>
+    <ClCompile Include="gang\DrProperty.cpp">
+      <Filter>Source Files\gang</Filter>
+    </ClCompile>
+    <ClCompile Include="shared\DrStringUtil.cpp">
+      <Filter>Source Files\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="vertex\DrVertex.cpp">
+      <Filter>Source Files\vertex</Filter>
+    </ClCompile>
+    <ClCompile Include="vertex\DrVertexCommand.cpp">
+      <Filter>Source Files\vertex</Filter>
+    </ClCompile>
+    <ClCompile Include="vertex\DrVertexRecord.cpp">
+      <Filter>Source Files\vertex</Filter>
+    </ClCompile>
+    <ClCompile Include="kernel\DrXComputeYarn.cpp">
+      <Filter>Source Files\kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="kernel\DrYarnBridge.cpp">
+      <Filter>Source Files\kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="kernel\DrYarnNetServer.cpp">
+      <Filter>Source Files\kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="filesystem\DrHdfsClient.cpp">
+      <Filter>Source Files\filesystem</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,296 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{8E30F4A4-603B-4799-A473-6EF5388661BA}</ProjectGuid>
+    <RootNamespace>GraphManager-vs2008</RootNamespace>
+    <Keyword>ManagedCProj</Keyword>
+    <ProjectName>GraphManager</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CLRSupport>Pure</CLRSupport>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <CLRSupport>Pure</CLRSupport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CLRSupport>Pure</CLRSupport>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <CLRSupport>Pure</CLRSupport>
+    <PlatformToolset>v100</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\bin\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Microsoft.Research.Dryad</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Microsoft.Research.Dryad</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>shared;graph;gang;filesystem;vertex;kernel;jobmanager;reporting;stagemanager;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;GRAPHMANAGERVS2008_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AssemblyDebug>true</AssemblyDebug>
+      <SubSystem>Windows</SubSystem>
+      <EntryPointSymbol>main</EntryPointSymbol>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>shared;graph;gang;filesystem;vertex;kernel;jobmanager;reporting;stagemanager;..\DryadYarnBridge;..\xcompute_native\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;GRAPHMANAGERVS2008_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AssemblyDebug>true</AssemblyDebug>
+      <SubSystem>Windows</SubSystem>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;GRAPHMANAGERVS2008_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>shared;graph;gang;filesystem;vertex;kernel;jobmanager;reporting;stagemanager;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EntryPointSymbol>main</EntryPointSymbol>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;GRAPHMANAGERVS2008_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>shared;graph;gang;filesystem;vertex;kernel;jobmanager;reporting;stagemanager;..\DryadYarnBridge;..\xcompute_native\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+      <TargetMachine>MachineX64</TargetMachine>
+      <AdditionalDependencies>dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="shared\DrArray.h" />
+    <ClInclude Include="shared\DrArrayList.h" />
+    <ClInclude Include="reporting\DrArtemisLegacyReporting.h" />
+    <ClInclude Include="shared\DrAssert.h" />
+    <ClInclude Include="vertex\DrClique.h" />
+    <ClInclude Include="kernel\DrCluster.h" />
+    <ClInclude Include="vertex\DrCohort.h" />
+    <ClInclude Include="shared\DrCritSec.h" />
+    <ClInclude Include="stagemanager\DrDefaultManager.h" />
+    <ClInclude Include="graph\DrDefaultParameters.h" />
+    <ClInclude Include="shared\DrDictionary.h" />
+    <ClInclude Include="stagemanager\DrDynamicAggregateManager.h" />
+    <ClInclude Include="stagemanager\DrDynamicBroadcast.h" />
+    <ClInclude Include="stagemanager\DrDynamicDistributor.h" />
+    <ClInclude Include="stagemanager\DrDynamicRangeDistributor.h" />
+    <ClInclude Include="shared\DrError.h" />
+    <ClInclude Include="shared\DrErrorInternal.h" />
+    <ClInclude Include="graph\DrFileSystem.h" />
+    <ClInclude Include="filesystem\DrFileSystems.h" />
+    <ClInclude Include="shared\DrFileWriter.h" />
+    <ClInclude Include="gang\DrGangHeaders.h" />
+    <ClInclude Include="vertex\DrGraph.h" />
+    <ClInclude Include="graph\DrGraphExecutor.h" />
+    <ClInclude Include="graph\DrGraphHeaders.h" />
+    <ClInclude Include="filesystem\DrHdfsClient.h" />
+    <ClInclude Include="jobmanager\DrHeaders.h" />
+    <ClInclude Include="kernel\DrKernel.h" />
+    <ClInclude Include="shared\DrLogging.h" />
+    <ClInclude Include="kernel\DrMessagePump.h" />
+    <ClInclude Include="gang\DrMetaData.h" />
+    <ClInclude Include="gang\DrMetaDataTag.h" />
+    <ClInclude Include="shared\DrMultiMap.h" />
+    <ClInclude Include="vertex\DrOutputGenerator.h" />
+    <ClInclude Include="filesystem\DrPartitionFile.h" />
+    <ClInclude Include="stagemanager\DrPipelineSplitManager.h" />
+    <ClInclude Include="kernel\DrProcess.h" />
+    <ClInclude Include="gang\DrProperties.h" />
+    <ClInclude Include="gang\DrProperty.h" />
+    <ClInclude Include="shared\DrRef.h" />
+    <ClInclude Include="reporting\DrReporting.h" />
+    <ClInclude Include="shared\DrSet.h" />
+    <ClInclude Include="shared\DrShared.h" />
+    <ClInclude Include="shared\DrSort.h" />
+    <ClInclude Include="stagemanager\DrStageHeaders.h" />
+    <ClInclude Include="vertex\DrStageManager.h" />
+    <ClInclude Include="stagemanager\DrStageStatistics.h" />
+    <ClInclude Include="shared\DrString.h" />
+    <ClInclude Include="shared\DrStringUtil.h" />
+    <ClInclude Include="shared\DrTypes.h" />
+    <ClInclude Include="vertex\DrVertex.h" />
+    <ClInclude Include="vertex\DrVertexCommand.h" />
+    <ClInclude Include="vertex\DrVertexHeaders.h" />
+    <ClInclude Include="vertex\DrVertexRecord.h" />
+    <ClInclude Include="kernel\DrXCompute.h" />
+    <ClInclude Include="kernel\drxcomputeinternal.h" />
+    <ClInclude Include="jobmanager\targetver.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="reporting\DrArtemisLegacyReporting.cpp" />
+    <ClCompile Include="vertex\DrClique.cpp" />
+    <ClCompile Include="kernel\DrCluster.cpp" />
+    <ClCompile Include="vertex\DrCohort.cpp" />
+    <ClCompile Include="stagemanager\DrDefaultManager.cpp" />
+    <ClCompile Include="stagemanager\DrDynamicAggregateManager.cpp" />
+    <ClCompile Include="stagemanager\DrDynamicBroadcast.cpp" />
+    <ClCompile Include="stagemanager\DrDynamicDistributor.cpp" />
+    <ClCompile Include="stagemanager\DrDynamicRangeDistributor.cpp" />
+    <ClCompile Include="shared\DrError.cpp" />
+    <ClCompile Include="graph\DrFileSystem.cpp" />
+    <ClCompile Include="shared\DrFileWriter.cpp" />
+    <ClCompile Include="vertex\DrGraph.cpp" />
+    <ClCompile Include="graph\DrGraphExecutor.cpp" />
+    <ClCompile Include="graph\DrGraphParameters.cpp" />
+    <ClCompile Include="filesystem\DrHdfsClient.cpp" />
+    <ClCompile Include="shared\DrLogging.cpp" />
+    <ClCompile Include="kernel\DrMessagePump.cpp" />
+    <ClCompile Include="gang\DrMetaData.cpp" />
+    <ClCompile Include="gang\DrMetaDataTag.cpp" />
+    <ClCompile Include="vertex\DrOutputGenerator.cpp" />
+    <ClCompile Include="filesystem\DrPartitionFile.cpp" />
+    <ClCompile Include="stagemanager\DrPipelineSplitManager.cpp" />
+    <ClCompile Include="kernel\DrProcess.cpp" />
+    <ClCompile Include="gang\DrProperty.cpp" />
+    <ClCompile Include="shared\DrRef.cpp" />
+    <ClCompile Include="stagemanager\DrStageStatistics.cpp" />
+    <ClCompile Include="shared\DrString.cpp" />
+    <ClCompile Include="shared\DrStringUtil.cpp" />
+    <ClCompile Include="vertex\DrVertex.cpp" />
+    <ClCompile Include="vertex\DrVertexCommand.cpp" />
+    <ClCompile Include="vertex\DrVertexRecord.cpp" />
+    <ClCompile Include="kernel\drxcompute.cpp" />
+    <ClCompile Include="jobmanager\version.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DryadYarnBridge\DryadYarnBridge.vcxproj">
+      <Project>{09fb27c7-d1a5-4a59-b010-67d5886dd9a2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Hdfs\HdfsBridgeManaged\HdfsBridgeManaged.vcxproj">
+      <Project>{c0f4c1e3-1f9e-4c55-bd6a-0241d35425f5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\xcompute_native\YarnQueryNativeClusterAdapter.vcxproj">
+      <Project>{e092e2b9-d3c9-4ce2-8201-bda442574c97}</Project>
+      <Private>true</Private>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
