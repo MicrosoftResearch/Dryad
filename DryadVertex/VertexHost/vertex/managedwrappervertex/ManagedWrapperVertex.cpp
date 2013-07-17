@@ -102,7 +102,7 @@ BOOL ConvertCurrentDirToUNCPath(WCHAR *pwszNWShareName, WCHAR *pwszUncPath, DWOR
         if (dwCurrentDirLen == 0)
             break;
 
-        DWORD dwShareLocalPathLen = wcslen(pwszShareLocalPath);
+        DWORD dwShareLocalPathLen = (DWORD) wcslen(pwszShareLocalPath);
         
         if( dwShareLocalPathLen >= dwCurrentDirLen)     // current directory must be longer than share local path, otherwise something is off.
             break;

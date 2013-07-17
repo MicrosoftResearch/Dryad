@@ -1116,7 +1116,7 @@ void RChannelBufferHdfsWriter::WriteThread()
                     Size_t dataToWrite = entry->m_buffer->GetAvailableSize();
                     LogAssert(dataToWrite <= dataSize);
                     bool ret =
-                        wa.WriteBlock((char *)dataAddr, dataToWrite,
+                        wa.WriteBlock((char *)dataAddr, (long) dataToWrite,
                                       entry->m_flush);
                     if (ret)
                     {
