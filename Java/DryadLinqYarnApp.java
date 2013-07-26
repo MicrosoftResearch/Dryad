@@ -47,6 +47,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocalFileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.security.SecurityInfo;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
@@ -169,6 +170,8 @@ public class DryadLinqYarnApp
 	Path homeDir = fs.getHomeDirectory();
 
 	Path resourceHdfsDir = new Path(homeDir, "dlbin/" + appId);
+	FsPermission execPerm = new FsPermission("755");
+	fs.mkdirs(resourceHdfsDir, execPerm);
 	StringBuilder resourceString = new StringBuilder();
 	resourceString.append(resourceHdfsDir);
 
@@ -198,11 +201,16 @@ public class DryadLinqYarnApp
 		throw new FileNotFoundException("Unable to find local resource: " + localResourcePaths[i]); 	
 	    }
 	    Path srcPath = new Path(resourceFile.toURI());
-	    String leafName = new File(localResourcePaths[i]).getName();
+	    String leafName = new File(localResourcePaths[i]).getName().toLowerCase();
 	    Path remotePath = new Path(resourceHdfsDir, leafName);
 	    log.info("Copying file '" +  leafName + "' to '" + remotePath + "'"); 
 	    fs.copyFromLocalFile(srcPath, remotePath);
 
+	    if (leafName.endsWith(".exe") || leafName.endsWith(".dll") ||
+		leafName.endsWith(".pdb")) {
+		fs.setPermission(remotePath, execPerm);
+	    }
+	    
 
 	    FileStatus remoteStatus = fs.getFileStatus(remotePath);
 	    LocalResource amResource = Records.newRecord(LocalResource.class);
