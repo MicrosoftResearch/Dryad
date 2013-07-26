@@ -70,7 +70,7 @@ namespace DryadYarn
 	    char* GetExceptionMessage();
 	    
 	    bool ScheduleProcess(int vertexId, const char* name, const char* commandLine);
-		bool Shutdown();
+		bool Shutdown(bool success);
 
     private:
 	    //void* operator new( size_t );

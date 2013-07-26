@@ -246,8 +246,8 @@ namespace DryadYarn
             return false;
         }
 
-		jmethodID midShutdown = m_env->e->GetMethodID(clsDryadAppMaster, "shutdown", "()V");
-        if (midSchProc == NULL)
+		jmethodID midShutdown = m_env->e->GetMethodID(clsDryadAppMaster, "shutdown", "(ZZ)V");
+        if (midShutdown == NULL)
         {
             jthrowable exc;
             exc = m_env->e->ExceptionOccurred();
@@ -288,7 +288,6 @@ namespace DryadYarn
 
         jstring jName = env->NewStringUTF(name);
         jstring jCmdLine = env->NewStringUTF(commandLine);
-
         env->CallVoidMethod(m_inst->m_obj, m_inst->m_midSchProc, vertexId, jName, jCmdLine);
 
         env->DeleteLocalRef(jName);
@@ -299,16 +298,25 @@ namespace DryadYarn
         return true;
     }
 
-	bool AMNativeInstance::Shutdown()
+	bool AMNativeInstance::Shutdown(bool success)
     {
         fprintf(stderr, "Shutting down AMNativeInstance\n");
         fflush(stderr);
         JNIEnv* env = AttachToJvm(); 
-
-        env->CallVoidMethod(m_inst->m_obj, m_inst->m_midShutdown);
+		fprintf(stderr, "Calling Shutdown\n");
+        fflush(stderr);
+		
+		jboolean jImmedShutdown = 0;
+		jboolean jSuccess = 0;
+		if (success)
+		{
+			jSuccess = 1;
+		}
+        env->CallVoidMethod(m_inst->m_obj, m_inst->m_midShutdown, jImmedShutdown, jSuccess);
 
         // detach here?
-
+		fprintf(stderr, "Finished Shutdown\n");
+        fflush(stderr);
         return true;
     }
 

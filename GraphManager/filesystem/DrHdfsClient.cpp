@@ -339,11 +339,11 @@ DrString DrHdfsOutputStream::GetURIForWrite(int partitionIndex,
                                             DrMetaDataRef /*metaData */)
 {
     DrAssert(m_hdfsInstance != DrNull);
-    DrString fileName;
-    fileName.Set(m_baseUri);
-    //String^ fileName = m_baseUri + "-tmp/part-" + partitionIndex.ToString("D8") + "." + version;
-    fileName.AppendF("-tmp/part-%8d.%d", partitionIndex, version);
-    return fileName;
+    String^ fileName = m_baseUri + "-tmp/part-" + partitionIndex.ToString("D8") + "." + version;
+	
+	//DrLogI("HDFS GetURIForWrite returning '%s'", fileName);  // DCF HDFS debug
+
+    return DrString(fileName);
 }
 
 void DrHdfsOutputStream::DiscardUnusedPartition(int partitionIndex, 

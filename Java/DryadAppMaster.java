@@ -134,7 +134,7 @@ public class DryadAppMaster
     {
 	log = LogFactory.getLog("DryadAppMaster");
 	log.info("In DryadAppMaster constructor");
-	shuttingDown = new AtomicBoolean();
+	shuttingDown = new AtomicBoolean(false);
 	scheduleProcesses = new AtomicBoolean(true);
 	responseId = new AtomicInteger();
 	nextVertexId = new AtomicInteger(2); //first vertex id is 2 to map to Dryad Vertex Scheduler
@@ -233,19 +233,20 @@ public class DryadAppMaster
     {
 	// check to see if we should cancel the heartbeat
 	if (shuttingDown.get()) {
+	    log.info("Cancelling heartbeat"); 
 	    heartbeatHandle.cancel(true);
-	}
-	log.info("Sending heartbeat to the RM"); 
-	AllocateResponse response = sendAllocateRequest();
-	if (response != null) {
-	    int oldNodeCount = clusterNodeCount;
-	    clusterNodeCount = response.getNumClusterNodes();
-	    if (clusterNodeCount != oldNodeCount) {
-		log.info("There are now " + clusterNodeCount + " available nodes on the cluster.");
+	} else {
+	    log.info("Sending heartbeat to the RM"); 
+	    AllocateResponse response = sendAllocateRequest();
+	    if (response != null) {
+		int oldNodeCount = clusterNodeCount;
+		clusterNodeCount = response.getNumClusterNodes();
+		if (clusterNodeCount != oldNodeCount) {
+		    log.info("There are now " + clusterNodeCount + " available nodes on the cluster.");
+		}
+		processResponse(response);
 	    }
-	    processResponse(response);
 	}
-	
     }
     
     private void launchContainer(Container container, ContainerManager cm)
@@ -317,7 +318,9 @@ public class DryadAppMaster
     {
 	// is this the first allocation?	
 	if (scheduleProcesses.compareAndSet(true, false)) {
-	    int numProcessesToStart = Math.max(response.getNumClusterNodes() - 1, maxNodes); //don't schedule a process where the graph manager is running
+	    //don't schedule a process where the graph manager is running
+	    int numProcessesToStart = Math.max(response.getNumClusterNodes() - 1, maxNodes);
+	    log.info("There are " + response.getNumClusterNodes() + " nodes in the cluster. maxNodes = " + maxNodes);
 	    scheduleProcess(numProcessesToStart);
 	}
 	
@@ -339,7 +342,8 @@ public class DryadAppMaster
 	    
 	    // Need to notify graph manager of current state
 	    VertexInfo vi = runningContainers.remove(cid);
-	    if (vi != null) {
+	    //only send events up the stack when we are not shutting down
+	    if (vi != null && !shuttingDown.get()) {  
 		int containerState = 0;
 		if (containerStatus.getState() == ContainerState.COMPLETE) {
 		    if (containerStatus.getExitStatus() == 0) {
@@ -426,8 +430,8 @@ public class DryadAppMaster
 	}
     }
 
-    public void shutdown(boolean immediateShutdown)
-    {
+    public void shutdown(boolean immediateShutdown, boolean success)
+    { 
 	shuttingDown.set(true);
 	heartbeatHandle.cancel(immediateShutdown); // if we are shutting down, we can just interrupt the running thread, if necessary
 	log.info("Shutdown heartbeats to RM");
@@ -435,13 +439,18 @@ public class DryadAppMaster
 	// send the shutdown message to the RM
 	FinishApplicationMasterRequest request = Records.newRecord(FinishApplicationMasterRequest.class);
 	request.setAppAttemptId(appAttemptID);
-	request.setFinishApplicationStatus(FinalApplicationStatus.SUCCEEDED);  // NYI - determine success
+	if (success) {
+	    request.setFinishApplicationStatus(FinalApplicationStatus.SUCCEEDED);  
+	} else {
+	    request.setFinishApplicationStatus(FinalApplicationStatus.FAILED);
+	}
 	try {
 	    //response is currently an empty class
 	    FinishApplicationMasterResponse response = resourceManager. finishApplicationMaster(request);  
 	} catch (YarnRemoteException|IOException e) {
 	    log.error("Error communicating with RM: " + e.getMessage() , e);
 	}
+	log.info("FinishApplicationMasterRequest sent");
     }
 
     private void startContainers(List<Container> newContainers) 

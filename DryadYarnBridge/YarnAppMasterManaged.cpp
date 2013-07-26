@@ -62,12 +62,12 @@ namespace Microsoft { namespace Research { namespace Dryad { namespace YarnBridg
         }
     }
 
-    void AMInstance::Finish()
+    void AMInstance::Finish(bool success)
     {
         if (m_instance != IntPtr::Zero)
         {
             AMNativeInstance *instance =  (AMNativeInstance *) m_instance.ToPointer();
-            instance->Shutdown();
+            instance->Shutdown(success);
         }
     }
 

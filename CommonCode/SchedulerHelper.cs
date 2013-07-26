@@ -459,7 +459,7 @@ namespace Microsoft.Research.Dryad
 
         void ISchedulerHelper.FinishJob()
         {
-            m_appMaster.Finish();
+            
         }
 
         string ISchedulerHelper.GetVertexServiceBaseAddress(string nodename, int instanceId)
@@ -534,6 +534,8 @@ namespace Microsoft.Research.Dryad
                     }
                 }
             }
+
+            m_appMaster.Finish(true);
 
             if (wait)
             {
@@ -619,6 +621,7 @@ namespace Microsoft.Research.Dryad
             DryadLogger.LogInformation("QueueYarnUpdate", "Task {0} on node {2} is in state {3}", taskId, nodeName,
                                        taskState);
             // Set change event arguments
+            
             YarnTaskState yTaskState = (YarnTaskState)taskState;
             VertexTask v = new VertexTask(taskId, nodeName, yTaskState, int.MaxValue, DateTime.UtcNow);
             m_taskUpdateQueue.Add(v);

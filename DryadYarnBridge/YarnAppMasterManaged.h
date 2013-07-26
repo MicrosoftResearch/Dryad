@@ -37,7 +37,7 @@ namespace Microsoft { namespace Research { namespace Dryad { namespace YarnBridg
 
 
         void Close();
-        void Finish();
+        void Finish(bool success);
 
         int GetHealthyNodeCount();
 
