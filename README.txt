@@ -16,7 +16,7 @@ Requirements
 A version of YARN built for Windows 
 	The BUILDING.txt file in the Hadoop YARN repository contains 
 	instructions on building YARN for Windows.
-Visual Studio 2010 or 2012
+Visual Studio 2012
 Java Development Kit 1.6
 A Windows YARN cluster composed of x64 machines
 
@@ -41,7 +41,9 @@ Notes
 
 The YARN interfaces used are current as of commit dfb83b8 in trunk.
 
-If you are running debug builds of the Dryad, also copy the files msvcp100d.dll
-and msvcr100d.dll to the DRYAD_HOME directory on each compute node.
+If you are running debug builds of the Dryad, also copy the files msvcp110d.dll
+and msvcr110d.dll to the DRYAD_HOME directory on each compute node.  The 
+article at http://msdn.microsoft.com/en-us/library/vstudio/aa985618.aspx
+describes how to do this.
 
 The HDFS implementation in Dryad currently only supports text files.      
