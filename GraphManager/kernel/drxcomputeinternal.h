@@ -39,11 +39,18 @@ DRCLASS(DrXComputeProcessHandle) : public DrProcessHandle
 public:
     virtual void CloseHandle() DROVERRIDE;
     virtual DrString GetHandleIdAsString() DROVERRIDE;
-    virtual DrProcessState GetState(HRESULT& reason) DROVERRIDE;
     virtual DrString GetFileURIBase() DROVERRIDE;
+
+    virtual DrResourcePtr GetAssignedNode() DROVERRIDE;
+
+    DrProcessState GetState(HRESULT& reason);
+    void SetAssignedNode(DrResourcePtr);
 
     /* this is public so the managed DrXComputeInternal class can make a pin_ptr out of it */
     XCPROCESSHANDLE   m_handle;
+
+private:
+    DrResourceRef     m_node;
 };
 DRREF(DrXComputeProcessHandle);
 

@@ -20,22 +20,21 @@ limitations under the License.
 
 #pragma once
 
-DRCLASS(DrArtemisLegacyReporter) : public DrCritSec, public DrProcessListener, public DrVertexListener,
-    public DrVertexTopologyReporter
+DRCLASS(DrArtemisLegacyReporter) : public DrIReporter
 {
 public:
     /* the DrProcessListener implementation */
-    virtual void ReceiveMessage(DrProcessInfoRef info);
+    virtual void ReceiveMessage(DrProcessInfoRef info) DROVERRIDE;
 
     /* the DrVertexListener implementation */
-    virtual void ReceiveMessage(DrVertexInfoRef info);
+    virtual void ReceiveMessage(DrVertexInfoRef info) DROVERRIDE;
 
     /* the DrVertexTopologyReporter implementation */
     virtual void ReportFinalTopology(DrVertexPtr vertex, DrResourcePtr runningMachine,
-                                     DrTimeInterval runningTime);
+                                     DrTimeInterval runningTime) DROVERRIDE;
 
-    static void ReportStart(DrDateTime startTime);
+    virtual void ReportStart(DrDateTime startTime) DROVERRIDE;
 
-    static void ReportStop(UINT exitCode);
+    virtual void ReportStop(UINT exitCode, DrNativeString errorString, DrDateTime stopTime) DROVERRIDE;
 };
 DRREF(DrArtemisLegacyReporter);

@@ -19,13 +19,16 @@ limitations under the License.
 */
 
 #include "channelbufferhdfs.h"
+#include <Hadoop.h>
 
 #include <process.h>
 
 #pragma unmanaged
 
-const char* RChannelBufferHdfsReader::s_hdfsPartitionPrefix = "hpchdfspt://";
-const char* RChannelBufferHdfsWriter::s_hdfsFilePrefix = "hpchdfs://";
+const char* RChannelBufferHdfsReader::s_hdfsPartitionPrefix = "hdfspt://";
+const char* RChannelBufferHdfsReader::s_wasbPartitionPrefix = "wasbpt://";
+const char* RChannelBufferHdfsWriter::s_hdfsFilePrefix = "hdfs://";
+const char* RChannelBufferHdfsWriter::s_wasbFilePrefix = "wasb://";
 
 static long s_readBufferSize = 2 * 1024 * 1024;
 static long s_writeBufferSize = 256 * 1024;
@@ -34,30 +37,31 @@ static UInt32 s_maxBuffersToBlockWriter = 4;
 
 static bool
 ExtractHdfsReadUri(DrStr64 uri,
-                   DrStr64& headNode, Int32* pHdfsPort,
-                   DrStr64& filePath,
-                   Int64* pOffsetStart, Int32* pLength)
+                   DrStr64& schemeAndAuthority,
+                   DrStr64& filePath, Int64* pOffsetStart, Int32* pLength)
 {
-    if (!uri.StartsWith(RChannelBufferHdfsReader::s_hdfsPartitionPrefix))
+    const char* cScheme;
+    char* cAuthority;
+    if (uri.StartsWith(RChannelBufferHdfsReader::s_hdfsPartitionPrefix))
     {
-        return false;
+        cScheme = "hdfs://";
+        cAuthority =
+            uri.GetWritableBuffer(uri.GetLength(),
+                                  strlen(RChannelBufferHdfsReader::s_hdfsPartitionPrefix));
     }
-
-    char* cHeadNode =
+    else if (uri.StartsWith(RChannelBufferHdfsReader::s_wasbPartitionPrefix))
+    {
+        cScheme = "wasb://";
+        cAuthority =
         uri.GetWritableBuffer(uri.GetLength(),
-                              strlen(RChannelBufferHdfsReader::
-                                     s_hdfsPartitionPrefix));
-
-    char* colon = strchr(cHeadNode, ':');
-    if (colon == NULL)
+                                  strlen(RChannelBufferHdfsReader::s_wasbPartitionPrefix));
+    }
+    else
     {
         return false;
     }
-    *colon = '\0';
 
-    char* cPort = colon+1;
-
-    char* slash = strchr(cPort, '/');
+    char* slash = strchr(cAuthority, '/');
     if (slash == NULL)
     {
         return false;
@@ -66,41 +70,37 @@ ExtractHdfsReadUri(DrStr64 uri,
 
     char* cPath = slash+1;
 
-    char* quest = strchr(cPath, '?');
-    if (quest == NULL)
+    static const char* offsetString = "?offset=";
+    char* offset = strstr(cPath, offsetString);
+    if (offset == NULL)
     {
         return false;
     }
-    *quest = '\0';
+    *offset = '\0';
 
-    char* cOffset = quest+1;
+    char* cOffset = offset + strlen(offsetString);
 
-    quest = strchr(cOffset, '?');
-    if (quest == NULL)
+    static const char* lengthString = "&length=";
+    char* length = strstr(cOffset, lengthString);
+    if (length == NULL)
     {
         return false;
     }
-    *quest = '\0';
+    *length = '\0';
 
-    char* cSize = quest+1;
+    char* cLength = length + strlen(lengthString);
 
-    headNode.Set(cHeadNode);
+    schemeAndAuthority.SetF("%s%s", cScheme, cAuthority);
 
-    DrError dre = DrStringToInt32(cPort, pHdfsPort);
+    filePath.SetF("%s/%s", schemeAndAuthority.GetString(), cPath);
+
+    DrError dre = DrStringToInt64(cOffset, pOffsetStart);
     if (dre != DrError_OK)
     {
         return false;
     }
 
-    filePath.Set(cPath);
-
-    dre = DrStringToInt64(cOffset, pOffsetStart);
-    if (dre != DrError_OK)
-    {
-        return false;
-    }
-
-    dre = DrStringToInt32(cSize, pLength);
+    dre = DrStringToInt32(cLength, pLength);
     if (dre != DrError_OK)
     {
         return false;
@@ -111,6 +111,7 @@ ExtractHdfsReadUri(DrStr64 uri,
 
 RChannelBufferHdfsReader::RChannelBufferHdfsReader(const char* uri)
 {
+    DrLogI("Making HDFS Reader %s", uri);
     m_uri.Set(uri);
     m_handler = NULL;
     m_readThread = INVALID_HANDLE_VALUE;
@@ -121,38 +122,35 @@ RChannelBufferHdfsReader::RChannelBufferHdfsReader(const char* uri)
                                        NULL);
 
     /* it's important to initialize here since these are called
-       sequentially so there's no race on the crappy hdfs
+       sequentially so there's no race on the hdfs
        initialization code. Then we need to connect to the server,
        since that has to happen first on the thread that creates the
        jvm, in order for login to hdfs to work, for unexplained
        reasons. */
-    bool initialized = HdfsBridgeNative::Initialize();
+    bool initialized = HadoopNative::Initialize();
     if (initialized)
     {
-        DrStr64 headNode;
-        Int32 hdfsPort;
+        DrStr64 schemeAndAuthority;
         DrStr64 filePath;
         Int64 offsetStart;
         Int32 length;
 
         bool parsed = ExtractHdfsReadUri(m_uri,
-                                         headNode, &hdfsPort,
+                                         schemeAndAuthority,
                                          filePath, &offsetStart, &length);
         if (parsed)
         {
-            HdfsBridgeNative::Instance* bridge;
-            bool openedInstance =
-                HdfsBridgeNative::OpenInstance(headNode.GetString(),
-                                               hdfsPort,
-                                               &bridge);
+            Hdfs::Instance* bridge;
+            bool openedInstance = Hdfs::OpenInstance(schemeAndAuthority.GetString(), &bridge);
             if (openedInstance)
             {
-                HdfsBridgeNative::InstanceAccessor ia(bridge);
-                ia.Dispose();
+                Hdfs::InstanceAccessor ia(bridge);
+                ia.Discard();
             }
         }
     }
-            
+
+    DrLogI("Made HDFS Reader %s", uri);
 }
 
 RChannelBufferHdfsReader::~RChannelBufferHdfsReader()
@@ -366,7 +364,7 @@ void RChannelBufferHdfsReader::SendBuffer(RChannelBuffer* buffer,
 }
 
 Int64 RChannelBufferHdfsReader::
-AdjustStartOffset(HdfsBridgeNative::Reader* reader,
+AdjustStartOffset(Hdfs::Reader* reader,
                   const char* fileName,
                   Int64 startOffset,
                   Int64 endOffset)
@@ -416,7 +414,7 @@ AdjustStartOffset(HdfsBridgeNative::Reader* reader,
 }
 
 Int64 RChannelBufferHdfsReader::
-AdjustEndOffset(HdfsBridgeNative::Reader* reader,
+AdjustEndOffset(Hdfs::Reader* reader,
                 const char* fileName,
                 Int64 endOffset)
 {
@@ -443,7 +441,7 @@ AdjustEndOffset(HdfsBridgeNative::Reader* reader,
 }
 
 Int64 RChannelBufferHdfsReader::
-ReadDataBuffer(HdfsBridgeNative::ReaderAccessor& ra,
+ReadDataBuffer(Hdfs::ReaderAccessor& ra,
                const char* fileName,
                Int64 offset,
                Int64 endOffset)
@@ -470,7 +468,7 @@ ReadDataBuffer(HdfsBridgeNative::ReaderAccessor& ra,
     DrLogI("Reading HDFS file %s range %I64d:%d",
            fileName, offset, sizeToRead);
     long bytesRead =
-        ra.ReadBlock(offset, (char *) dst, sizeToRead);
+        ra.ReadBlock(offset, (unsigned char *) dst, sizeToRead);
 
     if (bytesRead < -1)
     {
@@ -479,7 +477,7 @@ ReadDataBuffer(HdfsBridgeNative::ReaderAccessor& ra,
         description.SetF("Can't read HDFS file '%s' at offset %I64d:%d: %s",
                          fileName,
                          offset, sizeToRead, errorMsg);
-        HdfsBridgeNative::DisposeString(errorMsg);
+        HadoopNative::DisposeString(errorMsg);
 
         buffer =
             MakeErrorBuffer(DryadError_ChannelReadError,
@@ -533,7 +531,7 @@ ReadDataBuffer(HdfsBridgeNative::ReaderAccessor& ra,
 
 void RChannelBufferHdfsReader::ReadThread()
 {
-    bool initialized = HdfsBridgeNative::Initialize();
+    bool initialized = HadoopNative::Initialize();
     if (!initialized)
     {
         DrStr64 description;
@@ -546,14 +544,13 @@ void RChannelBufferHdfsReader::ReadThread()
         return;
     }
 
-    DrStr64 headNode;
-    Int32 hdfsPort;
+    DrStr64 schemeAndAuthority;
     DrStr64 filePath;
     Int64 offsetStart;
     Int32 length;
 
     bool parsed = ExtractHdfsReadUri(m_uri,
-                                     headNode, &hdfsPort,
+                                     schemeAndAuthority,
                                      filePath, &offsetStart, &length);
     if (!parsed)
     {
@@ -572,16 +569,12 @@ void RChannelBufferHdfsReader::ReadThread()
         m_totalLength = length;
     }
 
-    HdfsBridgeNative::Instance* bridge;
-    bool openedInstance =
-        HdfsBridgeNative::OpenInstance(headNode.GetString(),
-                                       hdfsPort,
-                                       &bridge);
+    Hdfs::Instance* bridge;
+    bool openedInstance = Hdfs::OpenInstance(schemeAndAuthority.GetString(), &bridge);
     if (!openedInstance)
     {
         DrStr64 description;
-        description.SetF("Can't open HDFS Bridge '%s:%d'",
-                         headNode.GetString(), hdfsPort);
+        description.SetF("Can't open HDFS Bridge '%s'", schemeAndAuthority.GetString());
         RChannelBuffer* error =
             MakeErrorBuffer(DryadError_ChannelOpenError,
                             description.GetString(),
@@ -590,17 +583,18 @@ void RChannelBufferHdfsReader::ReadThread()
         return;
     }
 
-    HdfsBridgeNative::InstanceAccessor ia(bridge);
+    Hdfs::InstanceAccessor ia(bridge);
 
-    HdfsBridgeNative::Reader* reader;
+    Hdfs::Reader* reader;
     bool openedReader = ia.OpenReader(filePath.GetString(), &reader);
     if (!openedReader)
     {
         char* errorMsg = ia.GetExceptionMessage();
         DrStr64 description;
         description.SetF("Can't open HDFS file '%s': %s",
-                         filePath.GetString(), errorMsg);
-        HdfsBridgeNative::DisposeString(errorMsg);
+                         m_uri.GetString(), errorMsg);
+        DrLogI("%s", description.GetString());
+        HadoopNative::DisposeString(errorMsg);
 
         RChannelBuffer* error =
             MakeErrorBuffer(DryadError_ChannelOpenError,
@@ -608,12 +602,12 @@ void RChannelBufferHdfsReader::ReadThread()
                             this);
         SendBuffer(error, true);
 
-        ia.Dispose();
+        ia.Discard();
         return;
     }
 
     Int64 offsetEnd = offsetStart + length;
-    Int64 offset = AdjustStartOffset(reader, filePath.GetString(),
+    Int64 offset = AdjustStartOffset(reader, m_uri.GetString(),
                                      offsetStart, offsetEnd);
     bool scannedFinal = false;
 
@@ -621,19 +615,19 @@ void RChannelBufferHdfsReader::ReadThread()
     {
         /* nothing to read here: AdjustStartOffset already sent
            the termination item so we can exit */
-        ia.Dispose();
+        ia.Discard();
         return;
     }
 
     if (offset == offsetEnd)
     {
-        offsetEnd = AdjustEndOffset(reader, filePath.GetString(),
+        offsetEnd = AdjustEndOffset(reader, m_uri.GetString(),
                                     offsetEnd);
         if (offsetEnd < 0)
         {
             /* there was a read error: AdjustEndOffset already sent
                the termination item so we can exit */
-            ia.Dispose();
+            ia.Discard();
             return;
         }
 
@@ -648,7 +642,7 @@ void RChannelBufferHdfsReader::ReadThread()
         m_totalLength = offsetEnd - offsetStart;
     }
 
-    HdfsBridgeNative::ReaderAccessor ra(reader);
+    Hdfs::ReaderAccessor ra(reader);
 
     while (offset >=0 && offset < offsetEnd)
     {
@@ -685,7 +679,7 @@ void RChannelBufferHdfsReader::ReadThread()
             LogAssert(dRet == WAIT_TIMEOUT);
         }
 
-        offset = ReadDataBuffer(ra, filePath.GetString(),
+        offset = ReadDataBuffer(ra, m_uri.GetString(),
                                 offset, offsetEnd);
         if (offset >= 0)
         {
@@ -696,13 +690,13 @@ void RChannelBufferHdfsReader::ReadThread()
 
         if (offset == offsetEnd && !scannedFinal)
         {
-            offsetEnd = AdjustEndOffset(reader, filePath.GetString(),
+            offsetEnd = AdjustEndOffset(reader, m_uri.GetString(),
                                         offsetEnd);
             if (offsetEnd < 0)
             {
                 /* there was a read error: AdjustEndOffset already
                    sent the termination item so we can exit */
-                ia.Dispose();
+                ia.Discard();
                 return;
             }
 
@@ -710,7 +704,7 @@ void RChannelBufferHdfsReader::ReadThread()
         }
     } /* while (offset >=0 && offset < offsetEnd) */
 
-    ra.Dispose();
+    ra.Discard();
 
     if (offset >= 0)
     {
@@ -718,26 +712,25 @@ void RChannelBufferHdfsReader::ReadThread()
         SendBuffer(buffer, true);
     }
 
-    ia.Dispose();
+    ia.Discard();
 }
 
 static long s_lineRecordScanSize = 4*1024;
 
 RChannelBufferHdfsReaderLineRecord::
-RChannelBufferHdfsReaderLineRecord(const char* uri) :
-    RChannelBufferHdfsReader(uri)
+RChannelBufferHdfsReaderLineRecord(const char* uri) : RChannelBufferHdfsReader(uri)
 {
 }
 
 Int64 RChannelBufferHdfsReaderLineRecord::
-ScanForSync(HdfsBridgeNative::Reader* reader,
+ScanForSync(Hdfs::Reader* reader,
             const char* fileName,
             Int64 startOffset, Int64 endOffset,
             RChannelBuffer** pErrorBuffer)
 {
     *pErrorBuffer = NULL;
 
-    char* scanBuffer = new char[s_lineRecordScanSize];
+    unsigned char* scanBuffer = new unsigned char[s_lineRecordScanSize];
 
     /* endOffset is -1 if we're scanning indefinitely, otherwise it
        must designate a range that ends after startOffset */
@@ -747,7 +740,7 @@ ScanForSync(HdfsBridgeNative::Reader* reader,
     bool foundReturn = false;
 
     {
-        HdfsBridgeNative::ReaderAccessor ra(reader);
+        Hdfs::ReaderAccessor ra(reader);
 
         do
         {
@@ -772,7 +765,7 @@ ScanForSync(HdfsBridgeNative::Reader* reader,
                 description.SetF("Can't read HDFS file '%s' at offset %I64d:%d: %s",
                                  fileName,
                                  startOffset, s_lineRecordScanSize, errorMsg);
-                HdfsBridgeNative::DisposeString(errorMsg);
+                HadoopNative::DisposeString(errorMsg);
 
                 *pErrorBuffer =
                     MakeErrorBuffer(DryadError_ChannelReadError,
@@ -793,7 +786,7 @@ ScanForSync(HdfsBridgeNative::Reader* reader,
                     description.SetF("Got HDFS EOF early for '%s' at offset %I64d, expecting data up to %I64d: %s",
                                      fileName,
                                      startOffset, endOffset, errorMsg);
-                    HdfsBridgeNative::DisposeString(errorMsg);
+                    HadoopNative::DisposeString(errorMsg);
 
                     *pErrorBuffer =
                         MakeErrorBuffer(DryadError_ChannelReadError,
@@ -867,29 +860,29 @@ ScanForSync(HdfsBridgeNative::Reader* reader,
 
 static bool
 ExtractHdfsWriteUri(DrStr64 uri,
-                    DrStr64& headNode, Int32* pHdfsPort,
+                    DrStr64& schemeAndAuthority,
                     DrStr64& filePath)
 {
-    if (!uri.StartsWith(RChannelBufferHdfsWriter::s_hdfsFilePrefix))
+    const char* cScheme;
+    char* cAuthority;
+    if (uri.StartsWith(RChannelBufferHdfsWriter::s_hdfsFilePrefix))
+    {
+        cScheme = RChannelBufferHdfsWriter::s_hdfsFilePrefix;
+        cAuthority = uri.GetWritableBuffer(uri.GetLength(),
+                                           strlen(RChannelBufferHdfsWriter::s_hdfsFilePrefix));
+    }
+    else if (uri.StartsWith(RChannelBufferHdfsWriter::s_wasbFilePrefix))
+    {
+        cScheme = RChannelBufferHdfsWriter::s_wasbFilePrefix;
+        cAuthority = uri.GetWritableBuffer(uri.GetLength(),
+                                           strlen(RChannelBufferHdfsWriter::s_wasbFilePrefix));
+    }
+    else
     {
         return false;
     }
 
-    char* cHeadNode =
-        uri.GetWritableBuffer(uri.GetLength(),
-                              strlen(RChannelBufferHdfsWriter::
-                                     s_hdfsFilePrefix));
-
-    char* colon = strchr(cHeadNode, ':');
-    if (colon == NULL)
-    {
-        return false;
-    }
-    *colon = '\0';
-
-    char* cPort = colon+1;
-
-    char* slash = strchr(cPort, '/');
+    char* slash = strchr(cAuthority, '/');
     if (slash == NULL)
     {
         return false;
@@ -898,15 +891,9 @@ ExtractHdfsWriteUri(DrStr64 uri,
 
     char* cPath = slash+1;
 
-    headNode.Set(cHeadNode);
+    schemeAndAuthority.SetF("%s%s", cScheme, cAuthority);
 
-    DrError dre = DrStringToInt32(cPort, pHdfsPort);
-    if (dre != DrError_OK)
-    {
-        return false;
-    }
-
-    filePath.Set(cPath);
+    filePath.SetF("%s/%s", schemeAndAuthority.GetString(), cPath);
 
     return true;
 }
@@ -919,32 +906,28 @@ RChannelBufferHdfsWriter::RChannelBufferHdfsWriter(const char* uri)
     m_queueLength = 0;
 
     /* it's important to initialize here since these are called
-       sequentially so there's no race on the crappy hdfs
+       sequentially so there's no race on the hdfs
        initialization code. Then we need to connect to the server,
        since that has to happen first on the thread that creates the
        jvm, in order for login to hdfs to work, for unexplained
        reasons. */
-    bool initialized = HdfsBridgeNative::Initialize();
+    bool initialized = HadoopNative::Initialize();
     if (initialized)
     {
-        DrStr64 headNode;
-        Int32 hdfsPort;
+        DrStr64 schemeAndAuthority;
         DrStr64 filePath;
 
         bool parsed = ExtractHdfsWriteUri(m_uri,
-                                          headNode, &hdfsPort,
+                                          schemeAndAuthority,
                                           filePath);
         if (parsed)
         {
-            HdfsBridgeNative::Instance* bridge;
-            bool openedInstance =
-                HdfsBridgeNative::OpenInstance(headNode.GetString(),
-                                               hdfsPort,
-                                               &bridge);
+            Hdfs::Instance* bridge;
+            bool openedInstance = Hdfs::OpenInstance(schemeAndAuthority.GetString(), &bridge);
             if (openedInstance)
             {
-                HdfsBridgeNative::InstanceAccessor ia(bridge);
-                ia.Dispose();
+                Hdfs::InstanceAccessor ia(bridge);
+                ia.Discard();
             }
         }
     }
@@ -994,72 +977,67 @@ unsigned __stdcall RChannelBufferHdfsWriter::ThreadFunc(void* arg)
     return 0;
 }
 
-bool RChannelBufferHdfsWriter::Open(HdfsBridgeNative::Instance** pInstance,
-                                    HdfsBridgeNative::Writer** pWriter)
+bool RChannelBufferHdfsWriter::Open(Hdfs::Instance** pInstance,
+                                    Hdfs::Writer** pWriter)
 {
-    bool initialized = HdfsBridgeNative::Initialize();
+    DrLogI("Opening Hdfs writer for %s", m_uri.GetString());
+    bool initialized = HadoopNative::Initialize();
     if (!initialized)
     {
         DrStr64 description;
         description.Set("Can't initialize HDFS bridge");
-        m_completionItem =
-            MakeErrorItem(DryadError_ChannelOpenError,
-                          description.GetString());
+        m_completionItem.Attach(MakeErrorItem(DryadError_ChannelOpenError,
+                                description.GetString()));
         return false;
     }
 
-    DrStr64 headNode;
-    Int32 hdfsPort;
+    DrStr64 schemeAndAuthority;
     DrStr64 filePath;
 
     bool parsed = ExtractHdfsWriteUri(m_uri,
-                                      headNode, &hdfsPort,
+                                      schemeAndAuthority,
                                       filePath);
     if (!parsed)
     {
         DrStr64 description;
         description.SetF("Can't parse HDFS URI '%s'", m_uri.GetString());
-        m_completionItem =
-            MakeErrorItem(DryadError_InvalidChannelURI,
-                          description.GetString());
+        m_completionItem.Attach(MakeErrorItem(DryadError_InvalidChannelURI,
+                                description.GetString()));
         return false;
     }
 
-    HdfsBridgeNative::Instance* instance;
-    bool openedInstance =
-        HdfsBridgeNative::OpenInstance(headNode.GetString(),
-                                       hdfsPort,
-                                       &instance);
+    Hdfs::Instance* instance;
+    bool openedInstance = Hdfs::OpenInstance(schemeAndAuthority.GetString(), &instance);
     if (!openedInstance)
     {
         DrStr64 description;
-        description.SetF("Can't open HDFS Bridge '%s:%d'",
-                         headNode.GetString(), hdfsPort);
+        description.SetF("Can't open HDFS Bridge '%s'", schemeAndAuthority.GetString());
         m_completionItem =
             MakeErrorItem(DryadError_ChannelOpenError,
                           description.GetString());
         return false;
     }
 
-    HdfsBridgeNative::InstanceAccessor ia(instance);
+    Hdfs::InstanceAccessor ia(instance);
 
-    HdfsBridgeNative::Writer* writer;
-    bool openedWriter = ia.OpenWriter(filePath.GetString(), &writer);
+    Hdfs::Writer* writer;
+    bool openedWriter = ia.OpenWriter(filePath.GetString(), false, &writer);
     if (!openedWriter)
     {
         char* errorMsg = ia.GetExceptionMessage();
         DrStr64 description;
         description.SetF("Can't open HDFS file '%s': %s",
-                         filePath.GetString(), errorMsg);
-        HdfsBridgeNative::DisposeString(errorMsg);
+                         m_uri.GetString(), errorMsg);
+        HadoopNative::DisposeString(errorMsg);
 
-        m_completionItem =
-            MakeErrorItem(DryadError_ChannelOpenError,
-                          description.GetString());
+        m_completionItem.Attach(MakeErrorItem(DryadError_ChannelOpenError,
+                                description.GetString()));
 
-        ia.Dispose();
+        ia.Discard();
         return false;
     }
+
+    DrLogI("Opened Hdfs writer for %s", m_uri.GetString());
 
     *pInstance = instance;
     *pWriter = writer;
@@ -1069,8 +1047,8 @@ bool RChannelBufferHdfsWriter::Open(HdfsBridgeNative::Instance** pInstance,
 
 void RChannelBufferHdfsWriter::WriteThread()
 {
-    HdfsBridgeNative::Instance* instance = NULL;
-    HdfsBridgeNative::Writer* writer = NULL;
+    Hdfs::Instance* instance = NULL;
+    Hdfs::Writer* writer = NULL;
 
     bool opened = Open(&instance, &writer);
 
@@ -1108,7 +1086,7 @@ void RChannelBufferHdfsWriter::WriteThread()
                     LogAssert(entry->m_buffer != NULL);
 
                     LogAssert(writer != NULL);
-                    HdfsBridgeNative::WriterAccessor wa(writer);
+                    Hdfs::WriterAccessor wa(writer);
 
                     size_t dataSize;
                     void *dataAddr = entry->m_buffer->
@@ -1116,13 +1094,13 @@ void RChannelBufferHdfsWriter::WriteThread()
                     Size_t dataToWrite = entry->m_buffer->GetAvailableSize();
                     LogAssert(dataToWrite <= dataSize);
                     bool ret =
-                        wa.WriteBlock((char *)dataAddr, (long) dataToWrite,
+                        wa.WriteBlock((unsigned char *)dataAddr, (long) dataToWrite,
                                       entry->m_flush);
                     if (ret)
                     {
                         AutoCriticalSection acs(&m_cs);
 
-                        m_processedLength += dataSize;
+                        m_processedLength += dataToWrite;
                     }
                     else
                     {
@@ -1130,13 +1108,12 @@ void RChannelBufferHdfsWriter::WriteThread()
                         DrStr64 description;
                         description.SetF("Got HDFS error on write: %s",
                                          errorMsg);
-                        HdfsBridgeNative::DisposeString(errorMsg);
+                        HadoopNative::DisposeString(errorMsg);
 
                         DrLogE(description.GetString());
 
-                        m_completionItem =
-                            MakeErrorItem(DryadError_ChannelWriteError,
-                                          description.GetString());
+                        m_completionItem.Attach(MakeErrorItem(DryadError_ChannelWriteError,
+                                                description.GetString()));
                     }
                 }
                 else
@@ -1144,8 +1121,10 @@ void RChannelBufferHdfsWriter::WriteThread()
                     /* we got a termination item */
                     LogAssert(entry->m_buffer == NULL);
 
+                    DrLogI("Got hdfs termination item");
+
                     LogAssert(writer != NULL);
-                    HdfsBridgeNative::WriterAccessor wa(writer);
+                    Hdfs::WriterAccessor wa(writer);
 
                     bool ret = wa.Close();
                     if (!ret)
@@ -1154,18 +1133,16 @@ void RChannelBufferHdfsWriter::WriteThread()
                         DrStr64 description;
                         description.SetF("Got HDFS error on close: %s",
                                          errorMsg);
-                        HdfsBridgeNative::DisposeString(errorMsg);
+                        HadoopNative::DisposeString(errorMsg);
 
                         DrLogE(description.GetString());
-                        m_completionItem =
-                            MakeErrorItem(DryadError_ChannelWriteError,
-                                          description.GetString());
+                        m_completionItem.Attach(MakeErrorItem(DryadError_ChannelWriteError,
+                                                description.GetString()));
                     }
                     else
                     {
                         DrLogI("Closed HDFS writer");
-                        m_completionItem =
-                            RChannelMarkerItem::Create(entry->m_type, false);
+                        m_completionItem.Attach(RChannelMarkerItem::Create(entry->m_type, false));
                     }
                 }
             }
@@ -1212,11 +1189,11 @@ void RChannelBufferHdfsWriter::WriteThread()
     if (opened)
     {
         /* discard the java objects we're holding onto */
-        HdfsBridgeNative::WriterAccessor wa(writer);
-        wa.Dispose();
+        Hdfs::WriterAccessor wa(writer);
+        wa.Discard();
 
-        HdfsBridgeNative::InstanceAccessor ia(instance);
-        ia.Dispose();
+        Hdfs::InstanceAccessor ia(instance);
+        ia.Discard();
     }
 }
 

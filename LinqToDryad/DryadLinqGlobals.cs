@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -34,11 +31,13 @@ namespace Microsoft.Research.DryadLinq
 {
     /// <summary>
     /// This class consists of static properties and fields that control the
-    /// details of the HpcLinq configuration. 
+    /// details of the DryadLinq configuration. 
     /// </summary>
     internal class StaticConfig
     {
-        internal static bool UseLargeBuffer = true;
+        internal const string DryadHomeVar = "DRYAD_HOME";
+
+        internal static bool UseLargeBuffer = false;
 
         internal const int NoDynamicOpt = 0;
         internal const int DynamicBroadcastLevel = 0x1;
@@ -46,26 +45,6 @@ namespace Microsoft.Research.DryadLinq
         internal const int DynamicRangePartitionLevel = 0x4;
         internal const int DynamicHashPartitionLevel = 0x8;
         internal const int DynamicCoRangePartitionLevel = 0x10;
-
-        internal static string HpcLinqBinRoot
-        {
-            get
-            {
-                //TODO -reconcile this with config variable
-                string dryadHome = Environment.GetEnvironmentVariable("DRYAD_HOME");
-                if (string.IsNullOrEmpty(dryadHome))
-                {
-                    throw new DryadLinqException(HpcLinqErrorCode.DryadHomeMustBeSpecified, SR.DryadHomeMustBeSpecified);
-                }
-                return dryadHome;
-            }
-        }
-     
-        /// <summary>
-        /// Extra HpcLinq-related command line arguments for XmlExecHost.exe.
-        /// </summary>
-        //public static string XmlExecHostArgsAdditional = "--break";
-        internal static string XmlExecHostArgsAdditional = String.Empty;
 
         /// <summary>
         /// Runtime optimization: mostly affects dynamic resource management.  
@@ -79,8 +58,6 @@ namespace Microsoft.Research.DryadLinq
         //        both are in MSR private repositories, and Yuan recommends the use of CoRangePartition
         //        as it produces more balanced partitioning.
         //        If/when this work is done, DefaultPartitionCount should be retired.
-        //
-        //  Short-term: (assuming dynamic-managers return), using nClusterWidth might be better than "8"
         internal static int DefaultPartitionCount = 8;
 
         /// <summary>
@@ -131,7 +108,12 @@ namespace Microsoft.Research.DryadLinq
         /// <summary>                
         /// Specifies whether to use aggregation tree to work around some SMB limitation.
         /// </summary>
-        internal static bool UseSMBAggregation = true;
+        internal static bool UseSMBAggregation = false;
+
+        /// <summary>
+        /// Specifies whether to use partial reduction for Distinct.
+        /// </summary>
+        internal static bool UsePartialDistinct = false;
 
         /// <summary>
         /// The maximum number of seconds to wait between polling the cluster to see if a job has completed.
@@ -144,23 +126,18 @@ namespace Microsoft.Research.DryadLinq
         internal static bool GroupByLocalAggregationIsPartial = true;
 
         /// <summary>
-        /// Actual arguments to pass to the XmlExecHost.exe job manager.
+        /// Additional DryadLinq related command line arguments for XmlExecHost.exe.
         /// </summary>
+        private static string XmlExecHostArgsAdditional = String.Empty;
         internal static string XmlExecHostArgs
         {
             get {
                 return XmlExecHostArgsAdditional;
             }
         }
-
-        /// <summary>
-        /// Path to the HpcLinq main job manager executable (a file called HpcQueryGraphManager.exe)
-        /// </summary>
-        internal static string XmlHostPath
+        internal static void AddXmlExecHostArg(string arg)
         {
-            get {
-                return StaticConfig.HpcLinqBinRoot + @"\HpcQueryGraphManager.exe";
-            }
+            XmlExecHostArgsAdditional += arg;
         }
 
         internal static TimeSpan LeaseDurationForTempFiles = new TimeSpan(1, 0, 0, 0); // 1 day.
@@ -196,10 +173,7 @@ namespace Microsoft.Research.DryadLinq
     internal class ReflectedNames
     {
         internal const string DataProvider_GetPartitionedTable = "GetPartitionedTable";
-        internal const string DryadLinqIQueryable_ToDscWorker = "ToDscWorker";
-        internal const string DryadLinqIQueryable_ToHdfsWorker = "ToHdfsWorker";
-        internal const string DryadLinqIQueryable_AnonymousDscPlaceholder = "AnonymousDscTarget__Placeholder";
-        internal const string HpcLinqQueryable_LocalDebug_ProcessToDscExpression = "LocalDebug_ProcessToDscExpression";
-        internal const string HpcLinqQueryable_ExecuteLocalExpressionAndIngressToDsc = "ExecuteLocalExpressionAndIngressToDsc";
+        internal const string DataProvider_Ingress = "Ingress";
+        internal const string DLQ_ToStore = "ToStoreInternal";
     }
 }

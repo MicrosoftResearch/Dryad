@@ -103,20 +103,6 @@ private:
     Notification     m_payload;
 };
 
-class DrOverlapped : public OVERLAPPED
-{
-public:
-    virtual ~DrOverlapped();
-
-    HRESULT* GetOperationStatePtr();
-
-    virtual void Process() = 0;
-    virtual void Discard() = 0;
-
-private:
-    HRESULT                 m_operationState;
-};
-
 DRENUM(MessagePumpState)
 {
     MPS_Stopped,
@@ -143,7 +129,6 @@ DRCLASS(DrMessagePump) : public DrCritSec
     bool EnQueueDelayed(DrTimeInterval delay, DrMessageBasePtr request);
 
     HANDLE GetCompletionPort();
-    void NotifySubmissionToCompletionPort(DrOverlapped* overlapped);
 
 private:
     typedef DrArray<DrCritSecRef> CSArray;
@@ -152,9 +137,6 @@ private:
     DRREF(MessageQueue);
 
 #ifdef _MANAGED
-    typedef DrSet<System::IntPtr> OverlappedSet;
-    DRREF(OverlappedSet);
-
     
     typedef DrArray<System::Threading::Thread^> ThreadArray;
     DRAREF(ThreadArray,System::Threading::Thread^);
@@ -162,9 +144,6 @@ private:
     void ThreadFunc(Object^ parameter);
 
 #else
-    typedef DrSet<DrOverlapped*> OverlappedSet;
-    DRREF(OverlappedSet);
-
     /* stop spurious compiler warning by exercising template machinery */
     template class DrMultiMap<DrDateTime, DrMessageBaseRef>;
     typedef DrArray<HANDLE> ThreadArray;
@@ -189,7 +168,6 @@ private:
     DrMessageBaseRef  m_listDummy; /* list of messages */
     int               m_listLength;
     MessageQueueRef   m_pendingMessages; /* list of delayed messages */
-    OverlappedSetRef  m_submittedOverlapped; /* set of overlapped objects in the completion port */
 
     MessagePumpState  m_state;
 

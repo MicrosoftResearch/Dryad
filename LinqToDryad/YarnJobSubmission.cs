@@ -18,499 +18,300 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
-#if REMOVE_FOR_YARN
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Net;
-using System.Security.Principal;
+using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml;
-using Microsoft.Hpc.Scheduler;
-using Microsoft.Hpc.Scheduler.Properties;
-using Microsoft.Hpc.Dryad;
+using System.Xml.Linq;
 using Microsoft.Research.DryadLinq.Internal;
-using System.Collections.Specialized;
+
+using Microsoft.Research.Peloponnese.ClusterUtils;
 
 namespace Microsoft.Research.DryadLinq
 {
-    internal class HpcJobSubmission : IHpcLinqJobSubmission
+    internal class YarnJobSubmission : PeloponneseJobSubmission
     {
-        private HpcLinqContext m_context;
-        private DryadJobSubmission m_job;
-        private JobStatus m_status;
+        private ClusterJob m_job;
 
-        internal void Initialize()
+        public YarnJobSubmission(DryadLinqContext context) : base(context)
         {
-            this.m_job.FriendlyName = m_context.Configuration.JobFriendlyName;
-
-            //  if the user specified MinNodes and it is less than 2, return an error. Otherwise let job run with job template which 
-            //      must specify a value of 2 or higher
-            if (m_context.Configuration.JobMinNodes.HasValue && m_context.Configuration.JobMinNodes < 2)
-            {
-                throw new HpcLinqException(HpcLinqErrorCode.HpcLinqJobMinMustBe2OrMore,
-                                           SR.HpcLinqJobMinMustBe2OrMore);
-            }
-
-            this.m_job.DryadJobMinNodes = m_context.Configuration.JobMinNodes;
-            this.m_job.DryadJobMaxNodes = m_context.Configuration.JobMaxNodes;
-            this.m_job.DryadNodeGroup = m_context.Configuration.NodeGroup;
-            this.m_job.DryadUserName = m_context.Configuration.JobUsername;
-            this.m_job.DryadPassword = m_context.Configuration.JobPassword;
-            this.m_job.DryadRuntime = m_context.Configuration.JobRuntimeLimit;
-            this.m_job.EnableSpeculativeDuplication = m_context.Configuration.EnableSpeculativeDuplication;
-            this.m_job.RuntimeTraceLevel = (int)m_context.Configuration.RuntimeTraceLevel;
-            this.m_job.GraphManagerNode = m_context.Configuration.GraphManagerNode;
-
-            System.Collections.Specialized.NameValueCollection collection = new System.Collections.Specialized.NameValueCollection();
-            
-            foreach (var keyValuePair in m_context.Configuration.JobEnvironmentVariables)
-            {
-                collection.Add(keyValuePair.Key, keyValuePair.Value);
-            }
-
-            this.m_job.JobEnvironmentVariables = collection;
         }
 
-        internal bool LocalJM
+        private string DryadDfs
         {
-            get
-            {
-                return m_job.Type == DryadJobSubmission.JobType.Local;
-            }
-            set
-            {
-                if (value == true)
+            get { return Context.DfsClient.Combine("staging", "dryad"); }
+        }
+
+        private string UserDfs
+        {
+            get { return Context.DfsClient.Combine("user", Environment.UserName, "staging"); }
+        }
+
+        protected override XElement MakeJMConfig()
+        {
+            var qpPath = Path.Combine("..", "..", Path.GetFileName(QueryPlan));
+            var jmPath = Path.Combine("..", "..", "DryadLinqGraphManager.exe");
+            string jobDirectoryTemplate = Context.ClusterClient.JobDirectoryTemplate.Replace("_BASELOCATION_", "dryad-jobs");
+            string logDirParam = Microsoft.Research.Peloponnese.Storage.AzureUtils.CmdLineEncode(jobDirectoryTemplate);
+            string[] jmArgs = {"--dfs=" + logDirParam, "VertexHost.exe", qpPath }; // +" --break";
+            return ConfigHelpers.MakeProcessGroup(
+                "jm", "local", 1, 1, true,
+                         jmPath, jmArgs, "LOG_DIRS", "graphmanager-stdout.txt",
+                         "graphmanager-stderr.txt",
+                null, null);
+        }
+
+        protected override XElement MakeWorkerConfig(string configPath, XElement peloponneseResource)
+        {
+            var waiters = new List<Task<XElement>>();
+
+            IEnumerable<string> dryadFiles = new[]
                 {
-                    m_job.Type = DryadJobSubmission.JobType.Local;
+                    "ProcessService.exe",
+                    "ProcessService.pdb",
+                    "VertexHost.exe",
+                    "VertexHost.pdb",
+                    "VertexHost.exe.config",
+                    "Microsoft.Research.DryadLinq.dll",
+                    "Microsoft.Research.DryadLinq.pdb",
+                    "DryadLinqNativeChannels.dll",
+                    "DryadLinqNativeChannels.pdb",
+                    "DryadManagedChannel.dll",
+                    "DryadManagedChannel.pdb"
+                };
+
+            dryadFiles = dryadFiles.Select(x => Path.Combine(Context.DryadHomeDirectory, x));
+
+            waiters.Add(ConfigHelpers.MakeResourceGroupAsync(Context.DfsClient, DryadDfs, true, dryadFiles));
+
+            // add job-local resources to each worker directory, using public versions of the standard Dryad files
+            foreach (var rg in LocalResources)
+            {
+                IEnumerable<string> files = rg.Value.Select(x => Path.Combine(rg.Key, x));
+                if (rg.Key == Context.DryadHomeDirectory)
+                {
+                    waiters.Add(ConfigHelpers.MakeResourceGroupAsync(Context.DfsClient, DryadDfs, true, files));
                 }
                 else
                 {
-                    m_job.Type = DryadJobSubmission.JobType.Cluster;
+                    waiters.Add(ConfigHelpers.MakeResourceGroupAsync(Context.DfsClient, UserDfs, false, files));
+                }
+            }
+
+            try
+            {
+                Task.WaitAll(waiters.ToArray());
+            }
+            catch (Exception e)
+            {
+                throw new DryadLinqException("Dfs resource make failed", e);
+            }
+
+            var resources = new List<XElement>();
+            resources.Add(peloponneseResource);
+            foreach (var t in waiters)
+            {
+                resources.Add(t.Result);
+            }
+
+            var psPath = "ProcessService.exe";
+            string[]  psArgs = { Path.GetFileName(configPath) };
+            int maxNodes = (Context.JobMaxNodes == null) ? -1 : Context.JobMaxNodes.Value;
+            return ConfigHelpers.MakeProcessGroup(
+                "Worker", "yarn", -1, maxNodes, false,
+                psPath, psArgs, "LOG_DIRS", "processservice-stdout.txt", "processservice-stderr.txt",
+                resources, null);
+        }
+
+        private string MakeProcessServiceConfig()
+        {
+            var configDoc = new XDocument();
+
+            var docElement = new XElement("PeloponneseConfig");
+
+            var psElement = new XElement("ProcessService");
+
+            var psPortElement = new XElement("Port");
+            psPortElement.Value = "8471";
+            psElement.Add(psPortElement);
+
+            var psPrefixElement = new XElement("Prefix");
+            psPrefixElement.Value = "/peloponnese/dpservice/";
+            psElement.Add(psPrefixElement);
+
+            var envElement = new XElement("Environment");
+            psElement.Add(envElement);
+
+            docElement.Add(psElement);
+
+            configDoc.Add(docElement);
+
+            string psConfigPath = DryadLinqCodeGen.GetPathForGeneratedFile("psConfig.xml", null);
+
+            configDoc.Save(psConfigPath);
+
+            return psConfigPath;
+        }
+
+        private XDocument MakeLauncherConfig(string configPath, XElement peloponneseResource)
+        {
+            List<Task<XElement>> waiters = new List<Task<XElement>>();
+            if (!ConfigHelpers.RunningFromNugetPackage)
+            {
+                IEnumerable<string> dryadFiles = new[]
+                {
+                "DryadLinqGraphManager.exe",
+                "DryadLinqGraphManager.exe.config",
+                "Microsoft.Research.Dryad.dll",
+                "DryadHttpClusterInterface.dll",
+                "DryadLocalScheduler.dll"
+                };
+                dryadFiles = dryadFiles.Select(x => Path.Combine(Context.DryadHomeDirectory, x));
+
+                waiters.Add(ConfigHelpers.MakeResourceGroupAsync(Context.DfsClient, DryadDfs, true, dryadFiles));
+            }
+            IEnumerable<string> userFiles = new[] { configPath, QueryPlan };
+
+            waiters.Add(ConfigHelpers.MakeResourceGroupAsync(Context.DfsClient, UserDfs, false, userFiles));
+
+            try
+            {
+                Task.WaitAll(waiters.ToArray());
+            }
+            catch (Exception e)
+            {
+                throw new DryadLinqException("Hdfs resource make failed", e);
+            }
+
+            List<XElement> resources = new List<XElement>();
+            resources.Add(peloponneseResource);
+            foreach (var t in waiters)
+            {
+                resources.Add(t.Result);
+            }
+
+            string appName;
+            if (Context.JobFriendlyName == null)
+            {
+                appName = "DryadLINQ.App";
+            }
+            else
+            {
+                appName = Context.JobFriendlyName;
+            }
+
+            return ConfigHelpers.MakeLauncherConfig(appName, Path.GetFileName(configPath), resources, JobDirectory);
+        }
+
+        private XDocument GenerateConfig()
+        {
+            XElement peloponneseResource = ConfigHelpers.MakePeloponneseResourceGroup(
+                Context.DfsClient, Context.PeloponneseHomeDirectory);
+
+            string psConfigPath = MakeProcessServiceConfig();
+
+            // this will cause the psConfig to be uploaded to the DFS during MakeConfig
+            AddLocalFile(psConfigPath);
+
+            var configDoc = MakeConfig(psConfigPath, peloponneseResource);
+
+            string configPath = DryadLinqCodeGen.GetPathForGeneratedFile("ppmConfig.xml", null);
+            configDoc.Save(configPath);
+
+            return MakeLauncherConfig(configPath, peloponneseResource);
+        }
+
+        public override string ErrorMsg
+        {
+            get 
+            {
+                if (m_job != null)
+                {
+                    return m_job.ErrorMsg;
+                }
+                else
+                {
+                    return null;
                 }
             }
         }
 
-        internal string CommandLine
+        public override JobStatus GetStatus()
         {
-            get
-            {
-                return m_job.CommandLine;
-            }
-            set
-            {
-                m_job.CommandLine = value;
-            }
-        }
-
-        public string ErrorMsg
-        {
-            get
-            {
-                return m_job.ErrorMessage;
-            }
-            private set
-            {
-                m_job.ErrorMessage = value;
-            }
-        }
-
-        internal HpcJobSubmission(HpcLinqContext context)
-        {
-            this.m_context = context;
-            this.m_status = JobStatus.NotSubmitted;
-
-            //@@TODO[P0] pass the runtime to the DryadJobSubmission so that it can use the scheduler instance.
-            //@@TODO: Merge DryadJobSubmission into Ms.Hpc.Linq. Until then make sure Context is not disposed before DryadJobSubmission.
-            this.m_job = new DryadJobSubmission(m_context.GetIScheduler());
-        }
-
-        public void AddJobOption(string fieldName, string fieldVal)
-        {
-            if (fieldName == "cmdline")
-            {
-                m_job.CommandLine = fieldVal;
-            }
-            else
-            {
-                throw new HpcLinqException(HpcLinqErrorCode.JobOptionNotImplemented,
-                                           String.Format(SR.JobOptionNotImplemented, fieldName, fieldVal));
-            }
-        }
-
-        public void AddLocalFile(string fileName)
-        {
-            m_job.AddFileToJob(fileName);
-        }
-
-        public void AddRemoteFile(string fileName)
-        {
-            string msg = String.Format("HpcJobSubmission.AddRemoteFile({0}) not implemented", fileName);
-        }
-
-        public JobStatus GetStatus()
-        {
-            if (this.m_status == JobStatus.Success ||
-                this.m_status == JobStatus.Failure )
-            {
-                return this.m_status;
-            }
-
-            if (this.m_job == null)
+            if (m_job == null)
             {
                 return JobStatus.NotSubmitted;
             }
 
-            switch (this.m_job.State)
+            Peloponnese.ClusterUtils.JobStatus status = m_job.GetStatus();
+            switch (status)
             {
-                case JobState.ExternalValidation:
-                case JobState.Queued:
-                case JobState.Submitted:
-                case JobState.Validating:
-                {
-                    this.m_status = JobStatus.Waiting;
-                    break;
-                }
-                case JobState.Configuring:
-                case JobState.Running:
-                case JobState.Canceling:
-                case JobState.Finishing:
-                {
-                    this.m_status = JobStatus.Running;
-                    break;
-                }
-                case JobState.Failed:
-                    // a job only fails if the job manager fails.
-                {
-                    ISchedulerCollection tasks = this.m_job.Job.GetTaskList(null, null, false);
-                    if (tasks.Count < 1)
-                    {
-                        this.ErrorMsg = this.m_job.ErrorMessage;
-                        this.m_status = JobStatus.Failure;
-                    }
-                    else
-                    {
-                        ISchedulerTask jm = tasks[0] as ISchedulerTask;
-                        switch (jm.State)
-                        {
-                            case TaskState.Finished:
-                                this.m_status = JobStatus.Success;
-                                break;
-                            default:
-                                this.m_status = JobStatus.Failure;
-                                this.ErrorMsg = "JM error: " + jm.ErrorMessage;
-                                break;
-                        }
-                    }
-                    break;
-                }
-                case JobState.Canceled:
-                {
-                    this.ErrorMsg = this.m_job.ErrorMessage;
-                    this.m_status = JobStatus.Failure;
-                    break;
-                }    
-                case JobState.Finished:
-                {
-                    this.m_status = JobStatus.Success;
-                    break;
-                }
-            }
+                case Peloponnese.ClusterUtils.JobStatus.NotSubmitted:
+                    return JobStatus.NotSubmitted;
 
-            return this.m_status;
+                case Peloponnese.ClusterUtils.JobStatus.Waiting:
+                    return JobStatus.Waiting;
+
+                case Peloponnese.ClusterUtils.JobStatus.Running:
+                    return JobStatus.Running;
+
+                case Peloponnese.ClusterUtils.JobStatus.Success:
+                    return JobStatus.Success;
+
+                case Peloponnese.ClusterUtils.JobStatus.Failure:
+                    return JobStatus.Failure;
+
+                case Peloponnese.ClusterUtils.JobStatus.Cancelled:
+                    return JobStatus.Cancelled;
+
+                default:
+                    throw new ApplicationException("Unknown status " + status);
+            }
         }
 
-        public void SubmitJob()
+        public string JobDirectory { get { return Context.ClusterClient.JobDirectoryTemplate.Replace("_BASELOCATION_", "dryad-jobs"); } }
+
+        public override void SubmitJob()
         {
-            // Verify that the head node is set
-            if (m_context.Configuration.HeadNode == null)
-            {
-                throw new HpcLinqException(HpcLinqErrorCode.ClusterNameMustBeSpecified,
-                                           SR.ClusterNameMustBeSpecified);
-            }
-            
+            XDocument config = GenerateConfig();
+
             try
             {
-                this.m_job.SubmitJob();
+                m_job = Context.ClusterClient.Submit(config, JobDirectory);
             }
             catch (Exception e)
             {
-                throw new HpcLinqException(HpcLinqErrorCode.SubmissionFailure,
-                                           String.Format(SR.SubmissionFailure, m_context.Configuration.HeadNode), e);
+                throw new DryadLinqException("Failed to launch", e);
             }
         }
 
-        public JobStatus TerminateJob()
+        public override JobStatus TerminateJob()
         {
-            JobStatus status = GetStatus();
-            switch (status)
+            m_job.Kill();
+            return GetStatus();
+        }
+
+        public override string GetJobId()
+        {
+            if (m_job == null)
             {
-                case JobStatus.Failure:
-                case JobStatus.NotSubmitted:
-                case JobStatus.Success:
-                case JobStatus.Cancelled:
-                    // Nothing to do.
-                    return status;
-                default:
-                    break;
+                return "Unknown";
             }
-
-            this.m_job.CancelJob();
-            return JobStatus.Cancelled;
-        }
-
-        public int GetJobId()
-        {
-            if (m_job == null || m_job.Job == null)
+            else
             {
-                throw new InvalidOperationException("(internal) GetDryadJobInfo called when no job is available");
+                return m_job.Id;
             }
-            return m_job.Job.Id;
-        }
-    }
-}
-#else
-namespace Microsoft.Research.DryadLinq
-{
-    using System;
-    using System.Diagnostics;
-    using System.IO;
-    using System.Net;
-    using System.Xml.Linq;
-    using System.Linq;
-    using System.Text;
-
-    internal class YarnJobSubmission : IHpcLinqJobSubmission
-    {
-        private HpcLinqContext m_context;
-        private JobStatus m_status;
-        private string m_applicationId;
-        private WebClient m_wc;
-        private string m_cmdLine;
-        private string m_queryPlan;
-        private string m_errorMsg;
-        
-
-        public YarnJobSubmission(HpcLinqContext context)
-        {
-            m_context = context;
-            m_status = JobStatus.NotSubmitted;
-            m_wc = new WebClient();
-        }
-
-        public void AddJobOption(string fieldName, string fieldVal)
-        {
-            if(fieldName == "cmdline")
-            {
-                m_cmdLine = fieldVal;
-                var fields = m_cmdLine.Split();
-                m_queryPlan = fields[fields.Length - 1].Trim();
-                Console.WriteLine("QueryPlan: {0}", m_queryPlan);
-            }
-        }
-
-        public void AddLocalFile(string fileName)
-        {
-            // do nothing for now
-        }
-
-        public void AddRemoteFile(string fileName)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public string ErrorMsg
-        {
-            get 
-            {
-                if (!String.IsNullOrEmpty(m_errorMsg))
-                {
-                    return m_errorMsg;
-                }
-                else
-                {
-                    return "Unknown error running YARN query.";
-                }
-            }
-        }
-
-        public JobStatus GetStatus()
-        {
-            if (m_status == JobStatus.Waiting || m_status == JobStatus.Running)
-            {
-                m_wc.Headers.Add("Accept", "application/xml");
-                var xmlData = m_wc.DownloadString(GetRestServiceUri());
-                ProcessXmlData(xmlData);
-            }
-            return m_status;
-        }
-
-        private string BuildExpandedClasspath(HpcLinqConfiguration config)
-        {
-            String classPathString = System.Environment.GetEnvironmentVariable("classpath");
-            //Console.WriteLine(classPathString);
-
-            var fields = classPathString.Split(';');
-
-            StringBuilder sb = new StringBuilder(16384);
-
-            var jarFiles = Directory.GetFiles(config.DryadHomeDirectory, "*.jar", System.IO.SearchOption.TopDirectoryOnly);
-            foreach (String file in jarFiles)
-            {
-                //Console.WriteLine("\t{0}", file);
-                sb.Append(file);
-                sb.Append(";");
-            }
-
-            foreach (String field in fields)
-            {
-                //Console.WriteLine(field);
-                if (!field.EndsWith("*"))
-                {
-                    sb.Append(field);
-                    sb.Append(";");
-                }
-                else
-                {
-                    var dirField = field.Substring(0, field.Length - 1); // trim the trailing *
-                    jarFiles = Directory.GetFiles(dirField, "*.jar", System.IO.SearchOption.TopDirectoryOnly);
-                    foreach (String file in jarFiles)
-                    {
-                        //Console.WriteLine(file);
-                        sb.Append(file);
-                        sb.Append(";");
-                    }
-                }
-            }
-            return sb.ToString();
-        }
-
-        public void SubmitJob()
-        {
-            // find the xml file, then invoke the java submission process
-            ProcessStartInfo psi = new ProcessStartInfo();
-            
-            psi.FileName = Path.Combine(m_context.Configuration.YarnHomeDirectory, "bin", "yarn.cmd");
-            string jarPath = Path.Combine(m_context.Configuration.DryadHomeDirectory, "DryadYarnBridge.jar");
-            psi.Arguments = string.Format(@"jar {0} {1}", jarPath, m_queryPlan);
-            psi.EnvironmentVariables.Add("JNI_CLASSPATH", BuildExpandedClasspath(m_context.Configuration));
-
-            if (!psi.EnvironmentVariables.ContainsKey("DRYAD_HOME"))  
-            {
-                //Console.WriteLine("Adding DRYAD_HOME env variable");
-                psi.EnvironmentVariables.Add("DRYAD_HOME", m_context.Configuration.DryadHomeDirectory);
-            }
-
-            psi.UseShellExecute = false;
-            psi.RedirectStandardOutput = true;
-            var process = Process.Start(psi);
-            
-            var procOutput = process.StandardOutput;
-            process.WaitForExit();
-            // the java submission process will return the application id as the last line
-            while (!procOutput.EndOfStream)
-            {
-                m_applicationId = procOutput.ReadLine();
-            }
-            Console.WriteLine("Application ID: {0}", m_applicationId);
-            m_status = JobStatus.Waiting;
-        }
-
-        public JobStatus TerminateJob()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public int GetJobId()
-        {
-            int jobId = -1;
-            if (m_status != JobStatus.NotSubmitted)
-            {
-                var appNumberString = m_applicationId.Substring(m_applicationId.LastIndexOf('_') + 1);
-                return int.Parse(appNumberString);
-            }
-            return jobId;
         }
 
         internal void Initialize()
         {
             // nothing needed for now
         }
-
-        internal Uri GetRestServiceUri()
-        {
-            UriBuilder builder = new UriBuilder();
-            builder.Host = m_context.Configuration.HeadNode;
-            builder.Port = m_context.Configuration.HdfsNameNodeHttpPort; 
-            builder.Path = "/ws/v1/cluster/apps/" + m_applicationId;
-            return builder.Uri;
-        }
-
-        private void ProcessXmlData(string xmlData)
-        {
-            // for now, just pull state and finalStatus out of xml response
-
-            //State: The application state according to the ResourceManager - 
-            //valid values are: NEW, SUBMITTED, ACCEPTED, RUNNING, FINISHED, FAILED, KILLED
-            //
-            //finalStatus: The final status of the application if finished - 
-            //reported by the application itself - valid values are: UNDEFINED, SUCCEEDED, FAILED, KILLED
-
-            XDocument xdoc = XDocument.Parse(xmlData);
-            var stateString = xdoc.Descendants("state").Single().Value;
-            
-            switch (stateString)
-            {
-                case "NEW":
-                    m_status = JobStatus.NotSubmitted;
-                    break;
-                case "SUBMITTED":
-                case "ACCEPTED":
-                    m_status = JobStatus.Waiting;
-                    break;
-                case "RUNNING":
-                    m_status = JobStatus.Running;
-                    break;
-                case "FINISHED":
-                    var finalStatusString = xdoc.Descendants("finalStatus").Single().Value;
-                    switch (finalStatusString) {
-                        case "UNDEFINED":
-                            m_status = JobStatus.Success;
-                            break;
-                        case "SUCCEEDED": 
-                            m_status = JobStatus.Success;
-                            break;
-                        case "FAILED": 
-                            m_status = JobStatus.Failure;
-                            break;
-                        case "KILLED":
-                            m_status = JobStatus.Cancelled;
-                            break;
-                        default:
-                            throw new DryadLinqException("Unexpected finalStatus from Resource Manager");
-                    }
-                    break;
-                case "FAILED":
-                    m_status = JobStatus.Failure;
-                    if (String.IsNullOrEmpty(m_errorMsg))
-                    {
-                        m_errorMsg = xdoc.Descendants("diagnostics").Single().Value.Trim();
-                    }
-                    break;
-                case "KILLED":
-                    m_status = JobStatus.Cancelled;
-                    break;
-                default:
-                    throw new DryadLinqException("Unexpected status from Resource Manager");
-            }
-        }
-
     }
 }
-#endif

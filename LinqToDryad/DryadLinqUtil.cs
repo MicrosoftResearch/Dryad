@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -39,7 +36,7 @@ using Microsoft.Research.DryadLinq.Internal;
 namespace Microsoft.Research.DryadLinq
 {
     // This class contains some useful utility functions.
-    internal static class HpcLinqUtil
+    internal static class DryadLinqUtil
     {
         private static Regex s_CSharpIdRegex = new Regex(@"[^\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Nd}\p{Nl}\p{Mn}\p{Mc}\p{Cf}\p{Pc}\p{Lm}]");
         private static CSharpCodeProvider s_CSharpCodeProvider = new CSharpCodeProvider();
@@ -69,7 +66,7 @@ namespace Microsoft.Research.DryadLinq
             int x3 = (hcode >> 16) & 0xFFFF;
             return (x1 ^ x2 ^ x3) % count;
         }
-        
+
         // Check if the array is ordered.
         internal static bool IsOrdered<T>(T[] array, IComparer<T> comparer, bool isDescending)
         {
@@ -112,7 +109,6 @@ namespace Microsoft.Research.DryadLinq
         // The largest retVal is n
         //
         // Although this isn't a strictly 'symmetrical rule', the "always left-most" is simple and consistent.
-        
         internal static int BinarySearch<T>(T[] array, T value, IComparer<T> comparer, bool isDescending)
         {
             int lo = 0;
@@ -278,7 +274,7 @@ namespace Microsoft.Research.DryadLinq
             }
             catch (SerializationException se)
             {
-                HpcClientSideLog.Add("Error occured during serialization. Message: " + se.Message);
+                DryadLinqClientLog.Add("Error occured during serialization. Message: " + se.Message);
                 throw;
             }
             finally
@@ -298,7 +294,7 @@ namespace Microsoft.Research.DryadLinq
             }
             catch (SerializationException e)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.FailedToDeserialize, SR.FailedToDeserialize, e);
+                throw new DryadLinqException(DryadLinqErrorCode.FailedToDeserialize, SR.FailedToDeserialize, e);
             }
             finally
             {

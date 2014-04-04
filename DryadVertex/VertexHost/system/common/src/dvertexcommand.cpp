@@ -22,6 +22,7 @@ limitations under the License.
 #include <dryadpropertiesdef.h>
 #include <dryadtagsdef.h>
 #include <dryaderrordef.h>
+#include <errorreporter.h>
 
 #pragma unmanaged
 
@@ -39,6 +40,7 @@ DryadPnProcessPropertyResponse::~DryadPnProcessPropertyResponse()
 DryadChannelDescription::DryadChannelDescription(bool isInputChannel)
 {
     m_state = DryadError_ChannelAbort;
+    m_errorCode = DrError_OK;
     m_totalLength = 0;
     m_processedLength = 0;
     m_isInputChannel = isInputChannel;
@@ -73,9 +75,37 @@ DryadMetaData* DryadChannelDescription::GetChannelMetaData() const
     return m_metaData;
 }
 
-void DryadChannelDescription::SetChannelMetaData(DryadMetaData* metaData)
+void DryadChannelDescription::SetChannelMetaData(DryadMetaData* metaData, bool updateErrorInfo)
 {
     m_metaData.Set(metaData);
+
+    if (updateErrorInfo)
+    {
+        DrStr128 errorDescription;
+        DrError errorCode = DVErrorReporter::GetFormattedErrorFromMetaData(metaData, &errorDescription);
+        SetChannelErrorCode(errorCode);
+        SetChannelErrorString(errorDescription);
+    }
+}
+
+DrError DryadChannelDescription::GetChannelErrorCode() const
+{
+    return m_errorCode;
+}
+
+void DryadChannelDescription::SetChannelErrorCode(DrError errorCode)
+{
+    m_errorCode = errorCode;
+}
+
+const char* DryadChannelDescription::GetChannelErrorString() const
+{
+    return m_errorString;
+}
+
+void DryadChannelDescription::SetChannelErrorString(const char* errorString)
+{
+    m_errorString.Set(errorString);
 }
 
 UInt64 DryadChannelDescription::GetChannelTotalLength() const
@@ -116,6 +146,14 @@ DrError DryadChannelDescription::Serialize(DrMemoryWriter* writer)
     {
         m_metaData.Ptr()->WriteAsAggregate(writer,
                                            DryadTag_ChannelMetaData, false);
+    }
+    if (m_errorCode != DrError_OK)
+    {
+        writer->WriteDrErrorProperty(Prop_Dryad_ChannelErrorCode, m_errorCode);
+    }
+    if (m_errorString != NULL)
+    {
+        writer->WriteLongDrStrProperty(Prop_Dryad_ChannelErrorString, m_errorString);
     }
 
     writer->WriteUInt16Property(Prop_Dryad_EndTag, tagValue);
@@ -160,6 +198,21 @@ DrError DryadChannelDescription::OnParseProperty(DrMemoryReader *reader,
         err = reader->ReadNextUInt64Property(enumID, &m_processedLength);
         break;
 
+    case Prop_Dryad_ChannelErrorCode:
+        err = reader->ReadNextDrErrorProperty(enumID, &m_errorCode);
+        break;
+
+    case Prop_Dryad_ChannelErrorString:
+        {
+            const char* errorString;
+            err = reader->ReadNextStringProperty(enumID, &errorString);
+            if (err == DrError_OK)
+            {
+                SetChannelErrorString(errorString);
+            }
+        }
+        break;
+
     case Prop_Dryad_BeginTag:
         {
             UInt16 tagID;
@@ -172,7 +225,7 @@ DrError DryadChannelDescription::OnParseProperty(DrMemoryReader *reader,
                     err = reader->ReadAggregate(tagID, &parser, NULL);
                     if (err == DrError_OK)
                     {
-                        SetChannelMetaData(parser.GetMetaData());
+                        SetChannelMetaData(parser.GetMetaData(), false);
                     }
                 }
                 else
@@ -194,7 +247,9 @@ void DryadChannelDescription::CopyFrom(DryadChannelDescription* src,
 
     SetChannelURI(src->GetChannelURI());
     SetChannelState(src->GetChannelState());
-    SetChannelMetaData(src->GetChannelMetaData());
+    SetChannelMetaData(src->GetChannelMetaData(), false);
+    SetChannelErrorCode(src->GetChannelErrorCode());
+    SetChannelErrorString(src->GetChannelErrorString());
     if (includeLengths)
     {
         SetChannelProcessedLength(src->GetChannelProcessedLength());
@@ -222,6 +277,7 @@ DVertexProcessStatus::DVertexProcessStatus()
 {
     m_id = 0;
     m_version = 0;
+    m_errorCode = DrError_OK;
     m_nInputChannels = 0;
     m_inputChannel = NULL;
     m_maxInputChannels = 0;
@@ -265,9 +321,37 @@ DryadMetaData* DVertexProcessStatus::GetVertexMetaData()
     return m_metaData.Ptr();
 }
 
-void DVertexProcessStatus::SetVertexMetaData(DryadMetaData* metaData)
+void DVertexProcessStatus::SetVertexMetaData(DryadMetaData* metaData, bool updateErrorInfo)
 {
     m_metaData.Set(metaData);
+
+    if (updateErrorInfo)
+    {
+        DrStr128 errorDescription;
+        DrError errorCode = DVErrorReporter::GetFormattedErrorFromMetaData(metaData, &errorDescription);
+        SetVertexErrorCode(errorCode);
+        SetVertexErrorString(errorDescription);
+    }
+}
+
+DrError DVertexProcessStatus::GetVertexErrorCode() const
+{
+    return m_errorCode;
+}
+
+void DVertexProcessStatus::SetVertexErrorCode(DrError errorCode)
+{
+    m_errorCode = errorCode;
+}
+
+const char* DVertexProcessStatus::GetVertexErrorString() const
+{
+    return m_errorString;
+}
+
+void DVertexProcessStatus::SetVertexErrorString(const char* errorString)
+{
+    m_errorString.Set(errorString);
 }
 
 UInt32 DVertexProcessStatus::GetInputChannelCount()
@@ -350,6 +434,14 @@ DrError DVertexProcessStatus::Serialize(DrMemoryWriter* writer)
         m_metaData.Ptr()->WriteAsAggregate(writer,
                                            DryadTag_VertexMetaData, false);
     }
+    if (m_errorCode != DrError_OK)
+    {
+        writer->WriteDrErrorProperty(Prop_Dryad_VertexErrorCode, m_errorCode);
+    }
+    if (m_errorString != NULL)
+    {
+        writer->WriteLongDrStrProperty(Prop_Dryad_VertexErrorString, m_errorString);
+    }
 
     writer->WriteUInt32Property(Prop_Dryad_VertexInputChannelCount,
                                 m_nInputChannels);
@@ -406,6 +498,21 @@ DrError DVertexProcessStatus::OnParseProperty(DrMemoryReader *reader,
 
     case Prop_Dryad_VertexVersion:
         err = reader->ReadNextUInt32Property(enumID, &m_version);
+        break;
+
+    case Prop_Dryad_VertexErrorCode:
+        err = reader->ReadNextDrErrorProperty(enumID, &m_errorCode);
+        break;
+
+    case Prop_Dryad_VertexErrorString:
+        {
+            const char* errorString;
+            err = reader->ReadNextStringProperty(enumID, &errorString);
+            if (err == DrError_OK)
+            {
+                SetVertexErrorString(errorString);
+            }
+        }
         break;
 
     case Prop_Dryad_VertexInputChannelCount:
@@ -502,7 +609,7 @@ DrError DVertexProcessStatus::OnParseProperty(DrMemoryReader *reader,
                     err = reader->ReadAggregate(tagValue, &parser, NULL);
                     if (err == DrError_OK)
                     {
-                        SetVertexMetaData(parser.GetMetaData());
+                        SetVertexMetaData(parser.GetMetaData(), false);
                     }
                 }
                 break;
@@ -526,7 +633,9 @@ void DVertexProcessStatus::CopyFrom(DVertexProcessStatus* src,
 
     SetVertexId(src->GetVertexId());
     SetVertexInstanceVersion(src->GetVertexInstanceVersion());
-    SetVertexMetaData(src->GetVertexMetaData());
+    SetVertexMetaData(src->GetVertexMetaData(), false);
+    SetVertexErrorCode(src->GetVertexErrorCode());
+    SetVertexErrorString(src->GetVertexErrorString());
 
     SetInputChannelCount(src->GetInputChannelCount());
     DryadInputChannelDescription* srcInputs = src->GetInputChannels();

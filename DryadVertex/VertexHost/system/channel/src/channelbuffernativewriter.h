@@ -208,7 +208,7 @@ private:
     bool                         m_supportsLazyOpen;
     bool                         m_drainingOpenQueue;
 
-    CRITSEC                      m_baseDR;
+    CRITSEC                      m_baseCS;
 };
 
 class RChannelBufferWriterNativeFile : public RChannelBufferWriterNative

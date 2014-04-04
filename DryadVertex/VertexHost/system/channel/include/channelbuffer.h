@@ -220,10 +220,27 @@ protected:
                               RChannelBufferDefaultHandler* parent);
     virtual ~RChannelBufferDataDefault();
 
+    UInt64                          m_startOffset;
+
 private:
     DryadLockedMemoryBuffer*        m_dataBuffer;
-    UInt64                          m_startOffset;
     RChannelBufferDefaultHandler*   m_parent;
+};
+
+class RChannelBufferDataSettableOffset : public RChannelBufferDataDefault
+{
+public:
+    static RChannelBufferDataSettableOffset*
+        Create(DryadLockedMemoryBuffer* dataBuffer,
+               RChannelBufferDefaultHandler* parent);
+
+    UInt64 GetOffset();
+    void SetOffset(UInt64 offset);
+
+protected:
+    RChannelBufferDataSettableOffset(DryadLockedMemoryBuffer* dataBuffer,
+                                 RChannelBufferDefaultHandler* parent);
+    virtual ~RChannelBufferDataSettableOffset();
 };
 
 class RChannelBufferMarker : public RChannelBuffer

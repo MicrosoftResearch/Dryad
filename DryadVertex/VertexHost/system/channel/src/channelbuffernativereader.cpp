@@ -157,7 +157,7 @@ RChannelBufferReaderNative::
 RChannelBufferReaderNative::~RChannelBufferReaderNative()
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_state == S_Closed);
         LogAssert(m_openState == OS_Closed);
@@ -170,13 +170,13 @@ RChannelBufferReaderNative::~RChannelBufferReaderNative()
 
 CRITSEC* RChannelBufferReaderNative::GetBaseDR()
 {
-    return &m_baseDR;
+    return &m_baseCS;
 }
 
 void RChannelBufferReaderNative::SetErrorBuffer(RChannelBuffer* buffer)
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         if (m_errorBuffer == NULL)
         {
@@ -189,7 +189,7 @@ void RChannelBufferReaderNative::
     FillInStatus(DryadChannelDescription* status)
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         status->SetChannelTotalLength(m_totalLength);
         status->SetChannelProcessedLength(m_nextStreamOffsetToProcess);
@@ -243,7 +243,7 @@ void RChannelBufferReaderNative::
     ChannelBufferList sendErrorBufferList;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_state == S_Stopped);
         LogAssert(m_openState == OS_Stopped);
@@ -322,7 +322,7 @@ void RChannelBufferReaderNative::
         }
 
         {
-            AutoCriticalSection acs(&m_baseDR);
+            AutoCriticalSection acs(&m_baseCS);
 
             m_latch.TransferList(&sendErrorBufferList);
         }
@@ -341,7 +341,7 @@ bool RChannelBufferReaderNative::EnsureOpenForRead(ReadHandler* handler)
     // Enter a critical section and 
     //
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_supportsLazyOpen);
 
@@ -470,7 +470,7 @@ void RChannelBufferReaderNative::OpenAfterThrottle()
         HandlerList sendList;
 
         {
-            AutoCriticalSection acs(&m_baseDR);
+            AutoCriticalSection acs(&m_baseCS);
 
             LogAssert(m_supportsLazyOpen);
 
@@ -563,7 +563,7 @@ void RChannelBufferReaderNative::DispatchBuffer(ReadHandler* handler,
     bool performedClose = false;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         if (m_state == S_Running)
         {
@@ -814,7 +814,7 @@ void RChannelBufferReaderNative::DispatchBuffer(ReadHandler* handler,
             // Take a lock and transfer all send buffer entries to the latch
             //
 
-            AutoCriticalSection acs(&m_baseDR);
+            AutoCriticalSection acs(&m_baseCS);
             m_latch.TransferList(&sendBufferList);
         }
     }
@@ -859,7 +859,7 @@ void RChannelBufferReaderNative::Interrupt()
     // Enter a critical section and 
     //
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         //
         // Interrupt latch if sending and see if we need to wait for it to block
@@ -997,7 +997,7 @@ void RChannelBufferReaderNative::DrainNativeReader()
     bool performedClose = false;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_state == S_Stopping);
 
@@ -1040,7 +1040,7 @@ void RChannelBufferReaderNative::DrainNativeReader()
     }
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         //
         // Ensure that everything was shut down correctly and
@@ -1174,7 +1174,7 @@ void RChannelBufferReaderNative::ReturnBuffer(RChannelBuffer* buffer)
     //
     ReadHandler* newHandler = NULL;
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_state == S_Running || m_state == S_Stopping);
 
@@ -1425,7 +1425,7 @@ void RChannelBufferReaderNativeFile::FillInStatus(DryadChannelDescription* statu
 {
     RChannelBufferReaderNative::FillInStatus(status);
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
         status->SetChannelURI(m_fileNameA);
     }
 }
@@ -1490,8 +1490,7 @@ bool RChannelBufferReaderNativeFile::LazyOpenFile()
                 sleepTime = 2000;
             }
             sleepTime = attemptCount * (3000 + sleepTime);
-            DrLogI("Native file open failed",
-                "Filename %s (%swide-char) Retrying after %d ms", m_fileNameA,
+            DrLogI("Native file open failed Filename %s (%swide-char) Retrying after %d ms", m_fileNameA,
                 m_wideFileName ? "" : "not ", sleepTime);
             Sleep(sleepTime);
         }

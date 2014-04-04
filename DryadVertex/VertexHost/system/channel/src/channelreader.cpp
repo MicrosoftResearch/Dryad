@@ -246,7 +246,7 @@ void RChannelReaderImpl::Start(RChannelBufferPrefetchInfo* prefetchCookie)
     bool startSupplier = false;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_supplier != NULL);
         LogAssert(m_state == RS_Stopped);
@@ -290,7 +290,7 @@ void RChannelReaderImpl::Start(RChannelBufferPrefetchInfo* prefetchCookie)
     }
 }    
 
-/* called with RChannelReaderImpl::m_baseDR held */
+/* called with RChannelReaderImpl::m_baseCS held */
 void RChannelReaderImpl::
     FillEmptyHandlers(ChannelProcessRequestList* handlerDispatch)
 {
@@ -309,7 +309,7 @@ void RChannelReaderImpl::
     }
 }
 
-/* called with RChannelReaderImpl::m_baseDR held */
+/* called with RChannelReaderImpl::m_baseCS held */
 void RChannelReaderImpl::
     TransferWaitingItems(const char* caller,
                          ChannelProcessRequestList* requestList,
@@ -412,7 +412,7 @@ void RChannelReaderImpl::
              m_unitList.IsEmpty() == false);
 }
 
-/* called with RChannelReaderImpl::m_baseDR held */
+/* called with RChannelReaderImpl::m_baseCS held */
 void RChannelReaderImpl::AddUnitToQueue(const char* caller,
                                         RChannelUnit* unit,
                                         ChannelProcessRequestList* requestList,
@@ -473,7 +473,7 @@ void RChannelReaderImpl::AddUnitToQueue(const char* caller,
     }
 }
 
-/* called with RChannelReaderImpl::m_baseDR held */
+/* called with RChannelReaderImpl::m_baseCS held */
 void RChannelReaderImpl::
     AddHandlerToQueue(const char* caller,
                       RChannelProcessRequest* request,
@@ -521,7 +521,7 @@ void RChannelReaderImpl::ReturnUnits(ChannelUnitList* unitList)
         }
 
         {
-            AutoCriticalSection acs(&m_baseDR);
+            AutoCriticalSection acs(&m_baseCS);
 
             m_unitLatch.TransferList(unitList);
         }
@@ -559,7 +559,7 @@ void RChannelReaderImpl::
         }
 
         {
-            AutoCriticalSection acs(&m_baseDR);
+            AutoCriticalSection acs(&m_baseCS);
 
             m_sendLatch.TransferList(requestList);
         }
@@ -583,7 +583,7 @@ void RChannelReaderImpl::AddUnitList(ChannelUnitList* unitList)
     ChannelUnitList returnUnitList;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_state == RS_Running ||
                   m_state == RS_InterruptingSupplier);
@@ -615,7 +615,7 @@ void RChannelReaderImpl::SupplyHandler(RChannelItemArrayReaderHandler* handler,
     bool startSupplier = false;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         if (m_state == RS_Running)
         {
@@ -688,7 +688,7 @@ void RChannelReaderImpl::
                            RChannelItemArray* srcItemArray)
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         dstItemArray->Set(srcItemArray);
     }
@@ -706,7 +706,7 @@ bool RChannelReaderImpl::FetchNextItemArray(UInt32 maxArraySize,
     bool startSupplier = false;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         if (m_state != RS_Running)
         {
@@ -823,7 +823,7 @@ bool RChannelReaderImpl::FetchNextItemArray(UInt32 maxArraySize,
         delete waiter;
 
         {
-            AutoCriticalSection acs(&m_baseDR);
+            AutoCriticalSection acs(&m_baseCS);
 
             /* save this event in case we need one again in the
                future */
@@ -843,7 +843,7 @@ bool RChannelReaderImpl::FetchNextItemArray(UInt32 maxArraySize,
     return (!timedOut);
 }
 
-/* called with RChannelReaderImpl::m_baseDR held */
+/* called with RChannelReaderImpl::m_baseCS held */
 void RChannelReaderImpl::RemoveFromCancelMap(RChannelProcessRequest* request,
                                              void* cancelCookie)
 {
@@ -861,7 +861,7 @@ void RChannelReaderImpl::RemoveFromCancelMap(RChannelProcessRequest* request,
     m_cookieMap.erase(hIter);
 }
 
-/* called with RChannelReaderImpl::m_baseDR held */
+/* called with RChannelReaderImpl::m_baseCS held */
 void RChannelReaderImpl::MaybeTriggerCancelEvent(void* cancelCookie)
 {
     /* there is an event in the event map if somebody is blocked on
@@ -896,7 +896,7 @@ void RChannelReaderImpl::
     handler->ProcessItemArray(itemArray);
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_state != RS_Stopped);
 
@@ -923,7 +923,7 @@ void RChannelReaderImpl::AlertApplication(RChannelItem* item)
     RChannelInterruptHandler* interruptHandler = NULL;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         if (m_interruptHandler != NULL)
         {
@@ -943,7 +943,7 @@ bool RChannelReaderImpl::IsRunning()
     bool retval;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         retval = (m_state == RS_Running);
     }
@@ -960,7 +960,7 @@ void RChannelReaderImpl::Cancel(void* cancelCookie)
     CookieHandlerMap::iterator cIter;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_state == RS_Running || m_state == RS_InterruptingSupplier);
 
@@ -1025,7 +1025,7 @@ void RChannelReaderImpl::Cancel(void* cancelCookie)
     DryadHandleListEntry* event = NULL;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         /* see if there are still any handlers around after the work
            queue cleaning which haven't triggered yet. If so, we'll
@@ -1051,7 +1051,7 @@ void RChannelReaderImpl::Cancel(void* cancelCookie)
         LogAssert(bRet == WAIT_OBJECT_0);
 
         {
-            AutoCriticalSection acs(&m_baseDR);
+            AutoCriticalSection acs(&m_baseCS);
 
             /* sanity check that there really aren't any handlers with
                this cookie still hanging around */
@@ -1083,7 +1083,7 @@ void RChannelReaderImpl::Interrupt(RChannelItem* interruptItemBase)
     // Enter a critical section and update state from "Running" to "Interrupting"
     //
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         if (m_state == RS_Running)
         {
@@ -1134,7 +1134,7 @@ void RChannelReaderImpl::Interrupt(RChannelItem* interruptItemBase)
     }
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         if (interruptItem == NULL)
         {
@@ -1253,7 +1253,7 @@ void RChannelReaderImpl::Interrupt(RChannelItem* interruptItemBase)
     }
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         /* sanity check that nobody accidentally started the supplier
            while we were getting here */
@@ -1280,7 +1280,7 @@ void RChannelReaderImpl::Drain()
     Interrupt(NULL);
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_state == RS_Stopping);
         LogAssert(m_startedSupplier == false);
@@ -1314,7 +1314,7 @@ void RChannelReaderImpl::Drain()
     }
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         waitForLatch = m_unitLatch.Interrupt();
     }
@@ -1335,7 +1335,7 @@ void RChannelReaderImpl::Drain()
     }
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_cookieMap.empty());
         LogAssert(m_eventMap.empty());
@@ -1355,7 +1355,7 @@ void RChannelReaderImpl::
                         RChannelItemRef* pReaderDrainItem)
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         *pWriterDrainItem = m_writerTerminationItem;
         *pReaderDrainItem = m_readerTerminationItem;
@@ -1372,7 +1372,7 @@ void RChannelReaderImpl::Close()
     m_supplier->CloseSupplier();
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_cookieMap.empty());
         LogAssert(m_eventMap.empty());

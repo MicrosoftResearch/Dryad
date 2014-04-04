@@ -22,18 +22,7 @@ limitations under the License.
 
 DrVertexTemplate::DrVertexTemplate()
 {
-    m_statusBlockTime = 0;
     m_listenerList = DrNew DrVertexListenerIRefList();
-}
-
-void DrVertexTemplate::SetStatusBlockTime(DrTimeInterval statusBlockTime)
-{
-    m_statusBlockTime = statusBlockTime;
-}
-
-DrTimeInterval DrVertexTemplate::GetStatusBlockTime()
-{
-    return m_statusBlockTime;
 }
 
 DrVertexListenerIRefListPtr DrVertexTemplate::GetListenerList()
@@ -196,10 +185,10 @@ void DrVertexVersionGenerator::Grow(int numberOfEdgesToGrow)
 }
 
 
-DrVertexRecord::DrVertexRecord(DrXComputePtr xcompute, DrActiveVertexPtr parent,
+DrVertexRecord::DrVertexRecord(DrClusterPtr cluster, DrActiveVertexPtr parent,
                                DrCohortProcessPtr cohort, DrVertexVersionGeneratorPtr inputs,
                                DrVertexTemplatePtr vertexTemplate)
-    : DrVertexNotifier(xcompute->GetMessagePump(), parent)
+    : DrVertexNotifier(cluster->GetMessagePump(), parent)
 {
     m_parent = parent;
     m_inputs = inputs;
@@ -208,7 +197,7 @@ DrVertexRecord::DrVertexRecord(DrXComputePtr xcompute, DrActiveVertexPtr parent,
     m_state = DVS_NotStarted;
     m_lastSeenVersion = 0;
 
-    m_creationTime = xcompute->GetCurrentTimeStamp();
+    m_creationTime = cluster->GetCurrentTimeStamp();
     m_startTime = DrDateTime_Never;
     m_runningTime = DrDateTime_Never;
     m_completionTime = DrDateTime_Never;
@@ -219,6 +208,22 @@ DrVertexRecord::DrVertexRecord(DrXComputePtr xcompute, DrActiveVertexPtr parent,
     {
         AddListener(listeners[i]);
     }
+
+    /* we have changed state so tell our listeners */
+    DrVertexInfoRef info = DrNew DrVertexInfo();
+    info->m_name = m_parent->GetName();
+    info->m_stageName = m_parent->GetStageManager()->GetStageName();
+    info->m_partInStage = m_parent->GetPartitionId();
+    info->m_state = m_state;
+    info->m_info = DrNew DrVertexStatus();
+    info->m_info->GetProcessStatus()->SetVertexId(m_parent->GetId());
+    info->m_info->GetProcessStatus()->SetVertexInstanceVersion(GetVersion());
+    info->m_info->GetProcessStatus()->SetInputChannelCount(0);
+    info->m_info->GetProcessStatus()->SetOutputChannelCount(0);
+    info->m_statistics = MakeExecutionStatistics(DrNull, STILL_ACTIVE, S_OK);
+    info->m_process = m_process;
+
+    DeliverNotification(info);
 }
 
 void DrVertexRecord::Discard()
@@ -489,9 +494,15 @@ void DrVertexRecord::StartRunning()
     /* we have changed state so tell our listeners */
     DrVertexInfoRef info = DrNew DrVertexInfo();
     info->m_name = m_parent->GetName();
+    info->m_stageName = m_parent->GetStageManager()->GetStageName();
+    info->m_partInStage = m_parent->GetPartitionId();
     info->m_state = m_state;
-    info->m_info = DrNull;
-    info->m_statistics = DrNull;
+    info->m_info = DrNew DrVertexStatus();
+    info->m_info->GetProcessStatus()->SetVertexId(m_parent->GetId());
+    info->m_info->GetProcessStatus()->SetVertexInstanceVersion(GetVersion());
+    info->m_info->GetProcessStatus()->SetInputChannelCount(0);
+    info->m_info->GetProcessStatus()->SetOutputChannelCount(0);
+    info->m_statistics = MakeExecutionStatistics(DrNull, STILL_ACTIVE, S_OK);
     info->m_process = m_process;
 
     DeliverNotification(info);
@@ -557,8 +568,39 @@ void DrVertexRecord::ReceiveMessage(DrPropertyStatusRef prop)
 
                 DrLogI("Vertex %d.%d transition to failed", m_parent->GetId(), GetVersion());
             }
-            /* else we're in the starting state, so it's ok to get a message without status
-               since the remote vertex may not have written a property yet */
+            else
+            {
+                /* we're in the starting state, so it's probably ok to get a message without status
+                   since the remote vertex may not have written a property yet. Just in case, let's see
+                   how long we've been waiting so far... */
+                DrDateTime currentTime = m_parent->GetStageManager()->GetGraph()->GetCluster()->GetCurrentTimeStamp();
+                DrTimeInterval elapsed = (DrTimeInterval)(currentTime - m_startTime);
+
+                if (elapsed > DrTimeInterval_Minute)
+                {
+                    /* something's wrong; let's just fail the vertex */
+                    DrLogW("Vertex %d.%d has gone %I64d seconds without setting a status",
+                           m_parent->GetId(), GetVersion(), elapsed / DrTimeInterval_Second);
+
+                    reason = "Process didn't set a status in time";
+                    error = DrNew DrError(DrError_Unexpected, "DrVertexRecord", reason);
+
+                    m_state = DVS_Failed;
+                    exitStatus = error->m_code;
+                    /* we are changing state, so tell the listeners */
+                    sendNotification = true;
+
+                    /* also kill the process, since it isn't behaving */
+                    SendTerminateCommand(m_parent->GetId(), m_inputs->GetVersion(), m_process);
+
+                    DrLogI("Vertex %d.%d transition to failed", m_parent->GetId(), GetVersion());
+                }
+                else
+                {
+                    /* request status again so we'll get one eventually */
+                    requestStatus = true;
+                }
+            }
             break;
 
         case DPBS_Completed:
@@ -596,7 +638,7 @@ void DrVertexRecord::ReceiveMessage(DrPropertyStatusRef prop)
             DrLogI("Vertex %d.%d transition to running", m_parent->GetId(), GetVersion());
 
             m_state = DVS_Running;
-            m_runningTime = m_parent->GetStageManager()->GetGraph()->GetXCompute()->GetCurrentTimeStamp();
+            m_runningTime = m_parent->GetStageManager()->GetGraph()->GetCluster()->GetCurrentTimeStamp();
 
             DrVertexExecutionStatisticsRef startStats =
                 MakeExecutionStatistics(status, prop->m_exitCode, exitStatus);
@@ -607,6 +649,8 @@ void DrVertexRecord::ReceiveMessage(DrPropertyStatusRef prop)
 
             DrVertexInfoRef info = DrNew DrVertexInfo();
             info->m_name = m_parent->GetName();
+            info->m_stageName = m_parent->GetStageManager()->GetStageName();
+            info->m_partInStage = m_parent->GetPartitionId();
             info->m_state = m_state;
             info->m_info = status;
             info->m_statistics = startStats;
@@ -641,8 +685,7 @@ void DrVertexRecord::ReceiveMessage(DrPropertyStatusRef prop)
 
             case DPBS_Completed:
             case DPBS_Failed:
-                /* the process stopped without the property being updated, so
-                   fail the vertex */
+                /* the process stopped without the property being updated, so fail the vertex */
                 DrLogI("Vertex %d.%d process stopped without property being updated, fail the vertex", m_parent->GetId(), GetVersion());
                 error = prop->m_status;
                 if (error == DrNull)
@@ -677,7 +720,7 @@ void DrVertexRecord::ReceiveMessage(DrPropertyStatusRef prop)
             DrAssert(m_generator != DrNull);
             m_generator->StoreOutputLengths(status->GetProcessStatus(),
                                             m_parent->GetStageManager()->GetGraph()->
-                                            GetXCompute()->GetCurrentTimeStamp() -
+                                            GetCluster()->GetCurrentTimeStamp() -
                                             m_runningTime);
 
             /* we are changing state, so tell the listeners */
@@ -691,33 +734,19 @@ void DrVertexRecord::ReceiveMessage(DrPropertyStatusRef prop)
             DrLogI("Vertex %d.%d transition to completed, old m_state %d", m_parent->GetId(), GetVersion(), m_state);
             m_state = DVS_Failed;
 
-            reason.SetF("Vertex ended cleanly reporting error %s", DRERRORSTRING(status->GetVertexState()));
+            reason.SetF("Vertex ended cleanly reporting error %s %8x %s", DRERRORSTRING(status->GetVertexState()),
+                status->GetProcessStatus()->GetVertexErrorCode(), status->GetProcessStatus()->GetVertexErrorString().GetChars());
             error = DrNew DrError(status->GetVertexState(), "DrVertexRecord", DrString());
 
-            if (status->GetProcessStatus()->GetVertexMetaData() != DrNull)
+            if (status->GetProcessStatus()->GetVertexErrorString().GetString() != DrNull)
             {
-                DrMetaDataPtr md = status->GetProcessStatus()->GetVertexMetaData();
-                DrMTagHRESULTPtr code = dynamic_cast<DrMTagHRESULTPtr>(md->LookUp(DrProp_ErrorCode));
-                DrMTagStringPtr stringTag = dynamic_cast<DrMTagStringPtr>(md->LookUp(DrProp_ErrorString));
+                DrErrorRef subReason = DrNew DrError(status->GetProcessStatus()->GetVertexErrorCode(),
+                                                     "RemoteVertex",
+                                                     status->GetProcessStatus()->GetVertexErrorString());
+                error->AddProvenance(subReason);
 
-                if (code != DrNull)
-                {
-                    DrString eString;
-                    if (stringTag == DrNull || stringTag->GetValue().GetString() == DrNull)
-                    {
-                        eString = "No reason supplied";
-                    }
-                    else
-                    {
-                        eString = stringTag->GetValue();
-                    }
-
-                    DrErrorRef subReason = DrNew DrError(code->GetValue(), "RemoteVertex", eString);
-                    error->AddProvenance(subReason);
-
-                    DrString txt = DrError::ToShortText(subReason);
-                    DrLogI("Vertex reported error '%s' as failure reason", txt.GetChars());
-                }
+                DrString txt = DrError::ToShortText(subReason);
+                DrLogI("Vertex reported error '%s' as failure reason", txt.GetChars());
             }
 
             /* we are changing state, so tell the listeners */
@@ -730,7 +759,7 @@ void DrVertexRecord::ReceiveMessage(DrPropertyStatusRef prop)
 
     if (m_state > DVS_Running)
     {
-        m_completionTime = m_parent->GetStageManager()->GetGraph()->GetXCompute()->GetCurrentTimeStamp();
+        m_completionTime = m_parent->GetStageManager()->GetGraph()->GetCluster()->GetCurrentTimeStamp();
     }
 
     DrVertexExecutionStatisticsRef stats = MakeExecutionStatistics(status, prop->m_exitCode, exitStatus);
@@ -751,6 +780,8 @@ void DrVertexRecord::ReceiveMessage(DrPropertyStatusRef prop)
 
         DrVertexInfoRef info = DrNew DrVertexInfo();
         info->m_name = m_parent->GetName();
+        info->m_stageName = m_parent->GetStageManager()->GetStageName();
+        info->m_partInStage = m_parent->GetPartitionId();
         info->m_state = m_state;
         info->m_info = status;
         info->m_statistics = stats;
@@ -822,8 +853,7 @@ void DrVertexRecord::RequestStatus()
     DrAssert(m_process.IsEmpty() == false);
     {
         DrLockBoxKey<DrProcess> process(m_process);
-        process->RequestProperty(m_lastSeenVersion, label,
-                                 m_vertexTemplate->GetStatusBlockTime(), this);
+        process->RequestProperty(m_lastSeenVersion, label, this);
     }
 }
 
@@ -833,8 +863,7 @@ void DrVertexRecord::SendStartCommand()
     DrString description;
     description.SetF("Start command for vertex %d.%d", m_parent->GetId(), m_inputs->GetVersion());
 
-    DrVertexCommandBlockRef startCommand =
-        m_parent->MakeVertexStartCommand(m_inputs, m_generator->GetResource());
+    DrVertexCommandBlockRef startCommand = m_parent->MakeVertexStartCommand(m_inputs, m_generator);
 
     DrPropertyWriterRef writer = DrNew DrPropertyWriter();
     startCommand->Serialize(writer);
@@ -843,10 +872,10 @@ void DrVertexRecord::SendStartCommand()
     DrAssert(m_process.IsEmpty() == false);
     {
         DrLockBoxKey<DrProcess> process(m_process);
-        process->SendCommand(1, label, description, block);
+        process->SendCommand(label, description, block);
     }
 
-    m_startTime = m_parent->GetStageManager()->GetGraph()->GetXCompute()->GetCurrentTimeStamp();
+    m_startTime = m_parent->GetStageManager()->GetGraph()->GetCluster()->GetCurrentTimeStamp();
 }
 
 void DrVertexRecord::SendTerminateCommand(int id, int version, DrLockBox<DrProcess> process)
@@ -868,6 +897,6 @@ void DrVertexRecord::SendTerminateCommand(int id, int version, DrLockBox<DrProce
     DrAssert(process.IsEmpty() == false);
     {
         DrLockBoxKey<DrProcess> p(process);
-        p->SendCommand(2, label, description, block);
+        p->SendCommand(label, description, block);
     }
 }

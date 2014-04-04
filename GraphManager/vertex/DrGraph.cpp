@@ -20,15 +20,20 @@ limitations under the License.
 
 #include <DrVertexHeaders.h>
 
+DrGraphParameters::DrGraphParameters()
+{
+    m_reporters = DrNew DrIReporterRefList();
+}
+
 DrFailureInfo::DrFailureInfo()
 {
     m_numberOfFailures = 0;
 }
 
-DrGraph::DrGraph(DrXComputePtr xcompute, DrGraphParametersPtr parameters)
-    : DrErrorNotifier(xcompute->GetMessagePump())
+DrGraph::DrGraph(DrClusterPtr cluster, DrGraphParametersPtr parameters)
+    : DrErrorNotifier(cluster->GetMessagePump())
 {
-    m_xcompute = xcompute;
+    m_cluster = cluster;
     m_parameters = parameters;
 
     m_dictionary = DrNew DrFailureDictionary();
@@ -44,8 +49,8 @@ DrGraph::DrGraph(DrXComputePtr xcompute, DrGraphParametersPtr parameters)
 
 void DrGraph::Discard()
 {
-    m_xcompute->Shutdown();
-    m_xcompute = DrNull;
+    m_cluster->Shutdown();
+    m_cluster = DrNull;
     m_dictionary = DrNull;
 
     int i;
@@ -89,11 +94,11 @@ void DrGraph::StartRunning()
     // Send a delayed message to renew the temporary output stream lease
     // before it expires
     DrLeaseMessageRef leaseMessage = DrNew DrLeaseMessage(this, true);
-    m_xcompute->GetMessagePump()->EnQueueDelayed(23 * DrTimeInterval_Hour, leaseMessage);
+    m_cluster->GetMessagePump()->EnQueueDelayed(23 * DrTimeInterval_Hour, leaseMessage);
 
     // Send a delayed message to check for duplicate vertices
     DrDuplicateMessageRef duplicateMessage = DrNew DrDuplicateMessage(this, 0);
-    m_xcompute->GetMessagePump()->EnQueueDelayed(DrTimeInterval_Second, duplicateMessage);
+    m_cluster->GetMessagePump()->EnQueueDelayed(DrTimeInterval_Second, duplicateMessage);
 
     int i;
     for (i=0; i<m_stageList->Size(); ++i)
@@ -101,8 +106,8 @@ void DrGraph::StartRunning()
         m_stageList[i]->InitializeForGraphExecution();
     }
 
-    m_xcompute->IncrementTotalSteps(false);  // Add a step for initialization
-    m_xcompute->IncrementProgress("initialization complete");
+    m_cluster->IncrementTotalSteps(false);  // Add a step for initialization
+    m_cluster->IncrementProgress("initialization complete");
 
     for (i=0; i<m_stageList->Size(); ++i)
     {
@@ -182,7 +187,7 @@ void DrGraph::TriggerShutdown(DrErrorRef status)
 
         /* Send ourself a message to do the actual shutdown */
         DrShutdownMessageRef message = DrNew DrShutdownMessage(this, exitCode);
-        m_xcompute->GetMessagePump()->EnQueue(message);
+        m_cluster->GetMessagePump()->EnQueue(message);
     }
 }
 
@@ -208,17 +213,31 @@ void DrGraph::FinalizeGraph()
 		int i;
 		for (i=0; SUCCEEDED(err) && i<m_partitionGeneratorList->Size(); ++i)
 		{
-			err = m_partitionGeneratorList[i]->FinalizeSuccessfulPartitions();
+            DrString errorText;
+			err = m_partitionGeneratorList[i]->FinalizeSuccessfulParts(true, errorText);
 			if (!SUCCEEDED(err))
 			{
-				DrString reason = "Failed to finalize outputs";
+				DrString reason;
+                reason.SetF("Failed to finalize outputs: %s", errorText.GetChars());
 				m_exitStatus = DrNew DrError(err, "DrGraph", reason);
 			}
 		}
 	}
 
-	if (m_parameters->m_topologyReporter != DrNull)
+	if (m_exitStatus != DrNull && !SUCCEEDED(m_exitStatus->m_code))
+    {
+		int i;
+		for (i=0; i<m_partitionGeneratorList->Size(); ++i)
+		{
+            // don't change the exit status if we fail to delete zombie outputs
+            DrString errorText;
+			m_partitionGeneratorList[i]->FinalizeSuccessfulParts(false, errorText);
+		}
+    }
+
+    for (int r=0; r<m_parameters->m_reporters->Size(); ++r)
 	{
+        DrIReporterPtr reporter = m_parameters->m_reporters[r];
 		int i;
 		for (i=0; i<m_stageList->Size(); ++i)
 		{
@@ -226,7 +245,7 @@ void DrGraph::FinalizeGraph()
 			int j;
 			for (j=0; j<vList->Size(); ++j)
 			{
-				vList[j]->ReportFinalTopology(m_parameters->m_topologyReporter);
+				vList[j]->ReportFinalTopology(reporter);
 			}
 		}
 	}
@@ -242,7 +261,7 @@ void DrGraph::ReceiveMessage(DrLeaseExtender /* unused leaseMessage */)
         m_partitionGeneratorList[i]->ExtendLease(DrTimeInterval_Day);
     }
     DrLeaseMessageRef message = DrNew DrLeaseMessage(this, true);
-    m_xcompute->GetMessagePump()->EnQueueDelayed(23 * DrTimeInterval_Hour, message);
+    m_cluster->GetMessagePump()->EnQueueDelayed(23 * DrTimeInterval_Hour, message);
 }
 
 void DrGraph::ReceiveMessage(DrDuplicateChecker /* unused checkDuplicate */)
@@ -254,7 +273,7 @@ void DrGraph::ReceiveMessage(DrDuplicateChecker /* unused checkDuplicate */)
     }
 
 	DrDuplicateMessageRef message = DrNew DrDuplicateMessage(this, 0);
-    m_xcompute->GetMessagePump()->EnQueueDelayed(DrTimeInterval_Second, message);
+    m_cluster->GetMessagePump()->EnQueueDelayed(DrTimeInterval_Second, message);
 }
 
 void DrGraph::ReceiveMessage(DrExitStatus /* unused exitStatus */)
@@ -293,7 +312,7 @@ void DrGraph::ReceiveMessage(DrExitStatus /* unused exitStatus */)
                 DrErrorRef error =
                     DrNew DrError(HRESULT_FROM_WIN32(ERROR_TIMEOUT), "DrGraph", reason);
 				DrErrorMessageRef message = DrNew DrErrorMessage(this, error);
-				m_xcompute->GetMessagePump()->EnQueueDelayed(m_parameters->m_processAbortTimeOut, message);
+				m_cluster->GetMessagePump()->EnQueueDelayed(m_parameters->m_processAbortTimeOut, message);
             }
 		}
     }
@@ -324,13 +343,13 @@ void DrGraph::DecrementInFlightProcesses()
 void DrGraph::IncrementActiveVertexCount()
 {
     ++m_activeVertexCount;
-    m_xcompute->IncrementTotalSteps(false);
+    m_cluster->IncrementTotalSteps(false);
 }
 
 void DrGraph::DecrementActiveVertexCount()
 {
     --m_activeVertexCount;
-    m_xcompute->DecrementTotalSteps(false);
+    m_cluster->DecrementTotalSteps(false);
 }
 
 void DrGraph::NotifyActiveVertexComplete()
@@ -360,9 +379,9 @@ void DrGraph::NotifyActiveVertexRevoked()
     }
 }
 
-DrXComputePtr DrGraph::GetXCompute()
+DrClusterPtr DrGraph::GetCluster()
 {
-    return m_xcompute;
+    return m_cluster;
 }
 
 DrGraphParametersPtr DrGraph::GetParameters()
@@ -412,22 +431,19 @@ int DrGraph::ReportFailure(DrActiveVertexPtr vertex, int version,
         DrLogI("Triggering graph abort because vertex %d failed %d times", vertex->GetId(), info->m_numberOfFailures);
 
         DrString reason;
-		DrMTagStringPtr vertexErrorString = DrNull;
 
         if (status != DrNull &&
-            status->GetVertexMetaData() != DrNull &&
-			(vertexErrorString = dynamic_cast<DrMTagStringPtr>(status->GetVertexMetaData()->LookUp(DrProp_ErrorString))) != DrNull &&
-			vertexErrorString->GetValue().GetString() != DrNull)
+            status->GetVertexErrorString().GetString() != DrNull)
 		{
 			reason.SetF("Graph abort because vertex failed %d times: vertex %d in stage %s\n\nVERTEX FAILURE DETAILS:\n%s", info->m_numberOfFailures, 
 				vertex->GetId(), 
 				vertex->GetStageManager()->GetStageName().GetChars(),
-				vertexErrorString->GetValue().GetChars());
+				status->GetVertexErrorString().GetChars());
 		}
 		else
 		{
-			reason.SetF("Graph abort because vertex failed %d times: vertex %d in stage %s\n", info->m_numberOfFailures, 
-				vertex->GetId(), 
+			reason.SetF("Graph abort because vertex failed %d times: vertex %d, part %d in stage %s\n", info->m_numberOfFailures, 
+				vertex->GetId(), vertex->GetPartitionId(),
 				vertex->GetStageManager()->GetStageName().GetChars());
 		}
 
@@ -454,10 +470,13 @@ void DrGraph::ReportStorageFailure(DrStorageVertexPtr vertex, DrErrorPtr origina
 			   info->m_numberOfFailures, vertex->GetId());
 
 		DrString reason;
-        reason.SetF("Graph abort because input read failed %d times: vertex %d in stage %s",
-            info->m_numberOfFailures, vertex->GetId(), vertex->GetStageManager()->GetStageName().GetChars());
+        reason.SetF("Graph abort because input read failed %d times: vertex %d, part %d in stage %s",
+            info->m_numberOfFailures, vertex->GetId(), vertex->GetPartitionId(), vertex->GetStageManager()->GetStageName().GetChars());
         DrErrorRef error = DrNew DrError(DrError_InputUnavailable, "DrGraph", reason);
         error->AddProvenance(originalError);
+
+        DrLogI("Triggering shutdown with error: %s", error->ToFullText().GetChars());
+
         TriggerShutdown(error);
     }
 }

@@ -35,6 +35,8 @@ public:
     void AddProvenance(DrErrorPtr previousError);
 
     DrString ToShortText();
+    DrString ToFullText();
+    DrNativeString ToFullTextNative();
     static DrString ToShortText(DrErrorPtr errorOrNull);
 
     HRESULT           m_code;
@@ -84,7 +86,7 @@ const HRESULT DrError_ComposeStagesMustBeDifferent = DRYAD_ERROR (0x0022);
 const HRESULT DrError_ComposeStageEmpty =         DRYAD_ERROR (0x0023);
 const HRESULT DrError_VertexNotInGraph =          DRYAD_ERROR (0x0024);
 const HRESULT DrError_HardConstraintCannotBeMet = DRYAD_ERROR (0x0025);
-const HRESULT DrError_XComputeError =             DRYAD_ERROR (0x0026);
+const HRESULT DrError_ClusterError =              DRYAD_ERROR (0x0026);
 const HRESULT DrError_CohortShutdown =            DRYAD_ERROR (0x0027);
 const HRESULT DrError_Unexpected =                DRYAD_ERROR (0x0028);
 const HRESULT DrError_DependentVertexFailure =    DRYAD_ERROR (0x0029);

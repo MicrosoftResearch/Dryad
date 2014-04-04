@@ -77,10 +77,8 @@ protected:
     bool                       m_activeVertex;
     bool                       m_waitingForTermination;
     DrRef<DVertexStatus>       m_currentStatus;
-    CRITSEC                    m_baseDR;
+    CRITSEC                    m_baseCS;
 };
-
-class DVertexEnvironment;
 
 class DVertexPnControllerOuter
 {
@@ -90,22 +88,19 @@ public:
     UInt32 Run(int argc, char* argv[]);
     void VertexExiting(int exitCode);
     const char* GetRunningExePathName();
-    DVertexEnvironment* GetEnvironment();
 
 private:
     void SendAssertStatus(const char* assertString);
     static void AssertCallback(void* cookie,
                                const char* assertString);
 
-    virtual DVertexEnvironment* MakeEnvironment() = 0;
     virtual DVertexPnController* MakePnController(UInt32 vertexId,
                                                   UInt32 vertexVersion) = 0;
 
-    DVertexEnvironment*    m_environment;
     DVertexPnController**  m_controllerArray;
     volatile LONG          m_assertCounter;
     UInt32                 m_numberOfVertices;
     UInt32                 m_activeVertexCount;
     DrStr64                m_exePathName;
-    CRITSEC                m_baseDR;
+    CRITSEC                m_baseCS;
 };

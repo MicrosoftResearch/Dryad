@@ -110,7 +110,7 @@ private:
     UInt64                               m_nextDataSequenceNumber;
     UInt64                               m_nextDeliverySequenceNumber;
 
-    CRITSEC                              m_baseDR;
+    CRITSEC                              m_baseCS;
 
     friend class RChannelParseRequest;
 };

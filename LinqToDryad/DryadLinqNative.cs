@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -48,24 +45,24 @@ namespace Microsoft.Research.DryadLinq.Internal
     // Security Warning: We suppressed unmanaged code secuirty check,
     // which saves a stack walk for each call into unmanaged code.
     [SuppressUnmanagedCodeSecurity]
-    internal static class HpcLinqNative
+    internal static class DryadLinqNative
     {
         /* Win32 native API */
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal unsafe static extern bool ReadFile(SafeFileHandle handle,
-                                                  byte* pBuffer, 
-                                                  UInt32 numBytesToRead, 
-                                                  IntPtr pNumBytesRead, 
-                                                  NativeOverlapped* overlapped);
+                                                    byte* pBuffer, 
+                                                    UInt32 numBytesToRead, 
+                                                    IntPtr pNumBytesRead, 
+                                                    NativeOverlapped* overlapped);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal unsafe static extern bool WriteFile(SafeFileHandle handle,
-                                                   byte* pBuffer,
-                                                   UInt32 numBytesToWrite,
-                                                   IntPtr pNumBytesWritten,
-                                                   NativeOverlapped* overlapped);
+                                                     byte* pBuffer,
+                                                     UInt32 numBytesToWrite,
+                                                     IntPtr pNumBytesWritten,
+                                                     NativeOverlapped* overlapped);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -76,37 +73,37 @@ namespace Microsoft.Research.DryadLinq.Internal
         internal static extern bool GlobalMemoryStatusEx(ref MEMORYSTATUSEX lpBuffer);
 
         /* Dryad native API */
-        [DllImport("DryadLINQNativeChannels.dll", SetLastError=true)]
+        [DllImport("DryadLinqNativeChannels.dll", SetLastError=true)]
         internal static extern UInt32 GetNumOfInputs(IntPtr vertexInfo);
 
-        [DllImport("DryadLINQNativeChannels.dll", SetLastError=true)]
+        [DllImport("DryadLinqNativeChannels.dll", SetLastError=true)]
         internal static extern UInt32 GetNumOfOutputs(IntPtr vertexInfo);
 
-        [DllImport("DryadLINQNativeChannels.dll", SetLastError=true)]
+        [DllImport("DryadLinqNativeChannels.dll", SetLastError=true)]
         internal static extern void Flush(IntPtr vertexInfo, UInt32 portNum);
 
-        [DllImport("DryadLINQNativeChannels.dll", SetLastError=true)]
+        [DllImport("DryadLinqNativeChannels.dll", SetLastError=true)]
         internal static extern void Close(IntPtr vertexInfo, UInt32 portNum);
 
         // Get the expected size in bytes of the input channel of the given port. 
         // It returns -1 if the size is unknown.        
-        [DllImport("DryadLINQNativeChannels.dll", SetLastError=true)]
+        [DllImport("DryadLinqNativeChannels.dll", SetLastError=true)]
         internal static extern Int64 GetExpectedLength(IntPtr vertexInfo, UInt32 portNum);
 
         // Get the global vertex id which is unique.
-        [DllImport("DryadLINQNativeChannels.dll", SetLastError = true)]
+        [DllImport("DryadLinqNativeChannels.dll", SetLastError = true)]
         internal static extern Int64 GetVertexId(IntPtr vertexInfo);
        
         // Set the hint size for the output channel of the given port.        
-        [DllImport("DryadLINQNativeChannels.dll", SetLastError = true)]
+        [DllImport("DryadLinqNativeChannels.dll", SetLastError = true)]
         internal static extern void SetInitialSizeHint(IntPtr vertexInfo, UInt32 portNum, UInt64 hint);
 
         // Get the URI of the input channel of the given port. 
-        [DllImport("DryadLINQNativeChannels.dll", SetLastError=true)]
+        [DllImport("DryadLinqNativeChannels.dll", SetLastError=true)]
         internal static extern IntPtr GetInputChannelURI(IntPtr vertexInfo, UInt32 portNum);
 
         // Get the URI of the output channel of the given port. 
-        [DllImport("DryadLINQNativeChannels.dll", SetLastError=true)]
+        [DllImport("DryadLinqNativeChannels.dll", SetLastError=true)]
         internal static extern IntPtr GetOutputChannelURI(IntPtr vertexInfo, UInt32 portNum);
         
         // Read the data block from the channel of the specified port number.
@@ -116,33 +113,34 @@ namespace Microsoft.Research.DryadLinq.Internal
         // The caller is considered to be the exclusive owner of this data
         // block. This data block will not be reclaimed until the caller
         // explicitly releases it.
-        [DllImport("DryadLINQNativeChannels.dll", SetLastError=true)]
+        [DllImport("DryadLinqNativeChannels.dll", SetLastError=true)]
         internal unsafe static extern IntPtr ReadDataBlock(IntPtr vertexInfo,
-                                                         UInt32 portNum,
-                                                         byte** pDataBlock,
-                                                         Int32* pDataBlockSize,
-                                                         Int32* pErrorCode);
+                                                           UInt32 portNum,
+                                                           byte** pDataBlock,
+                                                           Int32* pDataBlockSize,
+                                                           Int32* pErrorCode);
 
         // Write the data block on the channel with the specified port number.
         //
         // The data block should be considered read-only after WriteDataBlock
         // has been called. This data block will not be reclaimed until the
         // client explicitly releases it.
-        [DllImport("DryadLINQNativeChannels.dll", SetLastError = true)]
+        [DllImport("DryadLinqNativeChannels.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal unsafe static extern bool WriteDataBlock(IntPtr vertexInfo,
-                                                        UInt32 portNum,
-                                                        IntPtr itemHandle,
-                                                        Int32 numBytesToWrite);
+                                                          UInt32 portNum,
+                                                          IntPtr itemHandle,
+                                                          Int32 numBytesToWrite);
 
         // Allocate a native Dryad data block with specified size. This data
         // block will not be reclaimed until the client explicitly releases it.
-        [DllImport("DryadLINQNativeChannels.dll", SetLastError=true)]
-        internal unsafe static extern IntPtr AllocateDataBlock(IntPtr vertexInfo, Int32 size,
-                                                             byte** pDataBlock);
+        [DllImport("DryadLinqNativeChannels.dll", SetLastError=true)]
+        internal unsafe static extern IntPtr AllocateDataBlock(IntPtr vertexInfo,
+                                                               Int32 size,
+                                                               byte** pDataBlock);
 
         // Release the data block. The client should not access it again after releasing.
-        [DllImport("DryadLINQNativeChannels.dll", SetLastError=true)]
+        [DllImport("DryadLinqNativeChannels.dll", SetLastError=true)]
         internal unsafe static extern void ReleaseDataBlock(IntPtr vertexInfo, IntPtr itemHandle);      
     }
 }

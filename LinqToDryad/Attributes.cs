@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -33,7 +30,7 @@ using System.Diagnostics;
 namespace Microsoft.Research.DryadLinq
 {
     [AttributeUsage(AttributeTargets.Field|AttributeTargets.Property|AttributeTargets.Class|AttributeTargets.Method, AllowMultiple = false)]
-    internal sealed class NullableAttribute : Attribute
+    public sealed class NullableAttribute : Attribute
     {
         private bool m_canBeNull;
 
@@ -110,8 +107,8 @@ namespace Microsoft.Research.DryadLinq
                 object val = TypeSystem.GetFieldValue(this.m_comparer);
                 if (val == null)
                 {
-                    throw new DryadLinqException(HpcLinqErrorCode.DistinctAttributeComparerNotDefined,
-                                               String.Format(SR.DistinctAttributeComparerNotDefined, this.m_comparer));
+                    throw new DryadLinqException(DryadLinqErrorCode.DistinctAttributeComparerNotDefined,
+                                                 String.Format(SR.DistinctAttributeComparerNotDefined, this.m_comparer));
                 }
                 return val;
             }
@@ -126,7 +123,7 @@ namespace Microsoft.Research.DryadLinq
     /// functions can use multiple aggregation layers.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    internal sealed class ResourceAttribute : Attribute
+    public sealed class ResourceAttribute : Attribute
     {
         private bool m_isStateful;
         private bool m_isExpensive;
@@ -216,20 +213,19 @@ namespace Microsoft.Research.DryadLinq
     }
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited=false)]
-    public sealed class CustomHpcSerializerAttribute : Attribute
+    public sealed class CustomDryadLinqSerializerAttribute : Attribute
     {
-        public CustomHpcSerializerAttribute(Type serializerType)
+        public CustomDryadLinqSerializerAttribute(Type serializerType)
         {
             SerializerType = serializerType;
 
-            // We need to make sure serializerType implements IHpcSerializer<T>
+            // We need to make sure serializerType implements IDryadLinqSerializer<T>
             // However we will defer that check until DryadCodeGen.FindCustomSerializerType(), because
             //  1) we don't have access to <T> here but it's available at code gen time, and 
             //  2) because an exception coming from the attribute ctor leads to an obscure failure.
-            
         }
 
-        public Type SerializerType { private set; get; }
+        public Type SerializerType { get; private set; }
     }
 
     internal static class AttributeSystem
@@ -366,7 +362,7 @@ namespace Microsoft.Research.DryadLinq
             return (FieldMappingAttribute[])a;
         }
 
-        internal static bool DoAutoTypeInference(HpcLinqContext context, Type type)
+        internal static bool DoAutoTypeInference(DryadLinqContext context, Type type)
         {
             if (!StaticConfig.AllowAutoTypeInference) return false;
             object[] a = type.GetCustomAttributes(typeof(AutoTypeInferenceAttribute), true);
@@ -390,7 +386,7 @@ namespace Microsoft.Research.DryadLinq
             return ((NullableAttribute)attribs[0]).CanBeNull;
         }
 
-        internal static bool RecordCanBeNull(HpcLinqContext context, Type type)
+        internal static bool RecordCanBeNull(DryadLinqContext context, Type type)
         {
             if (type == null || type.IsValueType) return false;
 

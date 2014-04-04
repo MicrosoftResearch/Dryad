@@ -112,7 +112,7 @@ unsigned __stdcall WorkQueue::ThreadFunc(void* arg)
         {
             WorkRequest* request = NULL;
             {
-                AutoCriticalSection acs(&(self->m_baseDR));
+                AutoCriticalSection acs(&(self->m_baseCS));
 
                 if (!decrementedCount)
                 {
@@ -156,7 +156,7 @@ unsigned __stdcall WorkQueue::ThreadFunc(void* arg)
 void WorkQueue::Start()
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_state == WQS_Stopped);
         LogAssert(m_completionPort == INVALID_HANDLE_VALUE);
@@ -196,7 +196,7 @@ void WorkQueue::Stop()
     DrLogI("WorkQueue::Stop entered");
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_state == WQS_Running);
 
@@ -231,7 +231,7 @@ void WorkQueue::Stop()
     DrLogI("WorkQueue::Stop all threads have terminated");
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         BOOL bRetval;
 
@@ -274,7 +274,7 @@ bool WorkQueue::EnQueue(WorkRequest* item)
     // Enter a critical section to add work item to queue and notify any waiting worker threads
     //
     {
-        AutoCriticalSection acs (&m_baseDR);
+        AutoCriticalSection acs (&m_baseCS);
 
         if (m_state == WQS_Stopping)
         {
@@ -341,7 +341,7 @@ void WorkQueue::Clean()
     DrBListEntry* listEntry;
 
     {
-        AutoCriticalSection acs (&m_baseDR);
+        AutoCriticalSection acs (&m_baseCS);
 
         listEntry = m_list.GetHead();
         while (listEntry != NULL)

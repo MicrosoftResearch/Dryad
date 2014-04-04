@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -37,202 +34,90 @@ namespace Microsoft.Research.DryadLinq
 {
     internal static class DataPath
     {
-        const string TEMPORARY_STREAM_NAME_PREFIX = "/__DryadLinq_Temp/";
-        internal const string DSC_URI_PREFIX = "hpcdsc://"; 
-        internal const string HDFS_URI_PREFIX = "hpchdfs://"; 
+        internal const string TEMPORARY_STREAM_NAME_PREFIX = "DryadLinqTemp/";
+
+        internal const string DSC_URI_SCHEME = "hpcdsc";
+        internal const string HDFS_URI_SCHEME = "hdfs";
+        internal const string PARTFILE_URI_SCHEME = "partfile";
+        internal const string WASB_URI_SCHEME = "wasb";
+        internal const string AZUREBLOB_URI_SCHEME = "azureblob";
 
         internal const string PrefixSeparator = "://";
-        internal const string QuerySeparator = "?";
-        internal const char ArgumentSeparator = '&';
-        internal const char KeyValueSeparator = '=';
 
         internal const string DSC_STORAGE_SET_TYPE = "Dsc"; // used to be enum StorageSetType {Dsc}
         internal const string HDFS_STORAGE_SET_TYPE = "Hdfs"; // used to be enum StorageSetType {Hdfs}
+        internal const string PT_STORAGE_SET_TYPE = "PartitionedFile";
+        internal const string AZUREBLOB_STORAGE_SET_TYPE = "AzureBlob";
 
-        public static bool IsDsc(string uri)
+        internal static Dictionary<string, string> storageSetSchemeToType = new Dictionary<string,string>
         {
-            return uri.StartsWith(DSC_URI_PREFIX, StringComparison.OrdinalIgnoreCase);
+            { DSC_URI_SCHEME, DSC_STORAGE_SET_TYPE },
+            { HDFS_URI_SCHEME, HDFS_STORAGE_SET_TYPE },
+            { PARTFILE_URI_SCHEME, PT_STORAGE_SET_TYPE },
+            { WASB_URI_SCHEME, HDFS_STORAGE_SET_TYPE },
+            { AZUREBLOB_URI_SCHEME, AZUREBLOB_STORAGE_SET_TYPE }
+        };
+
+        // An example of URI: 
+        // hdfs://machine:port/folder/folder/file?arg=value?arg2=value2
+        // |------------- data path -------------|---- arguments -----|
+        // |prefix|----------- path -------------|
+        //                    |---- filepath ----|
+        public static bool IsDsc(Uri uri)
+        {
+            return uri.Scheme == DSC_URI_SCHEME;
         }
 
-        public static bool IsHdfs(string dataPath)
+        public static bool IsHdfs(Uri uri)
         {
-            return dataPath.StartsWith(HDFS_URI_PREFIX);
+            return uri.Scheme == HDFS_URI_SCHEME;
         }
 
-        internal static string GetDataPath(string tableUri)
+        public static bool IsPartitionedFile(Uri uri)
         {
-            int idx = tableUri.IndexOf(QuerySeparator, StringComparison.Ordinal);
-            string dataPath = tableUri;
-            if (idx > 0)
-            {
-                dataPath = tableUri.Substring(0, idx);
-            }
-            return dataPath;   
+            return uri.Scheme == PARTFILE_URI_SCHEME;
         }
 
-        internal static string GetPrefix(string dataPath)
+        public static bool IsWasb(Uri uri)
         {
-            int idx = dataPath.IndexOf(PrefixSeparator, StringComparison.Ordinal);
-            if (idx <= 0) return "";
-            return dataPath.Substring(0, idx+3);
+            return uri.Scheme == WASB_URI_SCHEME;
+        }
+
+        public static bool IsAzureBlob(Uri uri)
+        {
+            return uri.Scheme == AZUREBLOB_URI_SCHEME;
+        }
+
+        public static bool IsValidDataPath(Uri uri)
+        {
+            return (IsDsc(uri) || IsHdfs(uri) || IsPartitionedFile(uri) || IsWasb(uri) || IsAzureBlob(uri));
+        }
+
+        internal static string GetScheme(Uri dataPath)
+        {
+            return dataPath.Scheme;
         }
 
         internal static string GetPath(string dataPath)
         {
             int idx = dataPath.IndexOf(PrefixSeparator, StringComparison.Ordinal);
             if (idx <= 0) return dataPath;
-            return dataPath.Substring(idx+3);
+            return dataPath.Substring(idx + PrefixSeparator.Length);
         }
 
-        internal static Dictionary<string, string> GetArguments(string dscFileSetUri)
+        internal static string GetStorageType(Uri dataPath)
         {
-            Dictionary<string, string> args = new Dictionary<string, string>();
-            int idx = dscFileSetUri.IndexOf(QuerySeparator, StringComparison.Ordinal);
-            while (idx >= 0)
+            string prefix = GetScheme(dataPath);
+            string storageType;
+            if (!storageSetSchemeToType.TryGetValue(prefix, out storageType))
             {
-                idx++;
-                int idx1 = dscFileSetUri.IndexOf(KeyValueSeparator, idx);
-                if (idx1 < 0)
-                {
-                    throw new ArgumentException(String.Format(SR.IllFormedUri, dscFileSetUri), "dscFileSetUri");
-                }
-                string key = dscFileSetUri.Substring(idx, idx1 - idx).ToLower(CultureInfo.InvariantCulture);
-                idx1++;
-                idx = dscFileSetUri.IndexOf(ArgumentSeparator, idx1);
-                string value;
-                if (idx < 0)
-                {
-                    value = dscFileSetUri.Substring(idx1);
-                }
-                else
-                {
-                    value = dscFileSetUri.Substring(idx1, idx - idx1);
-                }
-                args.Add(key, value);
+                storageType = prefix;
             }
-            return args;
-        }
-        
-        internal static string PathCombine(string dataPath1, string dataPath2)
-        {
-            string prefix = GetPrefix(dataPath1);
-            if (prefix == "")
-            {
-                return Path.Combine(dataPath1, dataPath2);
-            }
-            if (prefix == dataPath1)
-            {
-                return dataPath1 + dataPath2;
-            }
-            DataProvider dp = DataProvider.GetDataProvider(prefix);
-            dataPath1 = dataPath1.TrimEnd(dp.PathSeparator);
-            dataPath2 = dataPath2.TrimStart(dp.PathSeparator);
-            return dataPath1 + dp.PathSeparator + dataPath2;
+            return storageType;
         }
 
-        /// <summary>
-        /// Split a path into a directory name and a filename.
-        /// </summary>
-        /// <param name="dataPath">Path to split.</param>
-        /// <param name="dir">Directory part of pathname.  May be empty if there are no slashes.</param>
-        /// <param name="file">File part of pathname.</param>
-        internal static void PathSplit(string dataPath, out string dir, out string file)
+        internal static string GetStreamNameFromUri(Uri uri)
         {
-            string prefix = GetPrefix(dataPath);
-            int slash;
-            if (prefix == "")
-            {
-                slash = dataPath.LastIndexOf(Path.DirectorySeparatorChar);
-            }
-            else
-            {
-                DataProvider dp = DataProvider.GetDataProvider(prefix);
-                slash = dataPath.LastIndexOf(dp.PathSeparator);
-                if (slash < 0) slash = dataPath.LastIndexOf('/');
-            }
-            
-            if (slash >= 0)
-            {
-                file = dataPath.Substring(slash + 1);
-                dir = dataPath.Substring(0, slash);
-            }
-            else
-            {
-                file = dataPath;
-                dir = "";
-            }
-        }
-
-        /// <summary>
-        /// Extract the directory part of a path.
-        /// </summary>
-        /// <param name="dataPath">Path to split.</param>
-        /// <returns>Directory name (may be empty).</returns>
-        internal static string GetDir(string dataPath)
-        {
-            string dir, file;
-            PathSplit(dataPath, out dir, out file);
-            return dir;
-        }
-
-        /// <summary>
-        /// Extract just the filename from a path.
-        /// </summary>
-        /// <param name="dataPath">Path to split.</param>
-        /// <returns>Just the filename part.</returns>
-        public static string GetFile(string dataPath)
-        {
-            string dir, file;
-            PathSplit(dataPath, out dir, out file);
-            return file;
-        }
-
-        internal static string MakeDscStreamUri(DscService dsc, string streamName)
-        {
-            string serviceNodeName = dsc.HostName;
-            return MakeDscStreamUri(serviceNodeName, streamName);
-        }
-
-        internal static string MakeDscStreamUri(string serviceNodeName, string streamName)
-        {
-            Uri uri = new Uri(new Uri("hpcdsc://" + serviceNodeName + ":6498/"), streamName);  // use the Uri class to do combining/escaping.
-            return uri.AbsoluteUri;
-        }
-
-        internal static string MakeHdfsStreamUri(string serviceNodeName, string streamName)
-        {
-            return "hpchdfs://" + serviceNodeName + ":9000/" + streamName; // TODO: Parse config files.
-        }
-
-        //@@TODO[P2]: some overlap in how unique DSC stream names are made. Cleanup.
-        //  1. string tableUri = DryadLinqUtil.MakeUniqueName();
-        //     string fullTableUri = DataPath.GetFullUri(tableUri);
-        //
-        //  2. string tableName = DataPath.MakeUniqueDscStreamUri();
-        //
-        // Note: both base their root path on DryadLinq.DryadOutputDir.
-
-
-        internal static string MakeUniqueTemporaryDscFileSetName()
-        {
-            return TEMPORARY_STREAM_NAME_PREFIX + HpcLinqUtil.MakeUniqueName();
-        }
-
-        internal static string MakeUniqueTemporaryDscFileSetUri(HpcLinqContext context)
-        {
-            string uri = DataPath.MakeDscStreamUri(context.DscService.HostName, MakeUniqueTemporaryDscFileSetName());
-            return uri;
-        }
-
-        internal static string MakeUniqueTemporaryHdfsFileSetUri(HpcLinqContext context)
-        {
-            string uri = DataPath.MakeHdfsStreamUri(context.Configuration.HdfsNameNode, MakeUniqueTemporaryDscFileSetName());
-            return uri;
-        }
-
-        internal static string GetFilesetNameFromUri(string uriString)
-        {
-            Uri uri = new Uri(uriString);
             return uri.AbsolutePath.TrimStart('/');
         }
     }

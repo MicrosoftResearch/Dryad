@@ -58,6 +58,7 @@ public:
 
     DrStageManagerPtr GetStageManager();
     int GetId();
+    int GetPartitionId();
 
     void SetName(DrString name);
     DrString GetName();
@@ -116,6 +117,7 @@ protected:
     DrStageManagerRef             m_stage;
     DrString                      m_name;
     int                           m_id;
+    int                           m_partitionId;
 
     DrEdgeHolderRef               m_inputEdges;
     DrEdgeHolderRef               m_outputEdges;
@@ -187,8 +189,8 @@ public:
 
 	virtual void CancelAllVersions(DrErrorPtr reason) DROVERRIDE;
     
-    DrVertexCommandBlockRef MakeVertexStartCommand(DrVertexVersionGeneratorPtr pending,
-                                                   DrResourcePtr runningResource);
+    DrVertexCommandBlockRef MakeVertexStartCommand(DrVertexVersionGeneratorPtr inputGenerators,
+                                                   DrActiveVertexOutputGeneratorPtr selfGenerator);
 
 	void RequestDuplicate(int versionToDuplicate);
 
@@ -324,11 +326,11 @@ DRINTERFACE(DrIOutputPartitionGenerator)
 {
 public:
     virtual void AddDynamicSplitVertex(DrOutputVertexPtr newVertex) DRABSTRACT;
-    virtual HRESULT FinalizeSuccessfulPartitions() DRABSTRACT;
+    virtual HRESULT FinalizeSuccessfulParts(bool jobSuccess, DrStringR errorText) DRABSTRACT;
     virtual DrString GetURIForWrite(int partitionIndex, int id, int version, int outputPort,
                                     DrResourcePtr runningResource, DrMetaDataRef metaData) DRABSTRACT;
     virtual void AbandonVersion(int partitionIndex, int id, int version, int outputPort,
-                                DrResourcePtr runningResource) DRABSTRACT;
+                                DrResourcePtr runningResource, bool jobSuccess) DRABSTRACT;
     virtual void ExtendLease(DrTimeInterval) DRABSTRACT;
 };
 DRIREF(DrIOutputPartitionGenerator);
@@ -346,7 +348,7 @@ public:
 
     virtual DrVertexRef MakeCopy(int suffix, DrStageManagerPtr stage) DROVERRIDE;
 
-    DrOutputPartition FinalizeVersions();
+    DrOutputPartition FinalizeVersions(bool jobSuccess);
 
     virtual void InitializeForGraphExecution() DROVERRIDE;
     virtual void KickStateMachine() DROVERRIDE;

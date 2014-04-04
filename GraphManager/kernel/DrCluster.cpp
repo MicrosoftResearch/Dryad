@@ -18,321 +18,713 @@ limitations under the License.
 
 */
 
-#include "DrKernel.h"
+#include <DrKernel.h>
+#include <DrClusterInternal.h>
 
-template DRDECLARECLASS(DrStringDictionary<DrResourceRef>);
+using namespace System::Collections::Generic;
 
-DrResource::DrResource(DrResourceLevel level, DrString name, DrString locality, DrResourcePtr parent)
+DrClusterResource::DrClusterResource(DrClusterPtr cluster,
+                                     DrResourceLevel level,
+                                     DrString name, DrString locality,
+                                     DrResourcePtr parent, IComputer^ computer)
+: DrResource(cluster, level, name, locality, parent)
 {
-    m_level = level;
-    m_name = name;
-    m_locality = locality;
-    m_parent = parent;
-    m_children = DrNew DrResourceList();
+    m_node = computer;
+}
 
-    if (m_parent != DrNull)
+IComputer^ DrClusterResource::GetNode()
+{
+    return m_node;
+}
+
+DrClusterProcessHandle::DrClusterProcessHandle(DrClusterInternalRef p)
+{
+    m_parent = p;
+    m_state = DPS_Initializing;
+    m_id.Set("(not yet assigned)");
+    m_exitCode = STILL_ACTIVE;
+    m_lock = DrNew DrCritSec();
+}
+
+void DrClusterProcessHandle::CloseHandle()
+{
+    DrAutoCriticalSection acs(m_lock);
+
+    if (m_processInternal != DrNull)
     {
-        m_parent->GetChildren()->Add(this);
+		DrLogI("Closing handle");
+        m_processInternal = DrNull;
     }
 }
 
-void DrResource::Discard()
+void DrClusterProcessHandle::SetProcess(IProcess^ process)
 {
-    m_parent = DrNull;
-    if (m_children != DrNull)
+    DrAutoCriticalSection acs(m_lock);
+
+    m_state = DPS_Scheduling;
+    m_processInternal = process;
+    m_id.Set(process->Id);
+}
+
+DrResourcePtr DrClusterProcessHandle::GetAssignedNode()
+{
+    DrAutoCriticalSection acs(m_lock);
+
+    return m_node;
+}
+
+DrString DrClusterProcessHandle::GetHandleIdAsString()
+{
+    DrAutoCriticalSection acs(m_lock);
+
+    DrString s(m_id);
+
+    return s;
+}
+
+DrString DrClusterProcessHandle::GetDirectory()
+{
+    DrString directory;
+    if (m_processInternal == DrNull)
     {
-        int i;
-        for (i=0; i<m_children->Size(); ++i)
-        {
-            m_children[i]->Discard();
-        }
-    }
-    m_children = DrNull;
-}
-
-DrResourceLevel DrResource::GetLevel()
-{
-    return m_level;
-}
-
-DrString DrResource::GetName()
-{
-    return m_name;
-}
-
-DrString DrResource::GetLocality()
-{
-    return m_locality;
-}
-
-DrResourcePtr DrResource::GetParent()
-{
-    return m_parent;
-}
-
-DrResourceListRef DrResource::GetChildren()
-{
-    return m_children;
-}
-
-bool DrResource::Contains(DrResourcePtr resource)
-{
-    if (resource->GetLevel() > m_level)
-    {
-        return false;
-    }
-    else if (resource->GetLevel() == m_level)
-    {
-        return (resource == this);
+        directory.Set("(handle closed)");
     }
     else
     {
-        return Contains(resource->GetParent());
+        directory.Set(m_processInternal->Directory);
     }
+    return directory;
+}
+
+void DrClusterProcessHandle::WaitForStateChange(DrPSRListenerPtr listener)
+{
+    DrProcessStateRecordPtr notification;
+
+    DrLogI("Waiting for state change");
+
+    {
+        DrAutoCriticalSection acs(m_lock);
+
+        DrAssert(m_listener == DrNull);
+
+        if (m_notification == DrNull)
+        {
+            m_listener = listener;
+            return;
+        }
+        else
+        {
+            notification = m_notification;
+            m_notification = DrNull;
+        }
+    }
+
+    DrLogI("State change notification already present");
+
+    DrPSRMessageRef message = DrNew DrPSRMessage(listener, notification);
+    m_parent->GetMessagePump()->EnQueue(message);
+}
+
+void DrClusterProcessHandle::RecordNewState(DrProcessStateRecordPtr notification)
+{
+    DrPSRListenerIRef listener;
+
+    DrLogI("Recording new state");
+
+    {
+        DrAutoCriticalSection acs(m_lock);
+
+        if (m_listener == DrNull)
+        {
+            // replace previous notification if it didn't get matched to a listener
+            // in time
+            m_notification = notification;
+            return;
+        }
+        else
+        {
+            listener = m_listener;
+            m_listener = DrNull;
+            m_notification = DrNull;
+        }
+    }
+
+    DrLogI("Listener already present; dispatching new state");
+
+    DrPSRMessageRef message = DrNew DrPSRMessage(listener, notification);
+    m_parent->GetMessagePump()->EnQueue(message);
+}
+
+void DrClusterProcessHandle::Cancel(ICluster^ cluster)
+{
+    cluster->CancelProcess(m_processInternal);
+}
+
+void DrClusterProcessHandle::GetProperty(ICluster^ cluster, DrClusterProcessStatus^ status)
+{
+    cluster->GetProcessStatus(m_processInternal, status);
+}
+
+void DrClusterProcessHandle::SetProperty(ICluster^ cluster, DrClusterProcessCommand^ command)
+{
+    cluster->SetProcessCommand(m_processInternal, command);
+}
+
+void DrClusterProcessHandle::OnQueued()
+{
+    // nothing to report up the stack here
+    DrString pid(m_processInternal->Id);
+    DrLogI("Process %s got queued for scheduling", pid.GetChars());
+}
+
+void DrClusterProcessHandle::OnMatched(IComputer^ computer, INT64 timestamp)
+{
+    DrResourceRef resource = m_parent->GetOrAddResource(computer);
+
+    DrString pid(m_processInternal->Id);
+    DrLogI("Process %s got assigned node %s", pid.GetChars(), resource->GetName().GetChars());
+
+    {
+        DrAutoCriticalSection acs(m_lock);
+        
+        m_state = DPS_Starting;
+        m_node = resource;
+    }
+
+    DrProcessStateRecordRef notification = DrNew DrProcessStateRecord();
+    notification->m_state = DPS_Starting;
+    notification->m_process = this;
+    notification->m_exitCode = STILL_ACTIVE;
+
+    notification->m_creatingTime = DrDateTime_Never;
+    notification->m_createdTime = DrDateTime_Never;
+    notification->m_beginExecutionTime = DrDateTime_Never;
+    notification->m_terminatedTime = DrDateTime_Never;
+
+    RecordNewState(notification);
+}
+
+void DrClusterProcessHandle::OnCreated(INT64 timestamp)
+{
+    // nothing to report up the stack here
+    DrString pid(m_processInternal->Id);
+    DrLogI("Process %s got created on remote node", pid.GetChars());
+
+    {
+        DrAutoCriticalSection acs(m_lock);
+        
+        m_state = DPS_Created;
+    }
+
+    DrProcessStateRecordRef notification = DrNew DrProcessStateRecord();
+    notification->m_state = DPS_Created;
+    notification->m_process = this;
+    notification->m_exitCode = STILL_ACTIVE;
+
+    notification->m_creatingTime = DrDateTime_LongAgo;
+    notification->m_createdTime = (DrDateTime)timestamp;
+    notification->m_beginExecutionTime = DrDateTime_Never;
+    notification->m_terminatedTime = DrDateTime_Never;
+
+    RecordNewState(notification);
+}
+
+void DrClusterProcessHandle::OnStarted(INT64 timestamp)
+{
+    DrString pid(m_processInternal->Id);
+    DrLogI("Process %s started running on remote node", pid.GetChars());
+
+    {
+        DrAutoCriticalSection acs(m_lock);
+        
+        m_state = DPS_Running;
+    }
+
+    DrProcessStateRecordRef notification = DrNew DrProcessStateRecord();
+    notification->m_state = DPS_Running;
+    notification->m_process = this;
+    notification->m_exitCode = STILL_ACTIVE;
+
+    notification->m_creatingTime = DrDateTime_LongAgo;
+    notification->m_createdTime = DrDateTime_LongAgo;
+    notification->m_beginExecutionTime = (DrDateTime)timestamp;
+    notification->m_terminatedTime = DrDateTime_Never;
+
+    RecordNewState(notification);
+}
+
+void DrClusterProcessHandle::OnExited(ProcessExitState state, INT64 timestamp, int exitCode, System::String^ errorText)
+{
+    DrString stateDescription(state.ToString());
+    DrString reason(errorText);
+    DrString pid(m_processInternal->Id);
+    DrLogI("Process %s exited %d state %s reason %s", pid.GetChars(), exitCode, stateDescription.GetChars(), reason.GetChars());
+
+    DrProcessStateRecordRef notification = DrNew DrProcessStateRecord();
+
+    {
+        DrAutoCriticalSection acs(m_lock);
+
+        if (state == ProcessExitState::ProcessExited)
+        {
+            m_state = DPS_Completed;
+        }
+        else
+        {
+            m_state = DPS_Failed;
+
+            DrErrorRef err = DrNew DrError(DrError_ClusterError, "Cluster", reason);
+            notification->m_status = err;
+        }
+
+        m_exitCode = exitCode;
+    }
+
+    notification->m_process = this;
+    notification->m_state = m_state;
+    notification->m_exitCode = m_exitCode;
+
+    notification->m_creatingTime = DrDateTime_LongAgo;
+    notification->m_createdTime = DrDateTime_LongAgo;
+    notification->m_beginExecutionTime = DrDateTime_LongAgo;
+    notification->m_terminatedTime = (DrDateTime)timestamp;
+
+    RecordNewState(notification);
+}
+
+DrClusterProcessStatus::DrClusterProcessStatus(DrString key, int timeout, UINT64 version,
+                                               DrPropertyMessagePtr message, DrMessagePumpPtr pump,
+                                               DrClusterInternalPtr cluster)
+{
+    m_key = key.GetString();
+    m_timeout = timeout;
+    m_version = version;
+    m_message = message;
+    m_pump = pump;
+    m_cluster = cluster;
+}
+
+System::String^ DrClusterProcessStatus::GetKey()
+{
+    return m_key;
+}
+
+int DrClusterProcessStatus::GetTimeout()
+{
+    return m_timeout;
+}
+
+UINT64 DrClusterProcessStatus::GetVersion()
+{
+    return m_version;
+}
+
+void DrClusterProcessStatus::OnCompleted(UINT64 newVersion, array<unsigned char>^ statusBlock, int exitCode, System::String^ errorMessage)
+{
+    m_cluster->DecrementOutstandingPropertyRequests();
+
+    DrString propertyName(m_key);
+
+    /* Payload for vertex record */
+    DrPropertyStatusPtr pVertexRecordStatus = m_message->GetPayload();
+
+    pVertexRecordStatus->m_exitCode = exitCode;
+
+    switch (exitCode)
+    {
+    case STILL_ACTIVE:
+        DrLogI("Property fetch came back with process running");
+        pVertexRecordStatus->m_processState = DPBS_Running;
+        break;
+
+    case 0:
+        DrLogI("Property fetch came back with process completed");
+        pVertexRecordStatus->m_processState = DPBS_Completed;
+        break;
+
+    default:
+        DrLogI("Property fetch came back with process failed %d", exitCode);
+        pVertexRecordStatus->m_processState = DPBS_Failed;
+        pVertexRecordStatus->m_status = DrNew DrError(E_FAIL, "DrCluster", DrString("Already failed"));
+        break;
+    }
+
+    if (errorMessage == DrNull)
+    {
+        DrLogI("Received new process property %s version %I64u", propertyName.GetChars(), newVersion);
+        pVertexRecordStatus->m_statusVersion = newVersion;
+        pVertexRecordStatus->m_statusBlock = DrNew DrByteArray();
+        pVertexRecordStatus->m_statusBlock->SetArray(statusBlock);
+    }
+    else
+    {
+        DrString reason(errorMessage);
+        DrLogI("Process property fetch %s failed %s", propertyName.GetChars(), reason.GetChars());
+        pVertexRecordStatus->m_status = DrNew DrError(DrError_ClusterError, "DrCluster", reason);
+    }
+
+    m_pump->EnQueue(m_message);
 }
 
 
-DrUniverse::DrUniverse()
+DrClusterProcessCommand::DrClusterProcessCommand(DrString key, DrString shortStatus, array<unsigned char>^ payload,
+                                                 DrErrorListenerPtr listener, DrMessagePumpPtr pump)
 {
-    m_resourceLock = DrNew DrCritSec();
-
-    m_resourceAtLevel = DrNew RAArray(DRL_Cluster+1);
-    int i;
-    for (i=DRL_Core; i<=DRL_Cluster; ++i)
-    {
-        m_resourceAtLevel[i] = DrNew DrResourceList();
-    }
-    m_resource = DrNew DrResourceDictionary();
+    m_key = key.GetString();
+    m_shortStatus = shortStatus.GetString();
+    m_payload = payload;
+    m_pump = pump;
+    m_listener = listener;
 }
 
-void DrUniverse::Discard()
+System::String^ DrClusterProcessCommand::GetKey()
 {
-    int i;
-    for (i=DRL_Core; i<=DRL_Cluster; ++i)
+    return m_key;
+}
+
+System::String^ DrClusterProcessCommand::GetShortStatus()
+{
+    return m_shortStatus;
+}
+
+array<unsigned char>^ DrClusterProcessCommand::GetPayload()
+{
+    return m_payload;
+}
+
+void DrClusterProcessCommand::OnCompleted(System::String^ errorMessage)
+{
+    DrString propertyName(m_key);
+
+    DrErrorRef err;
+    DrString reason;
+    if (errorMessage == DrNull)
     {
+        DrLogI("Process property set command %s succeeded", propertyName.GetChars());
+        reason.SetF("Process command send succeeded");
+        err = DrNew DrError(S_OK, "Cluster", reason);
+    }
+    else
+    {
+        DrString msg(errorMessage);
+        DrLogI("Process property set command %s failed %s", propertyName.GetChars(), msg.GetChars());
+        reason.SetF("Process command send failed with error %s", msg.GetChars());
+        err = DrNew DrError(DrError_ClusterError, "Cluster", reason);
+    }
+
+    DrErrorMessageRef message = DrNew DrErrorMessage(m_listener, err);
+
+    m_pump->EnQueue(message);
+}
+
+
+DrCluster::~DrCluster()
+{
+}
+
+DrClusterRef DrCluster::Create()
+{
+    return DrNew DrClusterInternal();
+}
+
+
+DrClusterInternal::DrClusterInternal()
+{
+    m_cluster = DrNull;
+    m_critSec = DrNew DrCritSec();
+    m_outstandingPropertyRequests = 0;
+    m_random = DrNew System::Random();
+}
+
+DrClusterInternal::~DrClusterInternal()
+{
+    Shutdown();
+}
+
+DrUniversePtr DrClusterInternal::GetUniverse()
+{
+    return m_universe;
+}
+
+DrMessagePumpPtr DrClusterInternal::GetMessagePump()
+{
+    return m_messagePump;
+}
+
+DrDateTime DrClusterInternal::GetCurrentTimeStamp()
+{
+    return m_messagePump->GetCurrentTimeStamp();
+}
+
+void DrClusterInternal::Log(
+    System::String^ entry,
+    [System::Runtime::CompilerServices::CallerFilePathAttribute] System::String^ file,
+    [System::Runtime::CompilerServices::CallerMemberNameAttribute] System::String^ function,
+    [System::Runtime::CompilerServices::CallerLineNumberAttribute] int line)
+{
+    DrString fileS(file);
+    DrString functionS(function);
+    DrString s(entry);
+    if (DrLogging::Enabled(DrLog_Info)) DrLogHelper(DrLog_Info, fileS.GetChars(), functionS.GetChars(), line)("%s", s.GetChars());
+}
+
+HRESULT DrClusterInternal::Initialize(DrUniversePtr universe, DrMessagePumpPtr pump, DrTimeInterval updateInterval)
+{
+    m_universe = universe;
+    m_messagePump = pump;
+    m_propertyUpdateInterval = updateInterval;
+
+    DrLogI("Initializing Scheduler");
+
+    m_cluster = gcnew HttpCluster(this);
+
+    if (m_cluster->Start())
+    {
+        FetchListOfComputers();
+        return S_OK;
+    }
+    else
+    {
+        return DrError_ClusterError;
+    }
+}
+
+void DrClusterInternal::Shutdown()
+{
+    m_cluster->Stop();
+}
+
+void DrClusterInternal::AddNodeToUniverse(IComputer^ computer)
+{
+    DrAutoCriticalSection acs(m_universe->GetResourceLock());
+
+    AddNodeToUniverseUnderLock(computer);
+}
+
+DrResourcePtr DrClusterInternal::GetOrAddResource(IComputer^ computer)
+{
+    DrAutoCriticalSection acs(m_universe->GetResourceLock());
+
+    DrString name(computer->Name);
+    DrResourcePtr node = m_universe->LookUpResourceInternal(name);
+    if (node == DrNull)
+    {
+        node = AddNodeToUniverseUnderLock(computer);
+    }
+
+    return node;
+}
+
+DrResourcePtr DrClusterInternal::AddNodeToUniverseUnderLock(IComputer^ computer)
+{
+    DrString name(computer->Name);
+    DrString locality(computer->Host);
+    DrString podName(computer->RackName);
+    DrString podLocality(computer->RackName);
+
+    DrResourceRef pod = m_universe->LookUpResourceInternal(podName);
+    if (pod == DrNull)
+    {
+        pod = DrNew DrClusterResource(this, DRL_Rack, podName, podLocality, DrNull, DrNull);
+        m_universe->AddResource(pod);
+        DrLogI("Found pod %s", podName.GetChars());
+    }
+
+    DrResourceRef node = m_universe->LookUpResourceInternal(name);
+    DrAssert(node == DrNull);
+    node = DrNew DrClusterResource(this, DRL_Computer, name, locality, pod, computer);
+    m_universe->AddResource(node);
+
+    DrLogI("Found computer %s in pod %s", name.GetChars(), podName.GetChars());
+
+    return node;
+}
+
+void DrClusterInternal::FetchListOfComputers()
+{
+    List<IComputer^>^ computers = m_cluster->GetComputers();
+
+    for (int i=0; i<computers->Count; ++i)
+    {
+        AddNodeToUniverse(computers[i]);
+    }
+}
+
+DrString DrClusterInternal::TranslateFileToURI(DrString leafName, DrString directory,
+                                               DrResourcePtr srcResource, DrResourcePtr dstResource, int compressionMode)
+{
+    DrClusterResourcePtr src = dynamic_cast<DrClusterResourcePtr>(srcResource);
+    DrClusterResourcePtr dst = dynamic_cast<DrClusterResourcePtr>(dstResource);
+
+    IComputer^ srcComputer = src->GetNode();
+    IComputer^ dstComputer = dst->GetNode();
+
+    if (srcComputer->Host == dstComputer->Host)
+    {
+        return DrString(m_cluster->GetLocalFilePath(srcComputer, directory.GetString(), leafName.GetString(), compressionMode));
+    }
+    else
+    {
+        return DrString(m_cluster->GetRemoteFilePath(srcComputer, directory.GetString(), leafName.GetString(), compressionMode));
+    }
+}
+
+void DrClusterInternal::ScheduleProcess(DrAffinityListRef affinities,
+                                        DrString name, DrString commandLine,
+                                        DrProcessTemplatePtr processTemplate,
+                                        DrPSRListenerPtr listener)
+{
+    DrLogI("Scheduling process with %d affinities", affinities->Size());
+
+    List<Affinity^>^ affinityList = gcnew List<Affinity^>();
+    int i;
+    for (i=0; i<affinities->Size(); ++i)
+    {
+        DrAffinityPtr a = affinities[i];
+        Affinity^ aa = gcnew Affinity(a->GetHardConstraint(), a->GetWeight());
+
         int j;
-        for (j=0; j<m_resourceAtLevel[i]->Size(); ++j)
+        for (j=0; j<a->GetLocalityArray()->Size(); ++j)
         {
-            m_resourceAtLevel[i][j]->Discard();
+            DrResourcePtr r = a->GetLocalityArray()[j];
+            AffinityResource^ rr = gcnew AffinityResource((AffinityResourceLevel) r->GetLevel(), r->GetLocality().GetString());
+            aa->affinities->Add(rr);
+            DrLogI("Added affinity path %s", a->GetLocalityArray()[j]->GetLocality().GetChars());
         }
-        m_resourceAtLevel[i] = DrNull;
+
+        aa->weight = a->GetWeight();
+
+        affinityList->Add(aa);
+
+        DrLogI("Added affinity with weight %I64u", aa->weight);
     }
-    m_resourceAtLevel = DrNull;
-    m_resource = DrNull;
+
+    DrClusterProcessHandleRef process = DrNew DrClusterProcessHandle(this);
+
+    DrLogI("Starting schedule process for %s.%s",
+           processTemplate->GetProcessClass().GetChars(), name.GetChars());
+
+    IProcess^ rawProcess = m_cluster->NewProcess(process, commandLine.GetString());
+    process->SetProcess(rawProcess);
+
+    DrLogI("Assigned GUID %s to process for %s.%s",
+            process->GetHandleIdAsString().GetChars(),
+           processTemplate->GetProcessClass().GetChars(), name.GetChars());
+
+    DrProcessState state;
+    DrString reason;
+    m_cluster->ScheduleProcess(rawProcess, affinityList);
+
+    DrLogI("Scheduled process for %s.%s",
+           processTemplate->GetProcessClass().GetChars(), name.GetChars());
+    state = DPS_Scheduling;
+    reason = "Schedule process in progress";
+
+    /* send the listener notification of the change of state */
+    DrProcessStateRecordRef notification = DrNew DrProcessStateRecord();
+    notification->m_state = state;
+    notification->m_exitCode = STILL_ACTIVE;
+    notification->m_process = process;
+
+    DrPSRMessageRef message = DrNew DrPSRMessage(listener, notification);
+    m_messagePump->EnQueue(message);
+
+    process->WaitForStateChange(listener);
 }
 
-DrCritSecPtr DrUniverse::GetResourceLock()
+void DrClusterInternal::CancelScheduleProcess(DrProcessHandlePtr p)
 {
-    return m_resourceLock;
+    DrClusterProcessHandlePtr process = dynamic_cast<DrClusterProcessHandlePtr>(p);
+    DrAssert(process != DrNull);
+    process->Cancel(m_cluster);
 }
 
-void DrUniverse::AddResource(DrResourcePtr resource)
+void DrClusterInternal::DecrementOutstandingPropertyRequests()
 {
-    m_resourceAtLevel[resource->GetLevel()]->Add(resource);
-    m_resource->Add(resource->GetName().GetString(), resource);
+        DrAutoCriticalSection acs(m_critSec);
+
+        DrAssert(m_outstandingPropertyRequests > 0);
+        --m_outstandingPropertyRequests;
 }
 
-DrResourceListRef DrUniverse::GetResources(DrResourceLevel level)
+void DrClusterInternal::GetProcessProperty(DrProcessHandlePtr p, 
+                                           UINT64 lastSeenVersion, DrString propertyName,
+                                           DrPropertyListenerPtr propertyListener)
 {
-    return m_resourceAtLevel[level];
-}
+    DrTimeInterval maxBlockTime;
 
-DrResourcePtr DrUniverse::LookUpResource(DrNativeString name)
-{
-    return LookUpResourceInternal(DrString(name));
-}
-
-DrResourcePtr DrUniverse::LookUpResourceInternal(DrString name)
-{
-    DrResourceRef resource;
-    if (m_resource->TryGetValue(name.GetString(), resource))
     {
-        return resource;
-    }
-    else
-    {
-        return DrNull;
-    }
-}
+        DrAutoCriticalSection acs(m_critSec);
 
+        ++m_outstandingPropertyRequests;
+        DrAssert(m_outstandingPropertyRequests > 0);
 
-DrAffinity::DrAffinity()
-{
-    m_isHardConstraint = false;
-    m_weight = 0;
-    m_locality = DrNew DrResourceList();
-}
-
-void DrAffinity::SetHardConstraint(bool isHardConstraint)
-{
-    m_isHardConstraint = isHardConstraint;
-}
-
-bool DrAffinity::GetHardConstraint()
-{
-    return m_isHardConstraint;
-}
-
-void DrAffinity::SetWeight(UINT64 weight)
-{
-    m_weight = weight;
-}
-
-UINT64 DrAffinity::GetWeight()
-{
-    return m_weight;
-}
-
-void DrAffinity::AddLocality(DrResourcePtr locality)
-{
-    m_locality->Add(locality);
-}
-
-DrResourceListRef DrAffinity::GetLocalityArray()
-{
-    return m_locality;
-}
-
-DrAffinityRef DrAffinityIntersector::IntersectHardConstraints(DrAffinityPtr existingConstraints,
-                                                              DrAffinityListRef newAffinities)
-{
-    DrAffinityRef constraints = existingConstraints;
-
-    int i;
-    for (i=0; i<newAffinities->Size(); ++i)
-    {
-        DrAffinityPtr a = newAffinities[i];
-        if (a->GetHardConstraint())
-        {
-            if (constraints == DrNull)
-            {
-                constraints = DrNew DrAffinity();
-                constraints->SetHardConstraint(true);
-
-                int j;
-                for (j=0; j<a->GetLocalityArray()->Size(); ++j)
-                {
-                    constraints->GetLocalityArray()->Add(a->GetLocalityArray()[j]);
-                }
-            }
-            else
-            {
-                int j = 0;
-                while (j<constraints->GetLocalityArray()->Size())
-                {
-                    DrResourcePtr c = constraints->GetLocalityArray()[j];
-
-                    int k;
-                    for (k=0; k<a->GetLocalityArray()->Size(); ++k)
-                    {
-                        DrResourcePtr r = a->GetLocalityArray()[k];
-                        if (c->Contains(r) || r->Contains(c))
-                        {
-                            if (r->GetLevel() < c->GetLevel())
-                            {
-                                /* narrow the constraint */
-                                constraints->GetLocalityArray()[j] = r;
-                            }
-                            break;
-                        }
-                    }
-                    if (k == a->GetLocalityArray()->Size())
-                    {
-                        /* we can't keep this constraint */
-                        constraints->GetLocalityArray()->RemoveAt(j);
-                    }
-                    else
-                    {
-                        ++j;
-                    }
-                }
-            }
-        }
+        maxBlockTime = (DrTimeInterval)m_random->Next((int) (m_propertyUpdateInterval * m_outstandingPropertyRequests));
     }
 
-    return constraints;
+    DrLogI("Requesting property %s lastSeen %I64u maxBlock %lf %d outstanding", propertyName.GetChars(),
+        lastSeenVersion, (double) maxBlockTime / (double) DrTimeInterval_Second, m_outstandingPropertyRequests);
+
+    DrPropertyStatusRef notification = DrNew DrPropertyStatus(DPBS_Running, STILL_ACTIVE, DrNull);
+    DrPropertyMessageRef message = DrNew DrPropertyMessage(propertyListener, notification);
+
+    DrClusterProcessStatusRef status =
+        DrNew DrClusterProcessStatus(propertyName, (int) (maxBlockTime / DrTimeInterval_Millisecond), lastSeenVersion,
+                                     message, m_messagePump, this);
+
+    DrClusterProcessHandlePtr process = dynamic_cast<DrClusterProcessHandlePtr>(p);
+    DrAssert(process != DrNull);
+
+    process->GetProperty(m_cluster, status);
 }
 
-
-DrAffinityMerger::DrAffinityMerger()
+void DrClusterInternal::SetProcessCommand(DrProcessHandlePtr p,
+                                          DrString propertyName,
+                                          DrString propertyDescription,
+                                          DrByteArrayRef propertyBlock,
+                                          DrErrorListenerPtr listener)
 {
-    m_dictionary = DrNew ResourceWeightDictionary();
+    DrLogI("Setting property %s %s", propertyName.GetChars(), propertyDescription.GetChars());
+
+    DrClusterProcessHandlePtr process = dynamic_cast<DrClusterProcessHandlePtr>(p);
+    DrAssert(process != DrNull);
+
+    DrClusterProcessCommandRef command =
+        DrNew DrClusterProcessCommand(propertyName, propertyDescription, propertyBlock->GetArray(),
+                                        listener, m_messagePump);
+
+    process->SetProperty(m_cluster, command);
 }
 
-void DrAffinityMerger::AccumulateWeights(DrAffinityListRef affinityList)
+void DrClusterInternal::WaitForStateChange(DrProcessHandlePtr p, DrPSRListenerPtr listener)
 {
-    int i;
-    for (i=0; i<affinityList->Size(); ++i)
-    {
-        AccumulateWeights(affinityList[i]);
-    }
+    DrClusterProcessHandlePtr process = dynamic_cast<DrClusterProcessHandlePtr>(p);
+    DrAssert(process != DrNull);
+
+    process->WaitForStateChange(listener);
 }
 
-void DrAffinityMerger::AccumulateWeights(DrAffinityPtr affinity)
+void DrClusterInternal::ResetProgress(UINT32 totalSteps, bool update)
 {
-    DrAssert(affinity->GetHardConstraint() == false);
-
-    DrResourceListRef list = affinity->GetLocalityArray();
-    int i;
-    for (i=0; i<list->Size(); ++i)
-    {
-        DrResourcePtr r = list[i];
-        do
-        {
-            UINT64 weight;
-            if (m_dictionary->TryGetValue(r, weight))
-            {
-                weight += affinity->GetWeight();
-                m_dictionary->Replace(r, weight);
-            }
-            else
-            {
-                m_dictionary->Add(r, affinity->GetWeight());
-            }
-
-            /* also accumulate the coarser-level information */
-            r = r->GetParent();
-        } while (r != DrNull);
-    }
+    // Not yet implemented
 }
 
-DrAffinityListRef DrAffinityMerger::GetMergedAffinities(DrFloatArrayRef levelThreshold)
+void DrClusterInternal::IncrementTotalSteps(bool update)
 {
-    DrUINT64ArrayRef levelTotal = DrNew DrUINT64Array(DRL_Cluster + 1);
+    // Not yet implemented
+}
 
-    int level;
-    for (level = DRL_Core; level <= DRL_Cluster; ++level)
-    {
-        levelTotal[level] = 0;
-    }
+void DrClusterInternal::DecrementTotalSteps(bool update)
+{
+    // Not yet implemented
+}
 
-    ResourceWeightDictionary::DrEnumerator eSum = m_dictionary->GetDrEnumerator();
-    while (eSum.MoveNext())
-    {
-        levelTotal[eSum.GetKey()->GetLevel()] += eSum.GetValue();
-    }
+void DrClusterInternal::IncrementProgress(PCSTR message)
+{
+    // Not yet implemented
+}
 
-    for (level = DRL_Core; level <= DRL_Cluster; ++level)
-    {
-        levelTotal[level] = (UINT64) ((float) levelTotal[level] * levelThreshold[level]);
-    }
-
-    DrAffinityListRef l = DrNew DrAffinityList();
-
-    ResourceWeightDictionary::DrEnumerator eFilter = m_dictionary->GetDrEnumerator();
-    while (eFilter.MoveNext())
-    {
-        DrResourcePtr resource = eFilter.GetKey();
-        UINT64 weight = eFilter.GetValue();
-        level = resource->GetLevel();
-        if (weight >= levelTotal[level])
-        {
-            DrAffinityRef a = DrNew DrAffinity();
-            a->SetWeight(weight);
-            a->AddLocality(resource);
-            l->Add(a);
-        }
-    }
-
-    return l;
+void DrClusterInternal::CompleteProgress(PCSTR message)
+{
+    // Not yet implemented
 }

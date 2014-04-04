@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using Microsoft.Research.DryadLinq;
 
@@ -79,7 +76,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
         
-        private void WriteInner(HpcBinaryWriter writer)
+        private void WriteInner(DryadLinqBinaryWriter writer)
         {
             int len;
             for (len = this.m_array.Length - 1; len >= 0; len--)
@@ -94,7 +91,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
         
-        public static BitVector Read(HpcBinaryReader reader)
+        public static BitVector Read(DryadLinqBinaryReader reader)
         {
             Int32 len = reader.ReadCompactInt32();
             byte[] values = new byte[len];
@@ -105,7 +102,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             return new BitVector(values);
         }
 
-        public static void Write(HpcBinaryWriter writer, BitVector bv)
+        public static void Write(DryadLinqBinaryWriter writer, BitVector bv)
         {
             bv.WriteInner(writer);
         }

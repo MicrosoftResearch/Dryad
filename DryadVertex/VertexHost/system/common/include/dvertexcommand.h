@@ -24,8 +24,8 @@ limitations under the License.
 #include <dryadmetadata.h>
 
 /* these are wrapper classes to access properties that abstracts the
-   different mechanisms for getting and setting properties in xcompute 
-   and potentially other clusters */
+   different mechanisms for getting and setting properties in the
+   cluster */
 class DryadPnProcessPropertyRequest : public DrRefCounter
 {
 public:
@@ -59,7 +59,13 @@ public:
     void SetChannelURI(const char* channelURI);
 
     DryadMetaData* GetChannelMetaData() const;
-    void SetChannelMetaData(DryadMetaData* metaData);
+    void SetChannelMetaData(DryadMetaData* metaData, bool updateErrorInfo);
+
+    DrError GetChannelErrorCode() const;
+    void SetChannelErrorCode(DrError errorCode);
+
+    const char* GetChannelErrorString() const;
+    void SetChannelErrorString(const char* errorString);
 
     UInt64 GetChannelTotalLength() const;
     void SetChannelTotalLength(UInt64 totalLength);
@@ -77,6 +83,8 @@ private:
     DrError               m_state;
     DrStr64               m_URI;
     DryadMetaDataRef      m_metaData;
+    DrError               m_errorCode;
+    DrStr128              m_errorString;
     UInt64                m_totalLength;
     UInt64                m_processedLength;
     bool                  m_isInputChannel;
@@ -107,7 +115,13 @@ public:
     void SetVertexInstanceVersion(UInt32 instanceVersion);
 
     DryadMetaData* GetVertexMetaData();
-    void SetVertexMetaData(DryadMetaData* metaData);
+    void SetVertexMetaData(DryadMetaData* metaData, bool updateErrorInfo);
+
+    DrError GetVertexErrorCode() const;
+    void SetVertexErrorCode(DrError errorCode);
+
+    const char* GetVertexErrorString() const;
+    void SetVertexErrorString(const char* errorString);
 
     UInt32 GetInputChannelCount();
     void SetInputChannelCount(UInt32 channelCount);
@@ -138,6 +152,8 @@ private:
     UInt32                            m_id;
     UInt32                            m_version;
     DryadMetaDataRef                  m_metaData;
+    DrError                           m_errorCode;
+    DrStr128                          m_errorString;
     UInt32                            m_nInputChannels;
     UInt32                            m_maxInputChannels;
     DryadInputChannelDescription*     m_inputChannel;

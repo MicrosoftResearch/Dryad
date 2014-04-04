@@ -35,7 +35,10 @@ DRREF(DrFailureDictionary);
 DRBASECLASS(DrGraphParameters)
 {
 public:
+    DrGraphParameters();
+
     DrTimeInterval                m_processAbortTimeOut;
+    DrTimeInterval                m_propertyUpdateInterval;
     int                           m_maxActiveFailureCount;
 
     int                           m_duplicateEverythingThreshold;
@@ -48,7 +51,7 @@ public:
     DrProcessTemplateRef          m_defaultProcessTemplate;
     DrVertexTemplateRef           m_defaultVertexTemplate;
 
-    DrVertexTopologyReporterIRef  m_topologyReporter;
+    DrIReporterRefListRef         m_reporters;
 };
 DRREF(DrGraphParameters);
 
@@ -72,10 +75,10 @@ DRENUM(DrGraphState)
 DRCLASS(DrGraph) : public DrErrorNotifier, public DrErrorListener, public DrLeaseListener, public DrDuplicateListener, public DrShutdownListener
 {
 public:
-    DrGraph(DrXComputePtr xcompute, DrGraphParametersPtr parameters);
+    DrGraph(DrClusterPtr cluster, DrGraphParametersPtr parameters);
     void Discard();
 
-    DrXComputePtr GetXCompute();
+    DrClusterPtr GetCluster();
     DrGraphParametersPtr GetParameters();
 
     void AddStage(DrStageManagerPtr stage);
@@ -112,7 +115,7 @@ private:
 	DrGraphState                  m_state;
     DrErrorRef                    m_exitStatus;
 
-    DrXComputeRef                 m_xcompute;
+    DrClusterRef                  m_cluster;
     DrGraphParametersRef          m_parameters;
 
     DrStageListRef                m_stageList;

@@ -23,7 +23,6 @@ limitations under the License.
 #include <orderedsendlatch.h>
 #include <DrCommon.h>
 #include <dryadlisthelper.h>
-#include <XCompute.h>
 
 class DryadNativePort
 {
@@ -48,7 +47,6 @@ public:
         virtual ~Handler();
 
         PSIZE_T GetNumberOfBytesToTransferPtr();
-//JC        DR_STREAM_POSITION *GetDryadPositionPtr();
         virtual void* GetData() = 0;
 
     protected:
@@ -57,7 +55,6 @@ public:
 
     private:
         SIZE_T       m_bytesToTransfer;
-//JC        DR_STREAM_POSITION m_cosmosPosition;
     };
 
     DryadNativePort(DWORD numWorkerThreads,
@@ -69,14 +66,6 @@ public:
     void AssociateHandle(HANDLE fileHandle);
 
     void QueueNativeRead(HANDLE fileHandle, Handler* request);
-    void QueueNativeXComputeRead(XCPROCESSFILEHANDLE fileHandle,
-                                 Handler* request,
-                                 UInt64* streamOffset,
-                                 DrError* pendingStatePtr);
-/*JC    void QueueDryadRead(DRHANDLE streamHandle,
-                         DrError* pendingStatePtr,
-                         UInt64 streamOffset,
-                         Handler* request);*/
 
     void QueueNativeWrite(HANDLE fileHandle, Handler* request);
 /*JC    void QueueDryadWrite(DRHANDLE streamHandle,
@@ -147,7 +136,7 @@ private:
     bool                m_writeFileFinished;
     CRITSEC             m_writeFileCS;
 
-    CRITSEC             m_baseDR;
+    CRITSEC             m_baseCS;
 };
 
 

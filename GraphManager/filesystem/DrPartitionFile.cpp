@@ -19,6 +19,11 @@ limitations under the License.
 */
 
 #include <DrFileSystems.h>
+#include <DrClusterInternal.h>
+
+using System::IO::Path;
+using System::String;
+using System::Uri;
 
 static DrString ReadLineFromFile(FILE* f)
 {
@@ -199,7 +204,7 @@ HRESULT DrPartitionInputStream::Open(DrUniversePtr universe, DrNativeString stre
 HRESULT DrPartitionInputStream::OpenInternal(DrUniversePtr universe, DrString streamName)
 {
     HRESULT err = S_OK;
-
+	DrLogI("Opening input file %s", streamName.GetChars(), DRERRORSTRING(err));
     FILE* f;
     errno_t ferr = fopen_s(&f, streamName.GetChars(), "rb");
     if (ferr != 0)
@@ -226,8 +231,8 @@ HRESULT DrPartitionInputStream::OpenInternal(DrUniversePtr universe, DrString st
         mustOverride = true;
     }
 
-    int numberOfPartitions;
-    int n = sscanf_s(partitionSizeLine.GetChars(), "%d", &numberOfPartitions);
+    int numberOfParts;
+    int n = sscanf_s(partitionSizeLine.GetChars(), "%d", &numberOfParts);
     if (n != 1)
     {
         DrLogW("Unable to read partition size from line '%s' Filename %s",
@@ -236,7 +241,7 @@ HRESULT DrPartitionInputStream::OpenInternal(DrUniversePtr universe, DrString st
         return DrError_Unexpected;
     }
 
-    if (numberOfPartitions == 0)
+    if (numberOfParts == 0)
     {
         DrLogI("Read empty partitioned file details PathName: '%s'",
                m_pathNameOnComputer.GetChars());
@@ -244,21 +249,21 @@ HRESULT DrPartitionInputStream::OpenInternal(DrUniversePtr universe, DrString st
         return S_OK;
     }
 
-    m_affinity = DrNew DrAffinityArray(numberOfPartitions);
-    m_remoteName = DrNew DrStringArray(numberOfPartitions);
-    m_override = DrNew OverrideArray(numberOfPartitions);
+    m_affinity = DrNew DrAffinityArray(numberOfParts);
+    m_remoteName = DrNew DrStringArray(numberOfParts);
+    m_override = DrNew OverrideArray(numberOfParts);
 
-    DrLogI("Reading partitioned file details PathName: '%s' NumberOfPartitions=%d",
-           m_pathNameOnComputer.GetChars(), numberOfPartitions);
+    DrLogI("Reading partitioned file details PathName: '%s' NumberOfParts=%d",
+           m_pathNameOnComputer.GetChars(), numberOfParts);
 
     int i;
-    for (i=0; i<numberOfPartitions; ++i)
+    for (i=0; i<numberOfParts; ++i)
     {
         DrString partitionLine = ReadLineFromFile(f);
         if (partitionLine.GetString() == DrNull)
         {
             DrLogW("Malformed partition file %s: got %d partition lines; expected %d",
-                   streamName.GetChars(), i, numberOfPartitions);
+                   streamName.GetChars(), i, numberOfParts);
             m_affinity = DrNull;
             m_remoteName = DrNull;
             m_override = DrNull;
@@ -302,7 +307,7 @@ DrString DrPartitionInputStream::GetStreamName()
     return m_streamName;
 }
 
-int DrPartitionInputStream::GetNumberOfPartitions()
+int DrPartitionInputStream::GetNumberOfParts()
 {
     return m_affinity->Allocated();
 }
@@ -363,12 +368,18 @@ DrString DrPartitionInputStream::GetURIForRead(int partitionIndex, DrResourcePtr
     DrString overrideString;
     if (over->TryGetValue(computerName.GetString(), overrideString))
     {
-        uri.SetF("file://\\\\%s\\%s", computerName.GetChars(), overrideString.GetChars());
+        uri.SetF("file:///\\\\%s\\%s", computerName.GetChars(), overrideString.GetChars());
     }
     else
     {
-        uri.SetF("file://\\\\%s\\%s.%08x",
-                  computerName.GetChars(), m_pathNameOnComputer.GetChars(), partitionIndex);
+		if (m_pathNameOnComputer.IndexOfChar(':') != DrStr_InvalidIndex)		
+		{
+			uri.SetF("file:///%s.%08x", m_pathNameOnComputer.GetChars(), partitionIndex);
+		}
+		else {
+			uri.SetF("file:///\\\\%s\\%s.%08x",
+			      computerName.GetChars(), m_pathNameOnComputer.GetChars(), partitionIndex);
+		}
     }
 
     return uri;
@@ -393,11 +404,12 @@ HRESULT DrPartitionOutputStream::OpenInternal(DrString streamName, DrString path
 
     m_streamName = streamName;
     m_pathBase = pathBase;
+	m_isPathBaseRooted = Path::IsPathRooted(m_pathBase.GetString());
 
     return S_OK;
 }
 
-void DrPartitionOutputStream::SetNumberOfPartitions(int /* unused numberOfPartitions*/)
+void DrPartitionOutputStream::SetNumberOfParts(int /* unused numberOfParts*/)
 {
 }
 
@@ -406,24 +418,39 @@ DrString DrPartitionOutputStream::GetURIForWrite(int partitionIndex,
                                                  DrResourcePtr runningResource,
                                                  DrMetaDataRef metaData)
 {
-    DrString uri;
-    uri.SetF("file://\\\\%s\\%s.%08x---%d_%d_%d.tmp",
-              runningResource->GetName().GetChars(),
-              m_pathBase.GetChars(), partitionIndex, id, outputPort, version);
-
-    DrMTagVoidRef tag = DrNew DrMTagVoid(DrProp_TryToCreateChannelPath);
+    String ^uri;	
+ 
+	if (m_isPathBaseRooted)
+	{
+		String ^ext = String::Format("{0:X8}---{1}_{2}_{3}.tmp", 
+			partitionIndex, id, outputPort, version);
+		uri = "file:///" + Path::ChangeExtension(m_pathBase.GetString(), ext);
+	} 
+	else 
+	{
+		DrClusterResourcePtr clusterPtr = dynamic_cast<DrClusterResourcePtr>(runningResource); 
+		IComputer ^node = clusterPtr->GetNode();
+		uri = String::Format("file:///\\\\{0}\\{1}.{2:X8}---{2}_{3}_{4}.tmp",
+			gcnew array<Object^> {clusterPtr->GetLocality().GetString(),
+			m_pathBase.GetString(), partitionIndex, id, outputPort, version});
+	}
+	DrMTagVoidRef tag = DrNew DrMTagVoid(DrProp_TryToCreateChannelPath);
     metaData->Append(tag);
-
-    return uri;
+    return DrString(uri);
 }
 
-void DrPartitionOutputStream::DiscardUnusedPartition(int partitionIndex,
-                                                     int id, int version, int outputPort,
-                                                     DrResourcePtr runningResource)
+void DrPartitionOutputStream::DiscardUnusedPart(int partitionIndex,
+                                                int id, int version, int outputPort,
+                                                DrResourcePtr runningResource, bool jobSuccess)
 {
+    // we do the same thing here whether the job succeeded or not since each part needs to be
+    // individually deleted
+
     DrMetaDataRef metaData = DrNew DrMetaData();
-    DrString uri = GetURIForWrite(partitionIndex, id, version, outputPort, runningResource, metaData);
-    BOOL bRet = ::DeleteFileA(uri.GetChars() + 7);
+	Uri ^absUri = gcnew Uri(GetURIForWrite(partitionIndex, id, version, outputPort, runningResource, metaData).GetString());
+	DrString fname(absUri->LocalPath);
+	
+    BOOL bRet = ::DeleteFileA(fname.GetChars());
     if (!bRet)
     {
         HRESULT err = HRESULT_FROM_WIN32(GetLastError());
@@ -431,40 +458,61 @@ void DrPartitionOutputStream::DiscardUnusedPartition(int partitionIndex,
 
         if (err == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND))
         {
-            DrLogI("Delete ignoring nonexistent URI %s", uri.GetChars());
+            DrLogI("Delete ignoring nonexistent URI %s", fname.GetChars());
         }
         else
         {
-            DrLogW("DeleteFile(%s), error %s", uri.GetChars() + 7, DRERRORSTRING(err));
+            DrLogW("DeleteFile(%s), error %s", fname.GetChars(), DRERRORSTRING(err));
         }
     }
     else
     {
-        DrLogI("Deleted URI %s", uri.GetChars());
+        DrLogI("Deleted URI %s", fname.GetChars());
     }
 }
 
-HRESULT DrPartitionOutputStream::RenameSuccessfulPartition(int partitionIndex, DrOutputPartition p)
+HRESULT DrPartitionOutputStream::RenameSuccessfulPart(int partitionIndex, DrOutputPartition p)
 {
     DrMetaDataRef metaData = DrNew DrMetaData();
     DrString uri = GetURIForWrite(partitionIndex, p.m_id,
                                   p.m_version, p.m_outputPort, p.m_resource,
                                   metaData);
-
-    DrString finalName;
-    finalName.SetF("\\\\%s\\%s.%08x",
-                   p.m_resource->GetName().GetChars(),
-                   m_pathBase.GetChars(), partitionIndex);
-
+	
+	Uri ^srcUri = gcnew Uri(uri.GetString());
+	uri.Set(srcUri->LocalPath);
+	
+	String ^finalFile;	
+	if (m_isPathBaseRooted)
+	{
+		finalFile = Path::ChangeExtension(m_pathBase.GetString(), partitionIndex.ToString("X8"));
+	} 
+	else 
+	{
+		DrClusterResourcePtr clusterPtr = dynamic_cast<DrClusterResourcePtr>(p.m_resource); 
+		if (clusterPtr != nullptr)
+		{		
+			finalFile = String::Format("\\\\{0}\\{1}.{2:X8}",
+				clusterPtr->GetNode()->Host,
+				m_pathBase.GetString(), partitionIndex);
+		} 
+		else 
+		{
+			finalFile = String::Format("\\\\{0}\\{1}.{2:X8}",
+				clusterPtr->GetName().GetString(),
+				m_pathBase.GetString(), partitionIndex);
+		}
+	}
+    DrString finalName(finalFile);
+    
     HRESULT err = S_OK;
 
-    BOOL bRet = ::MoveFileA(uri.GetChars()+7, finalName.GetChars());
+    BOOL bRet = ::MoveFileA(uri.GetChars(), finalName.GetChars());
     if (!bRet)
     {
         err = HRESULT_FROM_WIN32(GetLastError());
         DrAssert(err != S_OK);
 
-        DrLogW("MoveFile(%s, %s), error %s", uri.GetChars()+7, finalName.GetChars(), DRERRORSTRING(err));
+        DrLogW("MoveFile(%s, %s), error %s", uri.GetChars(), finalName.GetChars(), DRERRORSTRING(err));
     }
     else
     {
@@ -474,21 +522,17 @@ HRESULT DrPartitionOutputStream::RenameSuccessfulPartition(int partitionIndex, D
     return err;
 }
 
-HRESULT DrPartitionOutputStream::FinalizeSuccessfulPartitions(DrOutputPartitionArrayRef partitionArray)
+HRESULT DrPartitionOutputStream::FinalizeSuccessfulParts(DrOutputPartitionArrayRef partitionArray, DrStringR errorText)
 {
     HRESULT err = S_OK;
-
-    if (!SUCCEEDED(err))
-    {
-        return err;
-    }
 
     FILE* f;
     errno_t ferr = fopen_s(&f, m_streamName.GetChars(), "w");
     if (ferr != 0)
     {
         HRESULT err = HRESULT_FROM_WIN32(GetLastError());
-        DrLogW("Failed to open output file %s error %s", m_streamName.GetChars(), DRERRORSTRING(err));
+        errorText.SetF("Failed to open output file %s error %s", m_streamName.GetChars(), DRERRORSTRING(err));
+        DrLogW("%s", errorText.GetChars());
         return err;
     }
 
@@ -497,17 +541,40 @@ HRESULT DrPartitionOutputStream::FinalizeSuccessfulPartitions(DrOutputPartitionA
     for (i=0; i<partitionArray->Allocated(); ++i)
     {
         DrOutputPartition p = partitionArray[i];
-
-        HRESULT thisErr = RenameSuccessfulPartition(i, p);
+		
+		HRESULT thisErr = RenameSuccessfulPart(i, p);
         if (err == S_OK && !SUCCEEDED(thisErr))
         {
             err = thisErr;
         }
 
-        fprintf(f, "%d,%I64u,%s\n", i, p.m_size, p.m_resource->GetName().GetChars());
+		DrClusterResourcePtr clusterPtr = dynamic_cast<DrClusterResourcePtr>(p.m_resource); 
+		if (clusterPtr != nullptr)
+		{
+			fprintf(f, "%d,%I64u,%s\n", i, p.m_size, clusterPtr->GetNode()->Host);
+		}
+		else 
+		{
+			fprintf(f, "%d,%I64u,%s\n", i, p.m_size, p.m_resource->GetName().GetChars());
+		}
     }
 
     fclose(f);
+
+    return err;
+}
+
+HRESULT DrPartitionOutputStream::DiscardFailedStream(DrStringR errorText)
+{
+    HRESULT err = S_OK;
+
+    BOOL b = ::DeleteFileA(m_streamName.GetChars());
+    if (b == 0)
+    {
+        HRESULT err = HRESULT_FROM_WIN32(GetLastError());
+        errorText.SetF("Failed to delete partition output stream %s error %s", m_streamName.GetChars(), DRERRORSTRING(err));
+        DrLogW("%s", errorText.GetChars());
+    }
 
     return err;
 }

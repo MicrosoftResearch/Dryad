@@ -24,7 +24,7 @@ limitations under the License.
 #include <dvertexcmdlinecontrol.h>
 #include <dryadvertex.h>
 #include <subgraphvertex.h>
-#include <dvertexxcomputepncontrol.h>
+#include <dvertexhttppncontrol.h>
 
 #pragma managed
 
@@ -126,7 +126,7 @@ extern int DryadVertexMain(int argc, char** argv,
             //
             // If --startfrompn used, create a Vertex Service controller and run
             //
-            DVertexXComputePnControllerOuter controller;
+            DVertexHttpPnControllerOuter controller;
             exitCode = controller.Run(argc, argv);
         }
     }

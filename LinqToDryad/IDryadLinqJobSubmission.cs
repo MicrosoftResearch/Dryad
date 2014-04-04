@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 
 namespace Microsoft.Research.DryadLinq
@@ -56,7 +53,7 @@ namespace Microsoft.Research.DryadLinq
         Cancelled
     }
 
-    internal interface IHpcLinqJobSubmission
+    internal interface IDryadLinqJobSubmission
     {
         void AddJobOption(string fieldName, string fieldVal);
         void AddLocalFile(string fileName);
@@ -65,6 +62,6 @@ namespace Microsoft.Research.DryadLinq
         JobStatus GetStatus();
         void SubmitJob();
         JobStatus TerminateJob();
-        int GetJobId();
+        string GetJobId();
     }
 }

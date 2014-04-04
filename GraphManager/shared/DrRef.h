@@ -120,9 +120,7 @@ public:
     T^ Extract()
     {
         /* In some cases, Extract may be called on a DrRefHolder for which Store was
-           never called. Specifically, DrXComputeCancelScheduleProcessOverlapped
-           does not use the m_message member of its base class DrXComputeOverlapped, but
-           DrXComputeOverlapped::Discard calls m_message.Extract. */
+           never called.  */
         if (m_storedValue == System::IntPtr::Zero)
         {
             return DrNull;

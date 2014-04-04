@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -80,7 +77,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                 }
 
                 //@@TODO: throw ArgumentOutOfRangeException?
-                throw new DryadLinqException(HpcLinqErrorCode.IndexOutOfRange, SR.IndexOutOfRange);
+                throw new DryadLinqException(DryadLinqErrorCode.IndexOutOfRange, SR.IndexOutOfRange);
             }
         }
 

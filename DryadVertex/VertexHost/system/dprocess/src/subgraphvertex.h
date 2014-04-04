@@ -197,6 +197,6 @@ private:
     DryadVertexProgramCompletionHandler*  m_handler;
     UInt32                                m_outstandingVertices;
 
-    CRITSEC                               m_baseDR;
+    CRITSEC                               m_baseCS;
     DRREFCOUNTIMPL_BASE(DryadVertexProgramBase)
 };

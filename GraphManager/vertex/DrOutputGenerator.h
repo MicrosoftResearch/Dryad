@@ -95,10 +95,9 @@ public:
     virtual int GetVersion() DROVERRIDE;
     virtual DrAffinityRef GetOutputAffinity(int output) DROVERRIDE;
     virtual DrString GetURIForRead(int output, DrConnectorType type, DrResourcePtr runningResource) DROVERRIDE;
-    static DrString GetURIForWrite(DrEdgeHolderPtr outputEdges, DrResourcePtr runningResource,
-                                   int id, int version,
-                                   int output, DrConnectorType type,
-                                   DrMetaDataRef metaData);
+    DrString GetURIForWrite(DrEdgeHolderPtr outputEdges,
+                            int output, DrConnectorType type,
+                            DrMetaDataRef metaData);
 
     DrTimeInterval GetRunningTime();
 
@@ -109,7 +108,7 @@ private:
     int                   m_version;
     DrUINT64ArrayRef      m_lengthArray;
     DrTimeInterval        m_runningTime;
-    DrString              m_uriBase;
+    DrString              m_directory;
     DrResourcePtr         m_assignedNode;
     int                   m_compression;
 };
@@ -132,6 +131,8 @@ public:
     virtual int GetVersion() DROVERRIDE;
     virtual DrAffinityRef GetOutputAffinity(int output) DROVERRIDE;
     virtual DrString GetURIForRead(int output, DrConnectorType type, DrResourcePtr runningResource) DROVERRIDE;
+
+    int GetPartitionIndex();
 
 private:
     int                          m_partitionIndex;

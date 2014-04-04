@@ -27,6 +27,11 @@ limitations under the License.
 template <class T> DRBASECLASS(DrArray)
 {
 public:
+    DrArray()
+    {
+        m_array = DrNull;
+    }
+
     DrArray(int s)
     {
         m_array = DrNew array<T>(s);
@@ -45,6 +50,11 @@ public:
     array<T>^ GetArray()
     {
         return m_array;
+    }
+
+    void SetArray(array<T>^ newArray)
+    {
+        m_array = newArray;
     }
 
 protected:

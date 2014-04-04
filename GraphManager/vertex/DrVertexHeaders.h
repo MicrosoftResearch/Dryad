@@ -32,4 +32,6 @@ limitations under the License.
 
 #include <DrStageManager.h>
 
+#include <DrReporting.h>
+
 #include <DrGraph.h>

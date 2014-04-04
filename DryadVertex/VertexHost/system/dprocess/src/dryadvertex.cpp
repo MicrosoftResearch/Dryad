@@ -37,9 +37,9 @@ limitations under the License.
 #pragma managed
 
 //
-// Use 2 minute update period to avoid flooding the GM
+// Use a short update period since the consumer polls at its own rate, so this only generates local traffic
 //
-static const DrTimeInterval s_defaultStatusInterval = DrTimeInterval_Minute * 2;
+static const DrTimeInterval s_defaultStatusInterval = DrTimeInterval_Millisecond * 500;
 
 static TransformType StripCompressionModeFromUri(char *uri)
 {
@@ -1329,7 +1329,7 @@ void DryadSimpleChannelVertexBase::
         //
         // Remember error data and report failure if unsuccessful
         //
-        initialState->SetVertexMetaData(errorData);
+        initialState->SetVertexMetaData(errorData, true);
         ReportStatus(initialState, false, false);
     }
 }
@@ -1531,10 +1531,10 @@ void DryadSimpleChannelVertexBase::RunProgram(DVertexProcessStatus* status,
     //
     m_vertexProgram->AsyncPostCompletion();
 
-    //
-    // Record any error information in status
-    //
-    status->SetVertexMetaData(m_vertexProgram->GetErrorMetaData());
+    if (status->GetVertexErrorCode() != DrError_OK)
+    {
+        DrLogI("Vertex reported error %08x %s", status->GetVertexErrorCode(), status->GetVertexErrorString());
+    }
 
     //
     // Notify all I/O channels that they're done
@@ -1559,6 +1559,11 @@ void DryadSimpleChannelVertexBase::RunProgram(DVertexProcessStatus* status,
                                    outputChannelCount, wArray);
 
     //
+    // Record any error information in status
+    //
+    status->SetVertexMetaData(m_vertexProgram->GetErrorMetaData(), true);
+
+    //
     // Update input channels with correct status of completion
     //
     for (i=0; i<inputChannelCount; ++i)
@@ -1567,7 +1572,7 @@ void DryadSimpleChannelVertexBase::RunProgram(DVertexProcessStatus* status,
         DrError channelStatus =
             rArray[i]->GetTerminationStatus(&channelErrorData);
         status->GetInputChannels()[i].SetChannelState(channelStatus);
-        status->GetInputChannels()[i].SetChannelMetaData(channelErrorData);
+        status->GetInputChannels()[i].SetChannelMetaData(channelErrorData, true);
     }
 
     //
@@ -1579,7 +1584,7 @@ void DryadSimpleChannelVertexBase::RunProgram(DVertexProcessStatus* status,
         DrError channelStatus =
             wArray[i]->GetTerminationStatus(&channelErrorData);
         status->GetOutputChannels()[i].SetChannelState(channelStatus);
-        status->GetOutputChannels()[i].SetChannelMetaData(channelErrorData);
+        status->GetOutputChannels()[i].SetChannelMetaData(channelErrorData, true);
     }
 
     //
@@ -1644,6 +1649,7 @@ DrError DryadSimpleChannelVertexBase::
     RChannelWriterHolderRef* wData = new RChannelWriterHolderRef[oCC];
 
     bool failed = false;
+    DrStr128 failureReason;
 
     //
     // Throttle input connections to maximum 
@@ -1734,28 +1740,26 @@ DrError DryadSimpleChannelVertexBase::
                                                      &localInputChannels);
             if(err != DrError_OK)
             {
-                DrLogE("RChannelFactory::OpenReader failed.");
-				return err;
+                DrLogE("RChannelFactory::OpenReader failed for %s", uri);
             }
-
-            if(rData[i] == NULL)
+            else if(rData[i] == NULL)
             {
                 DrLogE("RChannelFactory::OpenReader returned a NULL RChannelReaderHolder object");
-				return DrError_Fail;
             }
-
-            //
-            // Set the transform (compression) type
-            //
-            rData[i]->GetReader()->SetTransformType(mode);
-
-            
-            //
-            // If number of local input channels increased, this one was local
-            //
-            if(channelLocalCreated && (localInputChannelsSnapshot < localInputChannels))
+            else
             {
-                channelLocal[i] = true;
+                //
+                // Set the transform (compression) type
+                //
+                rData[i]->GetReader()->SetTransformType(mode);
+            
+                //
+                // If number of local input channels increased, this one was local
+                //
+                if(channelLocalCreated && (localInputChannelsSnapshot < localInputChannels))
+                {
+                    channelLocal[i] = true;
+                }
             }
         }
         else
@@ -1774,17 +1778,21 @@ DrError DryadSimpleChannelVertexBase::
         if (errorReporter.GetErrorCode() != DrError_OK)
         {
             failed = true;
+
+            input->SetChannelState(errorReporter.GetErrorCode());
+            input->SetChannelMetaData(errorReporter.GetErrorMetaData(), true);
+
+            if (failureReason.GetString() == NULL)
+            {
+                failureReason.SetF("Input channel %d open failed: %s", i, input->GetChannelErrorString());
+            }
         }
-
-        input->SetChannelState(errorReporter.GetErrorCode());
-        input->SetChannelMetaData(errorReporter.GetErrorMetaData());
     }
-
     
     //
     // Record number of local input files
     //
-    fprintf(stdout, "HpcQueryVertex: Reading %lu input file(s) from local disk and %lu input file(s) over network\n", localInputChannels, iCC - localInputChannels);
+    fprintf(stdout, "DryadVertex: Reading %lu input file(s) from local disk and %lu input file(s) over network\n", localInputChannels, iCC - localInputChannels);
     
     //
     // Record list of channel inputs if list was created successfully
@@ -1809,7 +1817,7 @@ DrError DryadSimpleChannelVertexBase::
             }
         }
 
-        fprintf(stdout, "HpcQueryVertex: Channels reading from local input files - {%s}\n", localChannelString.GetString());
+        fprintf(stdout, "DryadVertex: Channels reading from local input files - {%s}\n", localChannelString.GetString());
         free(channelLocal);
     }
     
@@ -1907,10 +1915,15 @@ DrError DryadSimpleChannelVertexBase::
         if (errorReporter.GetErrorCode() != DrError_OK)
         {
             failed = true;
-        }
 
-        output->SetChannelState(errorReporter.GetErrorCode());
-        output->SetChannelMetaData(errorReporter.GetErrorMetaData());
+            output->SetChannelState(errorReporter.GetErrorCode());
+            output->SetChannelMetaData(errorReporter.GetErrorMetaData(), true);
+
+            if (failureReason.GetString() == NULL)
+            {
+                failureReason.SetF("Output channel %d open failed: %s", i, output->GetChannelErrorString());
+            }
+        }
     }
 
     //
@@ -1920,6 +1933,11 @@ DrError DryadSimpleChannelVertexBase::
     if (failed)
     {
         err = DryadError_VertexInitialization;
+        initialState->SetVertexErrorCode(err);
+
+        DrStr128 reason;
+        reason.SetF("Vertex was unable to initialize: %s", failureReason.GetString());
+        initialState->SetVertexErrorString(reason);
     }
     else
     {

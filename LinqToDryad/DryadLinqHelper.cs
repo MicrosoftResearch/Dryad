@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -32,7 +29,7 @@ using System.Linq;
 
 namespace Microsoft.Research.DryadLinq.Internal
 {
-    public static class HpcLinqHelper
+    public static class DryadLinqHelper
     {
         [Resource(IsStateful = false)]
         public static IEnumerable<TSource>
@@ -74,10 +71,10 @@ namespace Microsoft.Research.DryadLinq.Internal
         {
             Func<T1, T2, T3> proc = procFunc.Compile();
             bool useRight = true;
-            if ((s1 is HpcVertexReader<T1>) && (s2 is HpcVertexReader<T2>))
+            if ((s1 is DryadLinqVertexReader<T1>) && (s2 is DryadLinqVertexReader<T2>))
             {
-                Int64 leftLen = ((HpcVertexReader<T1>)s1).GetTotalLength();
-                Int64 rightLen = ((HpcVertexReader<T2>)s2).GetTotalLength();
+                Int64 leftLen = ((DryadLinqVertexReader<T1>)s1).GetTotalLength();
+                Int64 rightLen = ((DryadLinqVertexReader<T2>)s2).GetTotalLength();
                 if (leftLen >= 0 && rightLen >= 0)
                 {
                     useRight = rightLen <= leftLen;
@@ -107,17 +104,12 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static IEnumerable<T2> SelectSecond<T1, T2>(IEnumerable<T1> s1, IEnumerable<T2> s2)
-        {
-            return s2;
-        }
-
         // Used in SequenceEqual()
         public static IEnumerable<bool> SequenceEqual<T>(IEnumerable<T> s1,
                                                          IEnumerable<T> s2,
                                                          IEqualityComparer<T> comparer)
         {
-            return HpcLinqVertex.AsEnumerable(System.Linq.Enumerable.SequenceEqual(s1, s2, comparer));
+            return DryadLinqVertex.AsEnumerable(System.Linq.Enumerable.SequenceEqual(s1, s2, comparer));
             
         }
 
@@ -336,21 +328,31 @@ namespace Microsoft.Research.DryadLinq.Internal
         }
         
         public static IEnumerable<T2>
-            ProcessWithIndex<T1, T2>(IEnumerable<T1> source1,
-                                     IEnumerable<int> source2,
-                                     Func<IEnumerable<T1>, int, IEnumerable<T2>> procFunc)
+            ApplyWithPartitionIndex<T1, T2>(IEnumerable<T1> source1,
+                                            IEnumerable<int> source2,
+                                            Func<IEnumerable<T1>, int, IEnumerable<T2>> procFunc)
         {
             int index = source2.Single();
             return procFunc(source1, index);
         }
 
-        public static IEnumerable<T2>
-            ProcessWithIndex<T1, T2>(IEnumerable<T1> source1,
-                                     IEnumerable<int> source2,
-                                     Func<T1, int, T2> procFunc)
+        public static void CheckVertexDebugRequest()
         {
-            int index = source2.Single();
-            return HpcLinqVertex.Select(source1, x => procFunc(x, index), true);
+            string debugEnvVar = Environment.GetEnvironmentVariable("DRYADLINQ_DEBUGVERTEX");
+            if (debugEnvVar == null) return;
+            if (String.Compare(debugEnvVar, "LAUNCH", StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                System.Diagnostics.Debugger.Launch();
+            }
+            else
+            {
+                DryadLinqLog.AddInfo("Waiting for debugger to attach...");
+                while (!System.Diagnostics.Debugger.IsAttached)
+                {
+                    System.Threading.Thread.Sleep(1000);
+                }
+                System.Diagnostics.Debugger.Break();
+            }
         }
     }
 
@@ -413,4 +415,3 @@ namespace Microsoft.Research.DryadLinq.Internal
         #endregion
     }
 }
-

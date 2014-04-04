@@ -1,9 +1,0 @@
-LIBRARY      "DryadYarnBridge.dll"
-
-EXPORTS
-    DrCreateNativeAppMaster
-    DrDestroyNativeAppMaster
-    DrGetExceptionMessage
-    DrScheduleProcess
-    Java_com_microsoft_research_TestLib_SendVertexState
-    Java_com_microsoft_research_DryadAppMaster_SendVertexState

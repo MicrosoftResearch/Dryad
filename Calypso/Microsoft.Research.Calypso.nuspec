@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/01/nuspec.xsd">
+    <metadata minClientVersion="2.5">
+        <id>Microsoft.Research.Calypso</id>
+        <version>0.7.0-beta024</version>
+        <title>Calypso Job Browser for DryadLINQ</title>
+        <authors>msrsvc</authors>
+        <owners>msrsvc,Microsoft</owners>
+        <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
+        <projectUrl>http://research.microsoft.com/en-us/um/siliconvalley/projects/BigDataDev/</projectUrl>
+        <requireLicenseAcceptance>true</requireLicenseAcceptance>
+        <description>The DryadLINQ job browser is a graphical user interface which provides a unified view of a large part of the distributed state of a DryadLINQ job. In this document we provide a brief overview of the main capabilities of the DryadLINQ job browser.</description>
+        <copyright>© Microsoft Corporation. All rights reserved.</copyright>
+        <language>en-US</language>
+        <tags>DryadLINQ Dryad Azure</tags>
+        <dependencies>
+            <group targetFramework=".NETFramework4.5">
+                <dependency id="Microsoft.Research.DryadLINQ.MSAGL" version="3.0.0.1" />
+                <dependency id="Microsoft.Research.Peloponnese" version="0.7.0-beta024" />
+            </group>
+        </dependencies>
+      <frameworkAssemblies>
+        <frameworkAssembly assemblyName="System" targetFramework=".NETFramework4.5" />
+        <frameworkAssembly assemblyName="System.Core" targetFramework=".NETFramework4.5" />
+        <frameworkAssembly assemblyName="System.Data" targetFramework=".NETFramework4.5" />
+        <frameworkAssembly assemblyName="System.Data.DataSetExtensions" targetFramework=".NETFramework4.5" />
+        <frameworkAssembly assemblyName="System.Data.Linq" targetFramework=".NETFramework4.5" />
+        <frameworkAssembly assemblyName="System.Deployment" targetFramework=".NETFramework4.5" />
+        <frameworkAssembly assemblyName="System.Drawing" targetFramework=".NETFramework4.5" />
+        <frameworkAssembly assemblyName="System.Runtime.Serialization" targetFramework=".NETFramework4.5" />
+        <frameworkAssembly assemblyName="System.ServiceModel" targetFramework=".NETFramework4.5" />
+        <frameworkAssembly assemblyName="System.Windows.Forms" targetFramework=".NETFramework4.5" />
+        <frameworkAssembly assemblyName="System.Xml" targetFramework=".NETFramework4.5" />
+        <frameworkAssembly assemblyName="System.Xml.Linq" targetFramework=".NETFramework4.5" />
+      </frameworkAssemblies>
+    </metadata>
+  <files>
+    <file src="Calypso\bin\x64\Release\DistributedDataCollection.dll" target="content\DistributedDataCollection.dll" />
+    <file src="Calypso\bin\x64\Release\DistributedDataCollection.pdb" target="content\DistributedDataCollection.pdb" />
+      
+  </files>
+</package>

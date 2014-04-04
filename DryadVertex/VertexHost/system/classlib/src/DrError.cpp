@@ -37,6 +37,19 @@ typedef struct _ErrHashEntry {
 } ErrHashEntry;
 
 
+#define FACILITY_DRYAD   778
+#define DRYAD_ERROR(n) ((HRESULT)(0x80000000 + (FACILITY_DRYAD << 16) + n))
+
+#ifdef DEFINE_DRYAD_ERROR
+#undef DEFINE_DRYAD_ERROR
+#endif
+
+#define DEFINE_DRYAD_ERROR(name, number, description) const DrError name = number;
+
+#include "..\..\common\include\dryaderror.h"
+
+#undef DEFINE_DRYAD_ERROR
+
 static ErrEntry g_DryadErrorMap[] = {
 
 #undef DEFINE_DR_ERROR
@@ -47,6 +60,16 @@ static ErrEntry g_DryadErrorMap[] = {
 #include "DrError.h"
 
 #undef DEFINE_DR_ERROR
+
+#ifdef DEFINE_DRYAD_ERROR
+#undef DEFINE_DRYAD_ERROR
+#endif
+
+#define DEFINE_DRYAD_ERROR(name, number, description) {name, description},
+
+#include "..\..\common\include\dryaderror.h"
+
+#undef DEFINE_DRYAD_ERROR
 };
 
 

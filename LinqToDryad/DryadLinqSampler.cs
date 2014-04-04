@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -29,12 +26,12 @@ using System.Globalization;
 using System.Reflection;
 using System.Linq.Expressions;
 using System.Linq;
-using Microsoft.Research.DryadLinq;
 using System.Diagnostics;
+using Microsoft.Research.DryadLinq;
 
 namespace Microsoft.Research.DryadLinq.Internal
 {
-    public static class HpcLinqSampler
+    public static class DryadLinqSampler
     {
         internal const double SAMPLE_RATE = 0.001;  
         private const int MAX_SECOND_PHASE_SAMPLES = 1024*1024;
@@ -42,12 +39,12 @@ namespace Microsoft.Research.DryadLinq.Internal
         [Resource(IsStateful=false)]
         public static IEnumerable<K> Phase1Sampling<T, K>(IEnumerable<T> source,
                                                           Func<T, K> keySelector,
-                                                          HpcLinqVertexEnv denv)
+                                                          VertexEnv denv)
         {
             // note: vertexID is constant for each repetition of a specific vertex (eg in fail-and-retry scenarios)
             //       this is very good as it ensure the sampling is idempotent w.r.t. retries.
 
-            long vertexID = HpcLinqNative.GetVertexId(denv.NativeHandle);
+            long vertexID = DryadLinqNative.GetVertexId(denv.NativeHandle);
             int seed = unchecked((int)(vertexID));
             long nEmitted = 0;
 
@@ -93,7 +90,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             else
             {
                 // sampling didn't produce much, so emit all the records instead.
-                DryadLinqLog.Add("Sampling produced only {0} records.  Emitting all records instead.", samples.Count());
+                DryadLinqLog.AddInfo("Sampling produced only {0} records.  Emitting all records instead.", samples.Count());
                 Debug.Assert(sourceEnumerator.MoveNext() == false, "The source enumerator wasn't finished");
                 samples = null; // the samples list is not needed.
                 foreach (K key in allSoFar)
@@ -103,7 +100,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                 }
             }
 
-            DryadLinqLog.Add("Stage1 sampling: num keys emitted = {0}", nEmitted);
+            DryadLinqLog.AddInfo("Stage1 sampling: num keys emitted = {0}", nEmitted);
         }
 
         //------------------------------------
@@ -116,11 +113,11 @@ namespace Microsoft.Research.DryadLinq.Internal
         //                                                Func<T, K> keySelector,
         //                                                IComparer<K> comparer,
         //                                                bool isDescending,
-        //                                                HpcLinqVertexEnv denv)
+        //                                                VertexEnv denv)
         //{
         //    if (denv.NumberOfArguments < 2)
         //    {
-        //        throw new HpcLinqException(SR.Sampler_NotEnoughArgumentsForVertex);
+        //        throw new DryadLinqException(SR.Sampler_NotEnoughArgumentsForVertex);
         //    }
         //    Int32 pcount = Int32.Parse(denv.GetArgument(denv.NumberOfArguments-1));
         //    return RangeSamplerCore(source, keySelector, comparer, isDescending, pcount);
@@ -173,72 +170,72 @@ namespace Microsoft.Research.DryadLinq.Internal
             // Sort and Emit the keys
             Array.Sort(samples, 0, reservoirCount, comparer);
 
-            DryadLinqLog.Add("Range-partition separator keys: ");
-            DryadLinqLog.Add("samples: {0}", reservoirCount);
-            DryadLinqLog.Add("pCount:  {0}", pcount);
+            DryadLinqLog.AddVerbose("Range-partition separator keys: ");
+            DryadLinqLog.AddVerbose("samples: {0}", reservoirCount);
+            DryadLinqLog.AddVerbose("pCount:  {0}", pcount);
 
             if (reservoirCount == 0)
             {
-                //DryadLinqLog.Add("  case: cnt==0.  No separators produced.");
+                DryadLinqLog.AddVerbose("  case: cnt==0.  No separators produced.");
                 yield break;
             }
 
             if (reservoirCount < pcount)
             {
-                //DryadLinqLog.Add("  case: cnt < pcount");
+                //DryadLinqLog.AddVerbose("  case: cnt < pcount");
                 if (isDescending)
                 {
-                    //DryadLinqLog.Add("  case: isDescending=true");
+                    //DryadLinqLog.AddVerbose("  case: isDescending=true");
                     for (int i = reservoirCount - 1; i >= 0; i--)
                     {
-                        //DryadLinqLog.Add("  [{0}]", samples[i]);
+                        //DryadLinqLog.AddVerbose("  [{0}]", samples[i]);
                         yield return samples[i];
                     }
                     K first = samples[0];
                     for (int i = reservoirCount; i < pcount - 1; i++)
                     {
-                        //DryadLinqLog.Add("  [{0}]", first);
+                        //DryadLinqLog.AddVerbose("  [{0}]", first);
                         yield return first;
                     }
                 }
                 else
                 {
-                    //DryadLinqLog.Add("  case: isDescending=false");
+                    //DryadLinqLog.AddVerbose("  case: isDescending=false");
                     for (int i = 0; i < reservoirCount; i++)
                     {
-                        //DryadLinqLog.Add("  [{0}]", samples[i]);
+                        //DryadLinqLog.AddVerbose("  [{0}]", samples[i]);
                         yield return samples[i];
                     }
                     K last = samples[reservoirCount - 1];
                     for (int i = reservoirCount; i < pcount - 1; i++)
                     {
-                        //DryadLinqLog.Add("  [{0}]", last);
+                        //DryadLinqLog.AddVerbose("  [{0}]", last);
                         yield return last;
                     }
                 }
             }
             else
             {
-                //DryadLinqLog.Add("  case: cnt >= pcount");
+                //DryadLinqLog.AddVerbose("  case: cnt >= pcount");
                 int intv = reservoirCount / pcount;
                 if (isDescending)
                 {
-                    //DryadLinqLog.Add("  case: isDescending=true");
+                    //DryadLinqLog.AddVerbose("  case: isDescending=true");
                     int idx = reservoirCount - intv;
                     for (int i = 0; i < pcount-1; i++)
                     {
-                        //DryadLinqLog.Add("  [{0}]", samples[idx]);
+                        //DryadLinqLog.AddVerbose("  [{0}]", samples[idx]);
                         yield return samples[idx];
                         idx -= intv;
                     }                        
                 }
                 else
                 {
-                    //DryadLinqLog.Add("  case: isDescending=false");
+                    //DryadLinqLog.AddVerbose("  case: isDescending=false");
                     int idx = intv;
                     for (int i = 0; i < pcount-1; i++)
                     {
-                        //DryadLinqLog.Add("  [{0}]", samples[idx]);
+                        //DryadLinqLog.AddVerbose("  [{0}]", samples[idx]);
                         yield return samples[idx];
                         idx += intv;
                     }

@@ -390,9 +390,9 @@ RChannelSerializedWriter::
 RChannelSerializedWriter::~RChannelSerializedWriter()
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
-        DrLogD("Uninitializing RChannelSerializedWriter, uri = %s", m_uri != NULL ? m_uri : "");
+        DrLogD("Uninitializing RChannelSerializedWriter, uri = %s", m_uri != NULL ? m_uri.GetString() : "");
 
         LogAssert(m_state == CW_Closed);
         LogAssert(m_writerTerminationItem == NULL);
@@ -433,7 +433,7 @@ void RChannelSerializedWriter::SetInitialSizeHint(UInt64 hint)
 void RChannelSerializedWriter::Start()
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_state == CW_Stopped);
         LogAssert(m_pendingList.IsEmpty());
@@ -460,7 +460,7 @@ void RChannelSerializedWriter::
                         RChannelItemRef* pReaderDrainItem)
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         *pWriterDrainItem = m_writerTerminationItem;
         *pReaderDrainItem = m_readerTerminationItem;
@@ -472,7 +472,7 @@ void RChannelSerializedWriter::Close()
     m_writer->Close();
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_state == CW_Stopped);
         LogAssert(m_pendingList.IsEmpty());
@@ -513,7 +513,7 @@ Size_t RChannelSerializedWriter::DisposeOfCachedWriter()
     return preMarshalAvailableSize;
 }
 
-/* called with m_baseDR held */
+/* called with m_baseCS held */
 void RChannelSerializedWriter::AcceptReturningHandlers(UInt32 handlerCount)
 {
     LogAssert(m_outstandingHandlers >= handlerCount);
@@ -546,7 +546,7 @@ void RChannelSerializedWriter::ReturnHandlers(WriteRequestList* completedList,
         } while (returnRequest != NULL);
 
         {
-            AutoCriticalSection acs(&m_baseDR);
+            AutoCriticalSection acs(&m_baseCS);
 
             m_returnLatch.TransferList(completedList);
 
@@ -555,7 +555,7 @@ void RChannelSerializedWriter::ReturnHandlers(WriteRequestList* completedList,
     }
 }
 
-/* called with m_baseDR held */
+/* called with m_baseCS held */
 bool RChannelSerializedWriter::
     CheckForTerminationItem(RChannelItemArray* itemArray)
 {
@@ -586,7 +586,7 @@ bool RChannelSerializedWriter::
     }
 }
 
-/* called **without** m_baseDR held but this is OK since we are in the
+/* called **without** m_baseCS held but this is OK since we are in the
    marshaling state which means no other thread is touching
    m_bufferList */
 void RChannelSerializedWriter::
@@ -654,7 +654,7 @@ bool RChannelSerializedWriter::
     }
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         if (terminationType != RChannelItem_Data)
         {
@@ -956,7 +956,7 @@ void RChannelSerializedWriter::
     RChannelItemType returnCode;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_state == CW_Marshaling);
 
@@ -1032,7 +1032,7 @@ void RChannelSerializedWriter::MarshalItems()
     WriteRequestList completedRequestList;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_state == CW_InWorkQueue);
 
@@ -1060,7 +1060,7 @@ void RChannelSerializedWriter::ProcessWriteCompleted(RChannelItemType status)
     RChannelItemType returnCode;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_outstandingBuffers > 0);
         --m_outstandingBuffers;
@@ -1156,7 +1156,7 @@ void RChannelSerializedWriter::
     bool alreadyTerminated;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         alreadyTerminated = CheckForTerminationItem(itemArray);
 
@@ -1223,7 +1223,7 @@ RChannelItemType RChannelSerializedWriter::
     WriteRequestList pendingRequestList;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         alreadyTerminated = CheckForTerminationItem(itemArray);
 
@@ -1303,7 +1303,7 @@ RChannelItemType RChannelSerializedWriter::
 //         DrLogE( "Waited for handler");
 
         {
-            AutoCriticalSection acs(&m_baseDR);
+            AutoCriticalSection acs(&m_baseCS);
 
             m_eventCache.ReturnEvent(handler->GetEvent());
         }
@@ -1328,7 +1328,7 @@ void RChannelSerializedWriter::Drain(DrTimeInterval csTimeOut,
     bool mustWaitForMarshal = false;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_writerTerminationItem != NULL);
 
@@ -1364,9 +1364,16 @@ void RChannelSerializedWriter::Drain(DrTimeInterval csTimeOut,
     }
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_state == CW_Stopping);
+
+        if (m_writerTerminationItem->GetType() == RChannelItem_EndOfStream &&
+            returnItem->GetType() != RChannelItem_EndOfStream)
+        {
+            // there was a close error
+            m_writerTerminationItem = returnItem;
+        }
 
         LogAssert(m_pendingList.IsEmpty());
         LogAssert(m_blockedHandlerList.IsEmpty());
@@ -1427,7 +1434,7 @@ void RChannelNullWriter::SetInitialSizeHint(UInt64 /*hint*/)
 void RChannelNullWriter::Start()
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         m_writeTerminationItem = NULL;
         m_started = true;
@@ -1451,7 +1458,7 @@ RChannelItemType RChannelNullWriter::
     RChannelItemType status;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         if (m_started)
         {
@@ -1493,7 +1500,7 @@ void RChannelNullWriter::Drain(DrTimeInterval timeOut,
                                RChannelItemRef* pRemoteStatus)
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_started);
         LogAssert(m_writeTerminationItem != NULL);
@@ -1507,7 +1514,7 @@ void RChannelNullWriter::GetTerminationItems(RChannelItemRef* pWriterDrainItem,
                                              RChannelItemRef* pReaderDrainItem)
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         *pWriterDrainItem = m_writeTerminationItem;
         *pReaderDrainItem = m_writeTerminationItem;
@@ -1517,7 +1524,7 @@ void RChannelNullWriter::GetTerminationItems(RChannelItemRef* pWriterDrainItem,
 void RChannelNullWriter::Close()
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_started == false);
     }

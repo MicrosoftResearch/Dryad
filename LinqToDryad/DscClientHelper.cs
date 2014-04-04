@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Text;
 using System.IO;
@@ -29,16 +26,11 @@ using System.Diagnostics;
 using System.IO.Compression;
 using System.Collections;
 using System.Collections.Generic;
-
 using Microsoft.Win32.SafeHandles;
-
 using Microsoft.Research.DryadLinq;
 
 namespace Microsoft.Research.DryadLinq.Internal
 {
-
-    
-
     internal class DscIOStream : System.IO.Stream
     {
         private DscService m_dscClient;
@@ -49,9 +41,9 @@ namespace Microsoft.Research.DryadLinq.Internal
         private IEnumerator<DscFile> m_dscFileEnumerator;
         private ulong size = 0;
         private bool m_atEOF;
-        private DscCompressionScheme m_compressionScheme;
+        private CompressionScheme m_compressionScheme;
 
-        public DscIOStream(string streamName, FileAccess access, DscCompressionScheme compressionScheme)
+        public DscIOStream(string streamName, FileAccess access, CompressionScheme compressionScheme)
         {
             if (String.IsNullOrEmpty(streamName))
             {
@@ -81,7 +73,10 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public DscIOStream(string streamName, FileAccess access, FileMode createMode, DscCompressionScheme compressionScheme)
+        public DscIOStream(string streamName,
+                           FileAccess access,
+                           FileMode createMode,
+                           CompressionScheme compressionScheme)
         {
             if (String.IsNullOrEmpty(streamName))
             {
@@ -102,17 +97,24 @@ namespace Microsoft.Research.DryadLinq.Internal
                 {
                     case FileMode.Open:
                     case FileMode.OpenOrCreate:
+                    {
                         if (!streamExists)
                         {
-                            throw new FileNotFoundException(String.Format( SR.StreamDoesNotExist , streamName));
+                            throw new FileNotFoundException(String.Format(SR.StreamDoesNotExist , streamName));
                         }
                         break;
-
+                    }
                     case FileMode.Append:
                     case FileMode.Create:
                     case FileMode.CreateNew:
                     case FileMode.Truncate:
+                    {
                         throw new NotSupportedException();
+                    }
+                    default:
+                    {
+                        throw new NotSupportedException();
+                    }
                 }
                 
                 this.m_dscFileSet = this.m_dscClient.GetFileSet(streamName);
@@ -151,7 +153,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                     case FileMode.Open:
                     case FileMode.OpenOrCreate: // TODO: this should be dealt with correctly, 
                                                 // although it's not obvious what open should do 
-                        throw new NotSupportedException();
+                        throw new NotSupportedException("'" + createMode.ToString() + "' not supported");
                 }
             }
             else
@@ -191,7 +193,6 @@ namespace Microsoft.Research.DryadLinq.Internal
                     this.SealPartition();
                 }
             }
-
             finally
             {
                 this.m_dscClient.Close();
@@ -236,7 +237,8 @@ namespace Microsoft.Research.DryadLinq.Internal
 
             // @@TODO: Should try to estimate size
             DscFile dscFile = this.m_dscFileSet.AddNewFile(1);
-            this.m_fstream = new FileStream(dscFile.WritePath, FileMode.Create, FileAccess.Write, FileShare.None, 4 * 65536, synchronously);
+            this.m_fstream = new FileStream(dscFile.WritePath, FileMode.Create, FileAccess.Write,
+                                            FileShare.None, 4 * 65536, synchronously);
         }
 
         internal void SealPartition()
@@ -266,8 +268,8 @@ namespace Microsoft.Research.DryadLinq.Internal
         {
             if (this.m_mode == FileAccess.Write)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.AttemptToReadFromAWriteStream,
-                                           SR.AttemptToReadFromAWriteStream);
+                throw new DryadLinqException(DryadLinqErrorCode.AttemptToReadFromAWriteStream,
+                                             SR.AttemptToReadFromAWriteStream);
             }
             int totalBytesRead = 0;
             while (totalBytesRead < count && !this.m_atEOF)
@@ -306,11 +308,11 @@ namespace Microsoft.Research.DryadLinq.Internal
                 handle = this.m_fstream.SafeFileHandle;
                 int size = 0;
                 Int32* pBlockSize = &size;
-                bool success = HpcLinqNative.ReadFile(handle, buffer, (UInt32)bufferSize, (IntPtr)pBlockSize, null);
+                bool success = DryadLinqNative.ReadFile(handle, buffer, (UInt32)bufferSize, (IntPtr)pBlockSize, null);
                 if (!success)
                 {
-                    throw new DryadLinqException(HpcLinqErrorCode.ReadFileError,
-                                               String.Format(SR.ReadFileError, Marshal.GetLastWin32Error()));
+                    throw new DryadLinqException(DryadLinqErrorCode.ReadFileError,
+                                                 String.Format(SR.ReadFileError, Marshal.GetLastWin32Error()));
                 }
                 totalBytesRead += size;
 
@@ -338,8 +340,8 @@ namespace Microsoft.Research.DryadLinq.Internal
         {
             if (this.m_mode == FileAccess.Read)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.AttemptToReadFromAWriteStream,
-                                           SR.AttemptToReadFromAWriteStream);
+                throw new DryadLinqException(DryadLinqErrorCode.AttemptToReadFromAWriteStream,
+                                             SR.AttemptToReadFromAWriteStream);
             }
             if (this.m_fstream == null)
             {
@@ -350,11 +352,11 @@ namespace Microsoft.Research.DryadLinq.Internal
             int size;
             Int32* pBlockSize = &size;
             
-            bool success = HpcLinqNative.WriteFile(handle, buffer, (UInt32)count, (IntPtr)pBlockSize, null);
+            bool success = DryadLinqNative.WriteFile(handle, buffer, (UInt32)count, (IntPtr)pBlockSize, null);
             if (!success)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.WriteFileError,
-                                           String.Format(SR.WriteFileError, Marshal.GetLastWin32Error()));
+                throw new DryadLinqException(DryadLinqErrorCode.WriteFileError,
+                                             String.Format(SR.WriteFileError, Marshal.GetLastWin32Error()));
             }
 
             this.size += (ulong)size;
@@ -365,8 +367,8 @@ namespace Microsoft.Research.DryadLinq.Internal
         {
             if (this.m_mode == FileAccess.Read)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.AttemptToReadFromAWriteStream,
-                                           SR.AttemptToReadFromAWriteStream);
+                throw new DryadLinqException(DryadLinqErrorCode.AttemptToReadFromAWriteStream,
+                                             SR.AttemptToReadFromAWriteStream);
             }
             if (this.m_fstream == null)
             {
@@ -385,11 +387,11 @@ namespace Microsoft.Research.DryadLinq.Internal
         private const int DefaultBuffSize = 8192*32;
 
         private DscIOStream m_dscStream;
-        private DscCompressionScheme m_compressionScheme;
+        private CompressionScheme m_compressionScheme;
         private bool m_isClosed;
         private Stream m_compressStream;
 
-        public DscBlockStream(DscIOStream dscStream, DscCompressionScheme scheme)
+        public DscBlockStream(DscIOStream dscStream, CompressionScheme scheme)
         {
             this.m_dscStream = dscStream;
             this.m_compressionScheme = scheme;
@@ -397,7 +399,10 @@ namespace Microsoft.Research.DryadLinq.Internal
             this.m_compressStream = null;
         }
 
-        private void Initialize(string filePath, FileMode mode, FileAccess access, DscCompressionScheme scheme)
+        private void Initialize(string filePath,
+                                FileMode mode,
+                                FileAccess access,
+                                CompressionScheme scheme)
         {
             try
             {
@@ -405,21 +410,21 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
             catch (Exception e)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.FailedToCreateStream,
-                                           String.Format(SR.FailedToCreateStream, filePath), e);
+                throw new DryadLinqException(DryadLinqErrorCode.FailedToCreateStream,
+                                             String.Format(SR.FailedToCreateStream, filePath), e);
             }
             this.m_isClosed = false;
             this.m_compressionScheme = scheme;
             this.m_compressStream = null;
         }
 
-        public DscBlockStream(string filePath, FileAccess access, DscCompressionScheme scheme)
+        public DscBlockStream(string filePath, FileAccess access, CompressionScheme scheme)
         {
             FileMode mode = (access == FileAccess.Read) ? FileMode.Open : FileMode.OpenOrCreate;
             this.Initialize(filePath, mode, access, scheme);
         }
 
-        public DscBlockStream(string filePath, FileMode mode, FileAccess access, DscCompressionScheme scheme)
+        public DscBlockStream(string filePath, FileMode mode, FileAccess access, CompressionScheme scheme)
         {
             this.Initialize(filePath, mode, access, scheme);
         }
@@ -432,32 +437,32 @@ namespace Microsoft.Research.DryadLinq.Internal
         internal override DataBlockInfo ReadDataBlock()
         {
             DataBlockInfo blockInfo;
-            blockInfo.dataBlock = (byte*)Marshal.AllocHGlobal(DefaultBuffSize);
-            blockInfo.itemHandle = (IntPtr)blockInfo.dataBlock;
-            if (this.m_compressionScheme == DscCompressionScheme.None)
+            blockInfo.DataBlock = (byte*)Marshal.AllocHGlobal(DefaultBuffSize);
+            blockInfo.ItemHandle = (IntPtr)blockInfo.DataBlock;
+            if (this.m_compressionScheme == CompressionScheme.None)
             {
-                blockInfo.blockSize = this.m_dscStream.Read(blockInfo.dataBlock, DefaultBuffSize);
+                blockInfo.BlockSize = this.m_dscStream.Read(blockInfo.DataBlock, DefaultBuffSize);
             }
             else
             {
                 if (this.m_compressStream == null)
                 {
-                    if (this.m_compressionScheme == DscCompressionScheme.Gzip)
+                    if (this.m_compressionScheme == CompressionScheme.Gzip)
                     {
                         this.m_compressStream = new GZipStream(this.m_dscStream, CompressionMode.Decompress);
                     }
                     else
                     {
-                        throw new DryadLinqException(HpcLinqErrorCode.UnknownCompressionScheme,
-                                                   SR.UnknownCompressionScheme);
+                        throw new DryadLinqException(DryadLinqErrorCode.UnknownCompressionScheme,
+                                                     SR.UnknownCompressionScheme);
                     }
                 }
                 // YY: Made an extra copy here. Could do better.
                 byte[] buffer = new byte[DefaultBuffSize];
-                blockInfo.blockSize = this.m_compressStream.Read(buffer, 0, DefaultBuffSize);
+                blockInfo.BlockSize = this.m_compressStream.Read(buffer, 0, DefaultBuffSize);
                 fixed (byte* pBuffer = buffer)
                 {
-                    HpcLinqUtil.memcpy(pBuffer, blockInfo.dataBlock, blockInfo.blockSize);
+                    DryadLinqUtil.memcpy(pBuffer, blockInfo.DataBlock, blockInfo.BlockSize);
                 }
             }
             
@@ -467,7 +472,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         internal override unsafe bool WriteDataBlock(IntPtr itemHandle, Int32 numBytesToWrite)
         {
             byte* dataBlock = (byte*)itemHandle;
-            if (this.m_compressionScheme == DscCompressionScheme.None)
+            if (this.m_compressionScheme == CompressionScheme.None)
             {
                 Int32 numBytesWritten = 0;
                 Int32 remainingBytes = numBytesToWrite;
@@ -483,21 +488,21 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 if (this.m_compressStream == null)
                 {
-                    if (this.m_compressionScheme == DscCompressionScheme.Gzip)
+                    if (this.m_compressionScheme == CompressionScheme.Gzip)
                     {
                         this.m_compressStream = new GZipStream(this.m_dscStream, CompressionMode.Compress);
                     }
                     else
                     {
-                        throw new DryadLinqException(HpcLinqErrorCode.UnknownCompressionScheme,
-                                                   SR.UnknownCompressionScheme);
+                        throw new DryadLinqException(DryadLinqErrorCode.UnknownCompressionScheme,
+                                                     SR.UnknownCompressionScheme);
                     }
                 }
                 // YY: Made an extra copy here. Could do better.
                 byte[] buffer = new byte[numBytesToWrite];
                 fixed (byte* pBuffer = buffer)
                 {
-                    HpcLinqUtil.memcpy(dataBlock, pBuffer, numBytesToWrite);
+                    DryadLinqUtil.memcpy(dataBlock, pBuffer, numBytesToWrite);
                 }
                 this.m_compressStream.Write(buffer, 0, numBytesToWrite);
             }
@@ -531,9 +536,9 @@ namespace Microsoft.Research.DryadLinq.Internal
         internal override unsafe DataBlockInfo AllocateDataBlock(Int32 size)
         {
             DataBlockInfo blockInfo;
-            blockInfo.itemHandle = Marshal.AllocHGlobal((IntPtr)size);
-            blockInfo.dataBlock = (byte*)blockInfo.itemHandle;
-            blockInfo.blockSize = size;
+            blockInfo.ItemHandle = Marshal.AllocHGlobal((IntPtr)size);
+            blockInfo.DataBlock = (byte*)blockInfo.ItemHandle;
+            blockInfo.BlockSize = size;
             return blockInfo;
         }
 

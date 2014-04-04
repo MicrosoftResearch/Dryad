@@ -25,11 +25,14 @@ limitations under the License.
 
 #include <HdfsBridgeNative.h>
 
+using namespace Microsoft::Research::Peloponnese;
+
 class RChannelBufferHdfsReader
     : public RChannelBufferReader, public RChannelBufferDefaultHandler
 {
 public:
     static const char* s_hdfsPartitionPrefix;
+    static const char* s_wasbPartitionPrefix;
 
     RChannelBufferHdfsReader(const char* uri);
     virtual ~RChannelBufferHdfsReader();
@@ -51,21 +54,21 @@ public:
     void ReturnBuffer(RChannelBuffer* buffer);
 
 private:
-    virtual Int64 ScanForSync(HdfsBridgeNative::Reader* reader,
+    virtual Int64 ScanForSync(Hdfs::Reader* reader,
                               const char* fileName,
                               Int64 startOffset, Int64 endOffset,
                               RChannelBuffer** pErrorBuffer) = 0;
 
     static unsigned __stdcall ThreadFunc(void* a);
     void SendBuffer(RChannelBuffer* buffer, bool getSemaphore);
-    Int64 AdjustStartOffset(HdfsBridgeNative::Reader* reader,
+    Int64 AdjustStartOffset(Hdfs::Reader* reader,
                             const char* fileName,
                             Int64 startOffset,
                             Int64 endOffset);
-    Int64 AdjustEndOffset(HdfsBridgeNative::Reader* reader,
+    Int64 AdjustEndOffset(Hdfs::Reader* reader,
                           const char* fileName,
                           Int64 endOffset);
-    Int64 ReadDataBuffer(HdfsBridgeNative::ReaderAccessor& ra,
+    Int64 ReadDataBuffer(Hdfs::ReaderAccessor& ra,
                          const char* fileName,
                          Int64 offset,
                          Int64 endOffset);
@@ -89,7 +92,7 @@ public:
     RChannelBufferHdfsReaderLineRecord(const char* uri);
 
 private:
-    Int64 ScanForSync(HdfsBridgeNative::Reader* reader,
+    Int64 ScanForSync(Hdfs::Reader* reader,
                       const char* fileName,
                       Int64 startOffset, Int64 endOffset,
                       RChannelBuffer** pErrorBuffer);
@@ -100,6 +103,7 @@ class RChannelBufferHdfsWriter : public RChannelBufferWriter
 {
 public:
     static const char* s_hdfsFilePrefix;
+    static const char* s_wasbFilePrefix;
 
     RChannelBufferHdfsWriter(const char* uri);
 
@@ -142,8 +146,7 @@ private:
 
     static unsigned __stdcall ThreadFunc(void* arg);
     void WriteThread();
-    bool Open(HdfsBridgeNative::Instance** pInstance,
-              HdfsBridgeNative::Writer** pWriter);
+    bool Open(Hdfs::Instance** pInstance, Hdfs::Writer** pWriter);
     bool AddToQueue(WriteEntry* entry);
 
     DrStr64                        m_uri;

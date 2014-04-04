@@ -77,7 +77,7 @@ void RChannelBufferQueue::
     StartSupplier(RChannelBufferPrefetchInfo* prefetchCookie)
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_bufferReader != NULL);
         LogAssert(m_parser != NULL);
@@ -106,7 +106,7 @@ bool RChannelBufferQueue::ShutDownRequested()
     bool retval;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_state != BQ_Stopped);
         retval = (m_shutDownRequested || m_state == BQ_Stopping);
@@ -147,7 +147,7 @@ void RChannelBufferQueue::DispatchEvents(ChannelBufferList* bufferList,
 
 //
 // Add current and pending buffers to buffer list and forget about them
-// called with RChannelBufferQueue::m_baseDR locked 
+// called with RChannelBufferQueue::m_baseCS locked 
 //
 void RChannelBufferQueue::ShutDownBufferQueue(ChannelBufferList* bufferList)
 {
@@ -167,7 +167,7 @@ void RChannelBufferQueue::ProcessBuffer(RChannelBuffer* buffer)
     bool returnBuffer = false;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_shutDownRequested == false);
 
@@ -240,7 +240,7 @@ RChannelBuffer* RChannelBufferQueue::GetAndLockCurrentBuffer(bool* outReset)
     ChannelBufferList bufferList;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_currentBuffer != NULL);
         LogAssert(m_state == BQ_InWorkQueue);
@@ -288,7 +288,7 @@ void RChannelBufferQueue::NotifyUnitConsumption()
     WorkRequest* workRequest = NULL;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_outstandingUnits > 0);
         --m_outstandingUnits;
@@ -342,7 +342,7 @@ void RChannelBufferQueue::
     }
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_state == BQ_Locked);
         LogAssert(m_currentBuffer != NULL);
@@ -472,7 +472,7 @@ void RChannelBufferQueue::
         m_parent->AddUnitList(&unitList);
 
         {
-            AutoCriticalSection acs(&m_baseDR);
+            AutoCriticalSection acs(&m_baseCS);
 
             m_sendLatch.TransferList(&unitList);
         }
@@ -645,7 +645,7 @@ void RChannelBufferQueue::InterruptSupplier()
     WorkRequest* workRequest = NULL;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_shutDownRequested == false);
 
@@ -726,7 +726,7 @@ void RChannelBufferQueue::InterruptSupplier()
         //
         // Ensure that everything is shut down correctly
         //
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_state == BQ_Stopping);
         LogAssert(m_currentBuffer == NULL);
@@ -747,7 +747,7 @@ void RChannelBufferQueue::DrainSupplier(RChannelItem* drainItem)
     m_bufferReader->Drain(drainItem);
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_state == BQ_Stopping);
         LogAssert(m_outstandingUnits == 0);
@@ -763,7 +763,7 @@ void RChannelBufferQueue::CloseSupplier()
     m_bufferReader->Close();
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_state == BQ_Stopped);
         m_bufferReader = NULL;

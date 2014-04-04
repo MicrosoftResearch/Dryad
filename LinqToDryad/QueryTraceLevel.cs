@@ -19,21 +19,20 @@ limitations under the License.
 */
 
 using System;
-using Microsoft.Hpc.Dryad;
 
 namespace Microsoft.Research.DryadLinq
 {
     /// <summary>
-    /// Trace levels for HpcQuery runtime
+    /// Trace levels for DryadLinqQuery runtime
     /// </summary>
-    public enum HpcQueryTraceLevel : int
+    public enum QueryTraceLevel : int
     {
         // Use internal constants since public type cannot be easily shared acrossed DLLs w/o resulting in ambiquities
-        Off = Constants.traceOffNum,
-        Critical = Constants.traceCriticalNum,
-        Error = Constants.traceErrorNum,
-        Warning = Constants.traceWarningNum,
-        Information = Constants.traceInfoNum,
-        Verbose = Constants.traceVerboseNum
+        Off = Constants.TraceOffLevel,
+        Critical = Constants.TraceCriticalLevel,
+        Error = Constants.TraceErrorLevel,
+        Warning = Constants.TraceWarningLevel,
+        Information = Constants.TraceInfoLevel,
+        Verbose = Constants.TraceVerboseLevel
     }
 }

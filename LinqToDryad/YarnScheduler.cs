@@ -31,12 +31,12 @@ namespace Microsoft.Research.DryadLinq
 
         public void Connect(string headNode)
         {
-            m_headNode = headNode;
+            this.m_headNode = headNode;
         }
 
         public void Dispose()
         {
-            m_headNode = null;
+            this.m_headNode = null;
         }
 
         public IServerVersion GetServerVersion()

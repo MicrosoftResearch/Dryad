@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// © Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -145,8 +142,8 @@ namespace Microsoft.Research.DryadLinq
                 }
 
                 //@@TODO: throw ArgumentOutOfRangeException?
-                throw new DryadLinqException(HpcLinqErrorCode.MultiQueryableKeyOutOfRange,
-                                           SR.MultiQueryableKeyOutOfRange);
+                throw new DryadLinqException(DryadLinqErrorCode.MultiQueryableKeyOutOfRange,
+                                             SR.MultiQueryableKeyOutOfRange);
             }
         }
     }
@@ -184,8 +181,8 @@ namespace Microsoft.Research.DryadLinq
             else
             {
                 //@@TODO: throw ArgumentOutOfRangeException?
-                throw new DryadLinqException(HpcLinqErrorCode.IndexOutOfRange,
-                                           SR.IndexOutOfRange);
+                throw new DryadLinqException(DryadLinqErrorCode.IndexOutOfRange,
+                                             SR.IndexOutOfRange);
             }
         }
 
@@ -268,8 +265,8 @@ namespace Microsoft.Research.DryadLinq
             else
             {
                 //@@TODO: throw ArgumentOutOfRangeException?
-                throw new DryadLinqException(HpcLinqErrorCode.IndexOutOfRange,
-                                           SR.IndexOutOfRange);
+                throw new DryadLinqException(DryadLinqErrorCode.IndexOutOfRange,
+                                             SR.IndexOutOfRange);
             }
         }
 

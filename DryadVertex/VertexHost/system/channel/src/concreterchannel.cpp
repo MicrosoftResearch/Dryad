@@ -27,6 +27,7 @@ limitations under the License.
 #include <workqueue.h>
 #include <concreterchannelhelpers.h>
 #include <channelbufferhdfs.h>
+#include <managedchannel.h>
 #ifdef TIDYFS
 #include <mdclient.h>
 #endif
@@ -37,44 +38,21 @@ limitations under the License.
 #include <string>
 #include <map>
 
+#include <shlwapi.h>
 #pragma unmanaged
 
 
-static const char* s_filePrefix = "file://";
+static const char* s_filePrefix = "file:///";
 static const char* s_fifoPrefix = "fifo://";
 static const char* s_nullPrefix = "null://";
 static const char* s_tidyfsPrefix = "tidyfs://";
 static const char* s_dscStreamPrefix = "hpcdsc://";
 static const char* s_dscPartitionPrefix = "hpcdscpt://";
-static const char* s_azureBlobPrefix = "http://"; 
 
 //
 // Use 6 to match up with retry count used between GM and VS
 //
 static const int s_dscRetryMax = 6;
-
-//
-// Check if vertex host running on Azure node
-//
-static bool IsAzure()
-{
-    WCHAR buf[MAX_PATH];
-    ZeroMemory(buf, sizeof(buf));
-
-    int nSchedulerTypeLen = ::GetEnvironmentVariable(L"CCP_SCHEDULERTYPE", buf, _countof(buf));
-    if (_wcsicmp(buf,L"AZURE") == 0)
-    {
-        return true;
-    }
-
-    ZeroMemory(buf, sizeof(buf));
-    ::GetEnvironmentVariable(L"DEBUG_AZURE", buf, _countof(buf));
-    if (nSchedulerTypeLen != 0 && _wcsicmp(buf, L"0") != 0)
-    {
-        return true;
-    }
-    return false;
-}
 
 //
 // Check if channel URI is reading from an on-premise NTFS file
@@ -91,13 +69,10 @@ bool ConcreteRChannel::IsNTFSFile(const char* uri)
 
     if (_strnicmp(uri, s_filePrefix, ::strlen(s_filePrefix)) == 0)
     {
-        if (!IsAzure() || uri[prefixLen] != '\\' || uri[prefixLen+1] != '\\')
-        {
-            return true;
-        }
+        return true;
     }
-    return false;
 
+    return false;
 }
 
 
@@ -110,57 +85,31 @@ bool ConcreteRChannel::IsDscPartition(const char* uri)
 }
 
 //
-// Check if channel URI is a HDFS file by comparing the prefix to hpchdfs://
+// Check if channel URI is a HDFS file by comparing the prefix to hdfs://
 //
 bool ConcreteRChannel::IsHdfsFile(const char* uri)
 {
-    return (_strnicmp(uri,
-                      RChannelBufferHdfsWriter::s_hdfsFilePrefix,
-                      ::strlen(RChannelBufferHdfsWriter::
-                               s_hdfsFilePrefix)) == 0);
+    return ((_strnicmp(uri,
+                       RChannelBufferHdfsWriter::s_hdfsFilePrefix,
+                       ::strlen(RChannelBufferHdfsWriter::s_hdfsFilePrefix)) == 0) ||
+            (_strnicmp(uri,
+                       RChannelBufferHdfsWriter::s_wasbFilePrefix,
+                       ::strlen(RChannelBufferHdfsWriter::s_wasbFilePrefix)) == 0));
 }
 
 //
-// Check if channel URI is a HDFS partition by comparing the prefix to hpchdfspt://
+// Check if channel URI is a HDFS partition by comparing the prefix to hdfspt://
 //
 bool ConcreteRChannel::IsHdfsPartition(const char* uri)
 {
-    return (_strnicmp(uri,
-                      RChannelBufferHdfsReader::s_hdfsPartitionPrefix,
-                      ::strlen(RChannelBufferHdfsReader::
-                               s_hdfsPartitionPrefix)) == 0);
+    return ((_strnicmp(uri,
+                       RChannelBufferHdfsReader::s_hdfsPartitionPrefix,
+                       ::strlen(RChannelBufferHdfsReader::s_hdfsPartitionPrefix)) == 0) ||
+            (_strnicmp(uri,
+                       RChannelBufferHdfsReader::s_wasbPartitionPrefix,
+                       ::strlen(RChannelBufferHdfsReader::s_wasbPartitionPrefix)) == 0));
 }
 
-//
-// Check if the channel URI is an Azure blob by comparing the prefix to http://
-//
-bool ConcreteRChannel::IsAzureBlob(const char* uri)
-{
-    return (_strnicmp(uri, s_azureBlobPrefix, ::strlen(s_azureBlobPrefix)) == 0);
-}
-
-//
-// Check if the channel URI is a UNC path in Azure
-//
-bool ConcreteRChannel::IsUncPath(const char* uri)
-{
-    size_t prefixLen = ::strlen(s_filePrefix);
-    size_t uriLen = ::strlen(uri);
-
-    if (uriLen < prefixLen + 2)
-    {
-        return false;
-    }
-
-    if (_strnicmp(uri, s_filePrefix, ::strlen(s_filePrefix)) == 0)
-    {
-        if (IsAzure() && uri[prefixLen] == '\\' && uri[prefixLen+1] == '\\')
-        {
-            return true;
-        }
-    }
-    return false;
-}
 //
 // Check if the channel URI is a DSC stream by comparing prefix to hpcdsc://
 //
@@ -264,7 +213,7 @@ bool RChannelOpenThrottler::QueueOpen(RChannelThrottledStream* stream)
     bool openImmediately = false;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         if (m_openFileCount < m_maxOpenFiles)
         {
@@ -291,7 +240,7 @@ void RChannelOpenThrottler::NotifyFileCompleted()
     Dispatch* dispatch = NULL;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_openFileCount > 0);
         if (m_openFileCount == m_maxOpenFiles &&
@@ -350,7 +299,7 @@ static RChannelBufferReader*
     {
         return NULL;
     }
-
+	
     //
     // Open the specified file
     //
@@ -368,7 +317,7 @@ static RChannelBufferReader*
 
     //
     // If counting local input channels, proceed with testing
-    // this is set to null in the case of Azure and in-memory fifo sources
+    // this is set to null in the case of remote and in-memory fifo sources
     //
     if(localInputChannels != NULL)
     {
@@ -442,46 +391,6 @@ static RChannelBufferWriter* CreateHdfsFileWriter(const char* uri)
 }
 
 
-// hide azure related
-#if 0
-static RChannelBufferReader*
-    CreateUncFileReader(UInt32 numberOfReaders,
-                        RChannelOpenThrottler* openThrottler,
-                        WorkQueue* workQueue,
-                        const char* streamName,
-                        DryadMetaData* metaData,
-                        DVErrorReporter* errorReporter,
-                        LPDWORD localInputChannels)
-{
-    // Ensure that the stream name passed in is really a Azure Blob URL
-    LogAssert(ConcreteRChannel::IsUncPath(streamName));
-
-    //
-    // Copy the blob locally to a temp file and call
-    // CreateNativeFileReader on the temp file.
-    //
-    char path[MAX_PATH];
-    if (GetTempFileNameA(".", "UNC", 0, path) == 0)
-    {
-        errorReporter->ReportError(E_FAIL, "Error calling GetTempFileName for '%s': %u",
-                                   streamName, GetLastError());
-        return NULL;
-    }
-    
-    HRESULT err = DscGetNetworkFile(streamName + ::strlen(s_filePrefix), path);
-    LogAssert(err == S_OK);
-    if (err != S_OK)
-    {
-        errorReporter->ReportError(err, "Error calling GetTempFileName for '%s': %u",
-                                   streamName, GetLastError());
-        return NULL;
-    }
-    
-    return CreateNativeFileReader(numberOfReaders, openThrottler, workQueue, path, metaData, errorReporter, localInputChannels);
-}
-
-#endif
-
 #ifdef TIDYFS
 static RChannelBufferReader*
 CreateTidyFSStreamReader(UInt32 numberOfReaders,
@@ -521,47 +430,7 @@ CreateTidyFSStreamReader(UInt32 numberOfReaders,
 }
 #endif
 
-/* JC
-static RChannelBufferReader*
-    CreateXComputeFileReader(UInt32 numberOfReaders,
-                           RChannelOpenThrottler* openThrottler,
-                           WorkQueue* workQueue,
-                           const char* fileName,
-                           DryadMetaData* metaData,
-                           DVErrorReporter* errorReporter)
-{
-    UInt32 blockSize = 4*1024;
-    UInt32 numberOfBlocksPerBuffer = 64 / numberOfReaders;
-    if (numberOfBlocksPerBuffer < 16)
-    {
-        numberOfBlocksPerBuffer = 16;
-    }
-
-    RChannelBufferReaderNativeXComputeFile* fileReader =
-        new RChannelBufferReaderNativeXComputeFile(numberOfBlocksPerBuffer*blockSize*64,
-                                           blockSize, 2,
-                                           g_dryadNativePort,
-                                           workQueue, openThrottler);
-    if (fileReader == NULL)
-    {
-        return NULL;
-    }
-
-    if (!fileReader->OpenA(fileName))
-    {
-        delete fileReader;
-
-        DrError errorCode = DrGetLastError();
-        errorReporter->ReportError(errorCode,
-                                   "Can't open xcompute file '%s' to read",
-                                   fileName);
-
-        return NULL;
-    }
-
-    return fileReader;
-}
-
+/*
 static RChannelBufferReader*
     CreateDryadStreamReader(UInt32 numberOfReaders,
                              RChannelOpenThrottler* openThrottler,
@@ -660,7 +529,7 @@ static RChannelBufferWriter*
     {
         return NULL;
     }
-
+	
     DrError cse = fileWriter->SetMetaData(metaData);
     if (cse != DrError_OK)
     {
@@ -1288,15 +1157,32 @@ bool RChannelBufferedReaderHolder::
 {
     bool lazyStart = false;
 
-    if (ConcreteRChannel::IsNTFSFile(channelURI))
+    if (ManagedChannelFactory::RecognizesReaderUri(channelURI))
+    {
+        m_bufferReader = ManagedChannelFactory::OpenReader(channelURI, numberOfReaders, localInputChannels, openThrottler);
+        lazyStart = true;
+    }
+    else if (ConcreteRChannel::IsNTFSFile(channelURI))
     {
         //
         // If URI is on-premise NTFS file, create the file reader right away
         //
+		char channelPath[MAX_PATH];
+		DWORD numChars = MAX_PATH;
+		HRESULT res = PathCreateFromUrlA(channelURI, channelPath, &numChars, NULL);
+		if (res != S_OK)
+		{
+			errorReporter->ReportError(DryadError_InvalidChannelURI, 
+				"Can't convert channel '%s' to path: %u", channelURI,
+				GetLastError());
+		}
+		DrLogI("Converted channelURI '%s' to path '%s'", 
+			channelURI, channelPath);
+			
         m_bufferReader =
             CreateNativeFileReader(numberOfReaders, openThrottler,
                                    workQueue,
-                                   channelURI + ::strlen(s_filePrefix),
+                                   channelPath,
                                    metaData, errorReporter, localInputChannels);
         lazyStart = true;
     }
@@ -1325,17 +1211,6 @@ bool RChannelBufferedReaderHolder::
             CreateNullReader(channelURI,
                              metaData, errorReporter);
     }
-    // hide azure related
-#if 0
-    else if (ConcreteRChannel::IsUncPath(channelURI))
-    {
-        //
-        // If URI is a UNC path in azure, copy the file locally and then create reader
-        // 
-        m_bufferReader = CreateUncFileReader(numberOfReaders, openThrottler,
-                                             workQueue, channelURI, metaData, errorReporter, NULL);
-    }
-#endif
     else
     {
         //
@@ -1343,12 +1218,12 @@ bool RChannelBufferedReaderHolder::
         //
         errorReporter->ReportError(DryadError_InvalidChannelURI,
                                    "Can't open channel '%s' to read --- "
-                                   "unknown prefix (must be %s, %s, %s, %s, %s or %s)",
+                                   "unknown prefix (must be %s, %s, %s, %s, %s, %s or %s)",
                                    channelURI,
                                    s_filePrefix, s_tidyfsPrefix, s_fifoPrefix, 
                                    s_dscPartitionPrefix,
-                                   RChannelBufferHdfsReader::
-                                   s_hdfsPartitionPrefix,
+                                   RChannelBufferHdfsReader::s_hdfsPartitionPrefix,
+                                   RChannelBufferHdfsReader::s_wasbPartitionPrefix,
                                    s_nullPrefix);
     }
 
@@ -1452,13 +1327,28 @@ void RChannelBufferedWriterHolder::
 {
     *pBreakOnBufferBoundaries = false;
 
-    if (ConcreteRChannel::IsNTFSFile(channelURI))
+    if (ManagedChannelFactory::RecognizesWriterUri(channelURI))
     {
-        m_bufferWriter =
-            CreateNativeFileWriter(numberOfWriters, openThrottler,
-                                   channelURI + ::strlen(s_filePrefix),
-                                   metaData, pBreakOnBufferBoundaries,
-                                   errorReporter);
+        m_bufferWriter = ManagedChannelFactory::OpenWriter(channelURI, numberOfWriters, pBreakOnBufferBoundaries, openThrottler);
+    }
+    else if (ConcreteRChannel::IsNTFSFile(channelURI))
+    {
+		char channelPath[MAX_PATH];
+		DWORD numChars = MAX_PATH;
+		HRESULT res = PathCreateFromUrlA(channelURI, channelPath, &numChars, NULL);
+		if (res != S_OK)
+		{
+			errorReporter->ReportError(DryadError_InvalidChannelURI, 
+				"Can't convert channel '%s' to path: %u", channelURI,
+				GetLastError());
+		}
+		DrLogI("Converted channelURI '%s' to path '%s'", 
+			channelURI, channelPath);
+			
+		m_bufferWriter = 
+			CreateNativeFileWriter(numberOfWriters, openThrottler,
+			channelPath, metaData, pBreakOnBufferBoundaries,
+			errorReporter);
     }
     else if (ConcreteRChannel::IsHdfsFile(channelURI))
     {

@@ -21,19 +21,9 @@ limitations under the License.
 #pragma once
 
 #include <DrCommon.h>
-//JC #include <dryadpropertiesdef.h>
-//JC #include <dryadtagsdef.h>
-//JC #include <dryaderrordef.h>
-#include <XCompute.h>
 
-DrError DryadInitializeXCompute(const char* netLibName, const char* iniFileName,
-                              int argc, char* argv[], int* pNOpts);
-DrError DryadShutdownXCompute();
-
-XDRESSIONHANDLE GetSessionHandle();
-XCPROCESSHANDLE GetProcessHandle();
-
-void DryadInitialize();
+DrError DryadInitialize(int argc, char* argv[], int* pNOpts);
+DrError DryadShutdown();
 
 class DryadNativePort;
 

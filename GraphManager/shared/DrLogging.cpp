@@ -53,7 +53,7 @@ bool DrLogging::Enabled(DrLogType type)
 DRCLASS(DrLoggingInternal)
 {
 public:
-    static void Initialize();
+    static void Initialize(DrString logPath, bool redirectStdStreams);
     static void FlushLogs();
     DrLoggingInternal();
   
@@ -110,23 +110,28 @@ DrLoggingInternal::DrLoggingInternal()
 #pragma warning (push)
 // _wfreopen_s tries to open the file with exclusive access, which fails since HpcQueryGraphManager.exe already has it open
 #pragma warning (disable: 4996 ) // _wfreopen : This function or variable may be unsafe. Consider using _wfreopen_s instead.
-void DrLoggingInternal::Initialize()
+void DrLoggingInternal::Initialize(DrString logPath, bool redirectStdStreams)
 {
     WCHAR szOut[MAX_PATH + 1] = {0};
     WCHAR szDir[MAX_PATH + 1] = {0};
 
     s_currentLogFileBytes = 0;
     s_currentLogFileCounter = 0;
-    s_logFileName = "default.log";
-    s_archiveLogFileFormat = "default%03d.log";
+    s_logFileName.SetF("%s.log", logPath.GetChars());
+    s_archiveLogFileFormat.SetF("%s%%03d.log", logPath.GetChars());
     m_rolloverLock = DrNew DrCritSec();
 
-    if (GetCurrentDirectory(MAX_PATH, szDir) > 0)
+    if (redirectStdStreams && GetCurrentDirectory(MAX_PATH, szDir) > 0)
     {
         FILE *f = 0;
         if (_snwprintf_s(szOut, MAX_PATH, MAX_PATH, L"%s\\stdout.txt", szDir) != -1)
         {
             f = _wfreopen(szOut, L"a", stdout);
+        }
+        FILE *fe = 0;
+        if (_snwprintf_s(szOut, MAX_PATH, MAX_PATH, L"%s\\stderr.txt", szDir) != -1)
+        {
+            fe = _wfreopen(szOut, L"a", stderr);
         }
     }
 
@@ -694,7 +699,7 @@ void DrLogHelper::operator()(const char* format, ...)
 
     if (logToConsole)
     {
-        fprintf(stderr, s.GetChars());
+        fprintf(stderr, logEntry.GetChars());
         fflush(stderr);
     }
 
@@ -721,21 +726,33 @@ void DrLogHelper::operator()(const char* format, ...)
     }
 }
 
-void DrLogging::Initialize()
+#ifdef _MANAGED
+void DrLogging::Initialize(System::String^ logPathManaged, bool redirectStdStreams)
+{
+#ifdef _DEBUG_DRREF
+    InitializeCriticalSection(&DrRefCounter::s_debugCS);
+#endif
+
+    DrString logPath(logPathManaged);
+    DrStaticFileWriters::Initialize();
+    DrLoggingInternal::Initialize(logPath, redirectStdStreams);
+    DrErrorText::Initialize();
+}
+#else
+void DrLogging::Initialize(DrString logPath, bool redirectStdStreams)
 {
 #ifdef _DEBUG_DRREF
     InitializeCriticalSection(&DrRefCounter::s_debugCS);
 #endif
 
     DrStaticFileWriters::Initialize();
-    DrLoggingInternal::Initialize();
+    DrLoggingInternal::Initialize(logPath, redirectStdStreams);
     DrErrorText::Initialize();
 
-#ifdef _MANAGED
-#else
     ::SetUnhandledExceptionFilter(LogAndExitProcess);
-#endif
 }
+#endif
+
 
 void DrLogging::ShutDown(UINT code)
 {
@@ -761,3 +778,48 @@ bool DrLogging::DebuggerIsPresent()
     return (::IsDebuggerPresent()) ? true : false;
 #endif
 }
+
+#ifdef _MANAGED
+
+void DrLogging::SetLoggingLevel(DrLogTypeManaged type)
+{
+    SetLoggingLevel((DrLogType)type);
+}
+
+static void LogFromManaged(DrLogType type,
+                           System::String^ message,
+                           System::String^ file,
+                           System::String^ function,
+                           int line)
+{
+    DrString sMessage(message);
+    DrString sFile(file);
+    DrString sFunction(function);
+    DrLogHelper(type, sFile.GetChars(), sFunction.GetChars(), line)("%s", sMessage.GetChars());
+}
+
+void DrLogging::LogCritical(System::String^ message,
+                            System::String^ file,
+                            System::String^ function,
+                            int line)
+{
+    LogFromManaged(DrLog_Error, message, file, function, line);
+}
+
+void DrLogging::LogWarning(System::String^ message,
+                           System::String^ file,
+                           System::String^ function,
+                           int line)
+{
+    LogFromManaged(DrLog_Warning, message, file, function, line);
+}
+
+void DrLogging::LogInformation(System::String^ message,
+                               System::String^ file,
+                               System::String^ function,
+                               int line)
+{
+    LogFromManaged(DrLog_Info, message, file, function, line);
+}
+
+#endif

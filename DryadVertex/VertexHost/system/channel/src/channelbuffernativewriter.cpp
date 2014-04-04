@@ -28,6 +28,7 @@ limitations under the License.
 
 #include <aclapi.h>
 #include <Sddl.h>
+#include <stdint.h>
 
 #pragma unmanaged
 
@@ -181,7 +182,7 @@ UInt64 RChannelBufferWriterNative::GetInitialSizeHint()
 void RChannelBufferWriterNative::Start()
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_state == S_Stopped);
         LogAssert(m_openState == OS_Stopped);
@@ -224,7 +225,7 @@ void RChannelBufferWriterNative::Start()
 
 CRITSEC* RChannelBufferWriterNative::GetBaseDR()
 {
-    return &m_baseDR;
+    return &m_baseCS;
 }
 
 DryadNativePort* RChannelBufferWriterNative::GetPort()
@@ -258,7 +259,7 @@ bool RChannelBufferWriterNative::EnsureOpenForWrite(WriteHandler* handler)
     bool openFailed = false;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_supportsLazyOpen);
 
@@ -387,7 +388,7 @@ void RChannelBufferWriterNative::OpenAfterThrottle()
         WriteHandlerList sendList;
 
         {
-            AutoCriticalSection acs(&m_baseDR);
+            AutoCriticalSection acs(&m_baseCS);
 
             if (firstTime)
             {
@@ -520,7 +521,7 @@ void RChannelBufferWriterNative::FinalCloseFile()
 void RChannelBufferWriterNative::Close()
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         FinalCloseFile();
 
@@ -554,7 +555,7 @@ void RChannelBufferWriterNative::
     FillInStatus(DryadChannelDescription* status)
 {
     {
-        AutoCriticalSection acs (&m_baseDR);
+        AutoCriticalSection acs (&m_baseCS);
 
         status->SetChannelTotalLength(0);
         status->SetChannelProcessedLength(m_processedLength);
@@ -572,7 +573,7 @@ DryadFixedMemoryBuffer* RChannelBufferWriterNative::GetNextWriteBuffer()
     DryadFixedMemoryBuffer* block;
 
     {
-        AutoCriticalSection acs (&m_baseDR);
+        AutoCriticalSection acs (&m_baseCS);
 
         LogAssert(m_state == S_Running);
         LogAssert(m_terminationHandler == NULL);
@@ -599,7 +600,7 @@ DryadFixedMemoryBuffer*
     DryadFixedMemoryBuffer* block;
 
     {
-        AutoCriticalSection acs (&m_baseDR);
+        AutoCriticalSection acs (&m_baseCS);
 
         LogAssert(m_state == S_Running);
         LogAssert(m_terminationHandler == NULL);
@@ -616,7 +617,7 @@ void RChannelBufferWriterNative::
     ReturnUnusedBuffer(DryadFixedMemoryBuffer* block)
 {
     {
-        AutoCriticalSection acs (&m_baseDR);
+        AutoCriticalSection acs (&m_baseCS);
 
         LogAssert(m_state == S_Running);
         LogAssert(m_outstandingBuffers > 0);
@@ -694,7 +695,7 @@ bool RChannelBufferWriterNative::
     WriteHandlerList processList;
 
     {
-        AutoCriticalSection acs (&m_baseDR);
+        AutoCriticalSection acs (&m_baseCS);
 
         LogAssert(m_state == S_Running);
         LogAssert(m_terminationHandler == NULL);
@@ -791,7 +792,7 @@ void RChannelBufferWriterNative::
     }
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_state == S_Running);
         LogAssert(m_terminationHandler == NULL);
@@ -837,7 +838,7 @@ void RChannelBufferWriterNative::
         bool performedClose;
 
         {
-            AutoCriticalSection acs(&m_baseDR);
+            AutoCriticalSection acs(&m_baseCS);
 
             LogAssert(m_outstandingBuffers == 0);
             LogAssert(m_blockedList.IsEmpty());
@@ -892,7 +893,7 @@ void RChannelBufferWriterNative::
         }
 
         {
-            AutoCriticalSection acs(&m_baseDR);
+            AutoCriticalSection acs(&m_baseCS);
 
             BOOL bRet = ::SetEvent(m_terminationEvent);
             LogAssert(bRet != 0);
@@ -915,7 +916,7 @@ void RChannelBufferWriterNative::Drain(RChannelItemRef* pReturnItem)
 //         "this=%p", this);
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_state == S_Running);
 
@@ -949,7 +950,7 @@ void RChannelBufferWriterNative::Drain(RChannelItemRef* pReturnItem)
     }
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         //
         // Verify everything is shutdown as expected
@@ -1059,7 +1060,7 @@ RChannelItemType RChannelBufferWriterNative::
     RChannelItemType statusCode;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
 // todo: remove comment if not logging
 //         DrLogE( "Consuming buffer",
@@ -1174,7 +1175,7 @@ void RChannelBufferWriterNative::DecrementOutstandingHandlers()
     RChannelItemType statusCode = RChannelItem_Data;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
 // todo: remove comment if not logging
 //         DrLogD( "Decrementing outstanding",
@@ -1216,7 +1217,7 @@ void RChannelBufferWriterNative::DecrementOutstandingHandlers()
         bool performedClose;
 
         {
-            AutoCriticalSection acs(&m_baseDR);
+            AutoCriticalSection acs(&m_baseCS);
 
             LogAssert(m_outstandingBuffers == 0);
             LogAssert(m_outstandingIOs == 0);
@@ -1250,7 +1251,7 @@ void RChannelBufferWriterNative::DecrementOutstandingHandlers()
         }
 
         {
-            AutoCriticalSection acs(&m_baseDR);
+            AutoCriticalSection acs(&m_baseCS);
 
             //todo: remove comment if not logging
 //             DrLogD( "Setting event");
@@ -1294,7 +1295,7 @@ RChannelBufferWriterNativeFile::
     m_fileIsPipe = false;
     m_calcFP = false;
     m_fp = 0;
-
+    m_fpDataLength = UINT64_MAX;
 }
 
 RChannelBufferWriterNativeFile::~RChannelBufferWriterNativeFile()
@@ -2770,459 +2771,3 @@ void RChannelBufferWriterNativeTidyFSStream::Close()
     
 }
 #endif
-
-//JC
-#if 0
-RChannelBufferWriterDryadStream::
-    RChannelBufferWriterDryadStream(UInt32 bufferSize,
-                                     UInt32 outstandingWritesLowWatermark,
-                                     UInt32 outstandingWritesHighWatermark,
-                                     DryadNativePort* port,
-                                     RChannelOpenThrottler* openThrottler) :
-        RChannelBufferWriterNative(outstandingWritesLowWatermark,
-                                   outstandingWritesHighWatermark,
-                                   port, openThrottler, true)
-{
-    m_bufferSize = bufferSize;
-
-    m_streamHandle = NULL;
-    m_streamName = new char[MAX_PATH];
-    m_streamNameLength = 0;
-
-    m_nextOffsetToWrite = 0;
-
-    m_expireLengthWhileOpen = DR_INFINITE;
-    m_expireLengthWhileClosed = DR_INFINITE;
-}
-
-RChannelBufferWriterDryadStream::~RChannelBufferWriterDryadStream()
-{
-    LogAssert(m_streamHandle == NULL);
-    delete [] m_streamName;
-}
-
-DrError RChannelBufferWriterDryadStream::SetMetaData(DryadMetaData* metaData)
-{
-    if (metaData == NULL)
-    {
-        return DrError_OK;
-    }
-
-    DrTimeInterval interval;
-
-    if (metaData->LookUpTimeInterval(Prop_Dryad_StreamExpireTimeWhileOpen,
-                                     &interval) == DrError_OK)
-    {
-        if (interval == DrTimeInterval_Infinite)
-        {
-            m_expireLengthWhileOpen = DR_INFINITE;
-        }
-        else
-        {
-            m_expireLengthWhileOpen = interval / DrTimeInterval_100ns;
-        }
-    }
-
-    if (metaData->LookUpTimeInterval(Prop_Dryad_StreamExpireTimeWhileClosed,
-                                     &interval) == DrError_OK)
-    {
-        if (interval == DrTimeInterval_Infinite)
-        {
-            m_expireLengthWhileClosed = DR_INFINITE;
-        }
-        else
-        {
-            m_expireLengthWhileClosed = interval / DrTimeInterval_100ns;
-        }
-    }
-
-    return DrError_OK;
-}
-
-bool RChannelBufferWriterDryadStream::LazyOpenFile()
-{
-    DrLogI( "Opening cosmos stream",
-        "Name %s", m_streamName);
-
-    bool handleOpened = false;
-
-    DR_STREAM_PROPERTIES properties;
-    memset(&properties, 0, sizeof(properties));
-    properties.cbSize = sizeof(properties);
-    /* we want to extend this initial expire period to add the refresh
-       interval with which we will be updating it, in case it would
-       otherwise expire before we get a chance to update it */
-    properties.ExpirePeriod =
-        g_streamUpdater.GetExpirePeriodWithSlop(m_expireLengthWhileOpen);
-
-    DrError err = ::DrOpenStream(m_streamName,
-                                 DR_APPEND | DR_CREATE,
-                                 &properties,
-                                 &m_streamHandle,
-                                 NULL);
-
-    // Delete output stream if it already exists
-    if (err == DrError_StreamAlreadyExists)
-    {
-        err = ::DrDelete(m_streamName, DR_DELETE_FORCE, NULL);
-        if (err == DrError_OK)
-            err = ::DrOpenStream(m_streamName,
-                                 DR_APPEND | DR_CREATE,
-                                 &properties,
-                                 &m_streamHandle,
-                                 NULL);
-    }
-
-    if (err == DrError_OK)
-    {
-        UINT64 appendSize = DR_STREAM_OPTION_MAX_APPEND_SIZE_MAX;
-        err = DrSetStreamOption(m_streamHandle, DR_STREAM_OPTION_MAX_APPEND_SIZE, &appendSize, sizeof(appendSize));
-
-        handleOpened = true;
-    }
-
-    if (err == DrError_OK)
-    {
-        DrLogI( "Dryad stream open succeeded",
-            "Name %s", m_streamName);
-
-        if (m_expireLengthWhileOpen != DR_INFINITE)
-        {
-            /* put it in a queue to be regularly extended while we are
-               running */
-            g_streamUpdater.AddStream(m_streamName,
-                                      m_expireLengthWhileOpen);
-        }
-
-        return true;
-    }
-    else
-    {
-        DrLogI( "Dryad stream open failed",
-            "Name %s", m_streamName);
-
-        if (handleOpened)
-        {
-            ::DrCloseHandle(m_streamHandle);
-            m_streamHandle = NULL;
-        }
-        LogAssert(m_streamHandle == NULL);
-
-        RChannelItemRef errorItem;
-        DrStr64 description;
-        description.SetF("Can't open cosmos stream '%s' to write",
-                         m_streamName);
-        errorItem.Attach(RChannelMarkerItem::
-                         CreateErrorItemWithDescription(RChannelItem_Abort,
-                                                        err,
-                                                        description));
-        SetOpenErrorItem(errorItem);
-
-        return false;
-    }
-}
-
-void RChannelBufferWriterDryadStream::EagerCloseFile()
-{
-    LogAssert(m_streamHandle != NULL);
-
-    DR_STREAM_POSITION appendPosition;
-    appendPosition.ExtentIndex = 0;
-    appendPosition.Offset = m_nextOffsetToWrite;
-    SIZE_T numberOfBytesAppended;
-    
-    DrError cse;
-    DrLogI(
-        "Closing output stream --- appending zero bytes to updated DRM",
-        "streamhandle=%p", m_streamHandle);
-    cse = DrAppendStream(m_streamHandle,
-                         NULL,
-                         0,
-                         DR_SEAL |  DR_FIXED_OFFSET_APPEND |
-                         DR_UPDATE_DRM,
-                         &appendPosition,
-                         &numberOfBytesAppended,
-                         NULL);
-    if (cse != DrError_OK)
-    {
-        DrLogW(
-            "Stream seal at close failed",
-            "stream: %s error %s",
-            m_streamName, DRERRORSTRING(cse));
-    }
-
-    if (m_expireLengthWhileOpen != DR_INFINITE)
-    {
-        /* we have been extending it. Take it off the queue */
-        bool ret = g_streamUpdater.RemoveStream(m_streamName);
-        LogAssert(ret == true);
-    }
-
-    if (m_expireLengthWhileOpen != DR_INFINITE ||
-        m_expireLengthWhileClosed != DR_INFINITE)
-    {
-        DR_STREAM_PROPERTIES properties;
-        memset(&properties, 0, sizeof(properties));
-        properties.cbSize = sizeof(properties);
-        properties.ExpirePeriod = m_expireLengthWhileClosed;
-
-        cse = ::DrSetStreamPropertiesByHandle(m_streamHandle,
-                                              &properties,
-                                              NULL);
-        if (cse != DrError_OK)
-        {
-            DrLogW(
-                "Stream set properties at close failed",
-                "stream: %s error %s",
-                m_streamName, DRERRORSTRING(cse));
-        }
-    }
-
-    cse = DrCloseHandle(m_streamHandle);
-    LogAssert(cse == DrError_OK);
-    m_streamHandle = NULL;
-}
-
-DrError RChannelBufferWriterDryadStream::OpenA(const char* pathName)
-{
-    {
-        AutoCriticalSection acs(GetBaseDR());
-
-        LogAssert(m_streamHandle == NULL);
-        LogAssert(m_nextOffsetToWrite == 0);
-
-        HRESULT hr = ::StringCbCopyA(m_streamName, MAX_PATH, pathName);
-        LogAssert(SUCCEEDED(hr));
-        hr = ::StringCbLengthA(m_streamName, MAX_PATH,
-                               &m_streamNameLength);
-        LogAssert(SUCCEEDED(hr));
-
-        OpenInternal();
-    }
-
-    return DrError_OK;
-}
-
-/* called with baseDR held */
-void RChannelBufferWriterDryadStream::
-    StartConcreteWriter(RChannelItemRef* pCompletionItem)
-{
-    if (*pCompletionItem != NULL &&
-        (*pCompletionItem)->GetType() == RChannelItem_EndOfStream)
-    {
-        RChannelItem* error =
-            RChannelMarkerItem::
-            CreateErrorItemWithDescription(RChannelItem_Abort,
-                                           DryadError_ChannelRestartError,
-                                           "Can't restart channel after "
-                                           "sending EOF");
-        pCompletionItem->Attach(error);
-    }
-}
-
-/* called with baseDR held */
-void RChannelBufferWriterDryadStream::DrainConcreteWriter()
-{
-}
-
-/* called with baseDR held */
-DryadFixedMemoryBuffer* RChannelBufferWriterDryadStream::
-    GetNextWriteBufferInternal()
-{
-    return GetCustomWriteBufferInternal(m_bufferSize);
-}
-
-/* called with baseDR held */
-DryadFixedMemoryBuffer* RChannelBufferWriterDryadStream::
-    GetCustomWriteBufferInternal(Size_t bufferSize)
-{
-    return new DryadAlignedWriteBlock(bufferSize, 0);
-}
-
-/* called with baseDR held */
-void RChannelBufferWriterDryadStream::
-    ReturnUnusedBufferInternal(DryadFixedMemoryBuffer* block)
-{
-    block->DecRef();
-}
-
-void RChannelBufferWriterDryadStream::
-    ReceiveBuffer(WriteHandler* writeHandler,
-                  DrError errorCode)
-{
-    ReceiveBufferInternal(writeHandler, errorCode);
-}
-
-/* called with baseDR held */
-RChannelBufferWriterNative::WriteHandler* RChannelBufferWriterDryadStream::
-    MakeWriteHandler(DryadFixedMemoryBuffer* block,
-                     bool flushAfter,
-                     RChannelBufferWriterHandler* handler,
-                     bool lazyOpenDone)
-{
-    UInt32 writeLength;
-    if (block == NULL)
-    {
-        writeLength = 0;
-    }
-    else
-    {
-        Size_t availableLength = block->GetAvailableSize();
-        LogAssert(availableLength < 0x100000000);
-        writeLength = (UInt32) availableLength;
-    }
-
-    DryadWriteHandler* writeHandler =
-        new DryadWriteHandler(m_streamHandle,
-                               lazyOpenDone,
-                               block,
-                               m_nextOffsetToWrite,
-                               flushAfter,
-                               handler, this);
-
-    m_nextOffsetToWrite += writeLength;
-
-    SetProcessedLength(m_nextOffsetToWrite);
-
-    return writeHandler;
-}
-
-void RChannelBufferWriterDryadStream::FillInOpenedDetails(WriteHandler* h)
-{
-    DryadWriteHandler* handler = dynamic_cast<DryadWriteHandler*>(h);
-
-    if (OpenError())
-    {
-        LogAssert(m_streamHandle == NULL);
-    }
-    else
-    {
-        LogAssert(m_streamHandle != NULL);
-    }
-
-    handler->SetStreamHandle(m_streamHandle);
-}
-
-RChannelBufferWriterDryadStream::DryadWriteHandler::
-    DryadWriteHandler(DRHANDLE handle,
-                       bool detailsPresent,
-                       DryadFixedMemoryBuffer* block,
-                       UInt64 streamOffset,
-                       bool flushAfter,
-                       RChannelBufferWriterHandler* handler,
-                       RChannelBufferWriterDryadStream* parent) :
-        RChannelBufferWriterNative::WriteHandler(block, streamOffset,
-                                                 flushAfter,
-                                                 handler, parent)
-{
-    m_streamHandle = handle;
-    m_detailsPresent = detailsPresent;
-    if (!m_detailsPresent)
-    {
-        LogAssert(m_streamHandle == NULL);
-    }
-
-    if (block != NULL)
-    {
-        Size_t availableLength = block->GetAvailableSize();
-        LogAssert(availableLength < 0x100000000);
-        InitializeInternal((UInt32) availableLength, streamOffset);
-    }
-}
-
-void RChannelBufferWriterDryadStream::DryadWriteHandler::
-    SetStreamHandle(DRHANDLE h)
-{
-    LogAssert(m_detailsPresent == false);
-    m_streamHandle = h;
-    m_detailsPresent = true;
-}
-
-DRHANDLE RChannelBufferWriterDryadStream::DryadWriteHandler::
-    GetStreamHandle()
-{
-    return m_streamHandle;
-}
-
-DrError* RChannelBufferWriterDryadStream::DryadWriteHandler::
-    GetPendingStatePtr()
-{
-    return &m_pendingState;
-}
-
-void RChannelBufferWriterDryadStream::DryadWriteHandler::
-    QueueWrite(DryadNativePort* port)
-{
-    if (!m_detailsPresent)
-    {
-        LogAssert(GetStreamHandle() == NULL);
-
-        RChannelBufferWriterNative* baseParent = GetParent();
-        RChannelBufferWriterDryadStream* parent =
-            (RChannelBufferWriterDryadStream *) baseParent;
-
-        bool waitForThrottledOpen = parent->EnsureOpenForWrite(this);
-        if (waitForThrottledOpen)
-        {
-            /* do nothing right now. This will be sent to the port
-               eventually (perhaps on another thread) when the file is
-               finally opened. */
-            return;
-        }
-        else
-        {
-            LogAssert(m_detailsPresent);
-        }
-    }
-
-    if (GetStreamHandle() == NULL)
-    {
-        /* we will get here if there was an open error, so just pass
-           it straight back into the machinery without (obviously)
-           trying to actually write anything. The writer class will
-           fill in the appropriate error details. */
-        m_pendingState = DrError_EndOfStream;
-        ProcessIO(DrError_OK, 0);
-    }
-    else
-    {
-        port->QueueDryadWrite(GetStreamHandle(),
-                               GetPendingStatePtr(),
-                               GetStreamOffset(),
-                               this);
-    }
-}
-
-void RChannelBufferWriterDryadStream::DryadWriteHandler::
-    ProcessIO(DrError cse, UInt32 numBytes)
-{
-    LogAssert(m_detailsPresent);
-
-    LogAssert(cse == DrError_OK);
-    cse = m_pendingState;
-    if (cse == DrError_OK)
-    {
-        numBytes = (UInt32) *(GetNumberOfBytesToTransferPtr());
-        LogAssert(numBytes == GetWriteLength());
-        DrLogI(
-            "Dryad append completed",
-            "streamhandle=%p, numBytes=%u",
-            m_streamHandle, numBytes);
-
-    }
-    else
-    {
-        numBytes = 0;
-        DrLogE(
-            "Dryad append failed",
-            "streamhandle=%p, err=%s",
-            m_streamHandle, DRERRORSTRING(cse));
-
-    }
-
-    RChannelBufferWriterNative* baseParent = GetParent();
-    RChannelBufferWriterDryadStream* parent =
-        (RChannelBufferWriterDryadStream *) baseParent;
-    parent->ReceiveBuffer(this, cse);
-}
-#endif // if 0

@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -137,7 +134,7 @@ namespace Microsoft.Research.DryadLinq
         internal abstract bool IsPartitionedBy(LambdaExpression keySel, object comparer);
         internal abstract bool IsPartitionedBy(LambdaExpression keySel, object comparer, bool isDescending);
         internal abstract bool IsSamePartition(PartitionInfo p);
-        internal abstract DryadQueryNode CreatePartitionNode(LambdaExpression keySelector, DryadQueryNode child);
+        internal abstract DLinqQueryNode CreatePartitionNode(LambdaExpression keySelector, DLinqQueryNode child);
         internal abstract PartitionInfo Create(LambdaExpression keySel);
         internal abstract PartitionInfo Rewrite(LambdaExpression keySel, ParameterExpression param);
 
@@ -148,7 +145,8 @@ namespace Microsoft.Research.DryadLinq
             return (PartitionInfo)Activator.CreateInstance(hashType, BindingFlags.NonPublic | BindingFlags.Instance, null ,args, null);
         }
 
-        internal static PartitionInfo CreateRange(LambdaExpression keySel, object keys, object comparer, bool? isDescending, Int32 parCnt, Type keyType)
+        internal static PartitionInfo
+            CreateRange(LambdaExpression keySel, object keys, object comparer, bool? isDescending, Int32 parCnt, Type keyType)
         {
             Type parType = typeof(RangePartition<>).MakeGenericType(keyType);
             object[] args = new object[] { keySel, keys, comparer, isDescending, parCnt };
@@ -208,10 +206,10 @@ namespace Microsoft.Research.DryadLinq
             return false;
         }
 
-        internal override DryadQueryNode CreatePartitionNode(LambdaExpression keySel, DryadQueryNode child)
+        internal override DLinqQueryNode CreatePartitionNode(LambdaExpression keySel, DLinqQueryNode child)
         {
-            throw new DryadLinqException(HpcLinqErrorCode.CannotCreatePartitionNodeRandom,
-                                       SR.CannotCreatePartitionNodeRandom);
+            throw new DryadLinqException(DryadLinqErrorCode.CannotCreatePartitionNodeRandom,
+                                         SR.CannotCreatePartitionNodeRandom);
         }
 
         internal override PartitionInfo Create(LambdaExpression keySel)
@@ -253,16 +251,15 @@ namespace Microsoft.Research.DryadLinq
             {
                 if (partitionKeys == null)
                 {
-                    throw new DryadLinqException(HpcLinqErrorCode.PartitionKeysNotProvided,
-                                               SR.PartitionKeysNotProvided);
+                    throw new DryadLinqException(DryadLinqErrorCode.PartitionKeysNotProvided,
+                                                 SR.PartitionKeysNotProvided);
                 }
 
                 bool? detectedIsDescending;
-                
-                if (!HpcLinqUtil.ComputeIsDescending(partitionKeys, m_comparer, out detectedIsDescending))
+                if (!DryadLinqUtil.ComputeIsDescending(partitionKeys, m_comparer, out detectedIsDescending))
                 {
-                    throw new DryadLinqException(HpcLinqErrorCode.PartitionKeysAreNotConsistentlyOrdered,
-                                               SR.PartitionKeysAreNotConsistentlyOrdered);
+                    throw new DryadLinqException(DryadLinqErrorCode.PartitionKeysAreNotConsistentlyOrdered,
+                                                 SR.PartitionKeysAreNotConsistentlyOrdered);
                 }
 
                 this.m_isDescending = detectedIsDescending ?? false;
@@ -271,10 +268,10 @@ namespace Microsoft.Research.DryadLinq
             {
                 this.m_isDescending = isDescending.GetValueOrDefault();
                 if (partitionKeys != null &&
-                    !HpcLinqUtil.IsOrdered(partitionKeys, this.m_comparer, this.m_isDescending))
+                    !DryadLinqUtil.IsOrdered(partitionKeys, this.m_comparer, this.m_isDescending))
                 {
-                    throw new DryadLinqException(HpcLinqErrorCode.IsDescendingIsInconsistent,
-                                               SR.IsDescendingIsInconsistent);
+                    throw new DryadLinqException(DryadLinqErrorCode.IsDescendingIsInconsistent,
+                                                 SR.IsDescendingIsInconsistent);
                 }
             }
         }
@@ -403,12 +400,12 @@ namespace Microsoft.Research.DryadLinq
             return this.m_comparer.Equals(p1.m_comparer);
         }
 
-        internal override DryadQueryNode CreatePartitionNode(LambdaExpression keySel, DryadQueryNode child)
+        internal override DLinqQueryNode CreatePartitionNode(LambdaExpression keySel, DLinqQueryNode child)
         {
             Expression keysExpr = Expression.Constant(this.m_partitionKeys);
             Expression comparerExpr = Expression.Constant(this.m_comparer, typeof(IComparer<TKey>));
             Expression isDescendingExpr = Expression.Constant(this.m_isDescending);
-            return new DryadRangePartitionNode(keySel, null, keysExpr, comparerExpr, isDescendingExpr, null, child.QueryExpression, child);
+            return new DLinqRangePartitionNode(keySel, null, keysExpr, comparerExpr, isDescendingExpr, null, child.QueryExpression, child);
         }
 
         internal override PartitionInfo Create(LambdaExpression keySel)
@@ -421,7 +418,7 @@ namespace Microsoft.Research.DryadLinq
         {
             ParameterExpression a = this.m_keySelector.Parameters[0];
             Substitution pSubst = Substitution.Empty.Cons(a, param);
-            LambdaExpression newKeySel = HpcLinqExpression.Rewrite(this.m_keySelector, resultSel, pSubst);
+            LambdaExpression newKeySel = DryadLinqExpression.Rewrite(this.m_keySelector, resultSel, pSubst);
             if (newKeySel == null)
             {
                 return new RandomPartition(this.m_count);
@@ -433,7 +430,8 @@ namespace Microsoft.Research.DryadLinq
         {
             Type sourceType = this.m_keySelector.Parameters[0].Type;
             MethodInfo operation = TypeSystem.FindStaticMethod(
-                                       typeof(Microsoft.Research.DryadLinq.HpcLinqQueryable), "RangePartition",
+                                       typeof(Microsoft.Research.DryadLinq.DryadLinqQueryable),
+                                       "RangePartition",
                                        new Type[] { typeof(IQueryable<>).MakeGenericType(sourceType),
                                                     m_keySelector.GetType(), 
                                                     m_partitionKeys.GetType(),
@@ -526,10 +524,10 @@ namespace Microsoft.Research.DryadLinq
             return this.m_comparer.Equals(p1.m_comparer);
         }
 
-        internal override DryadQueryNode CreatePartitionNode(LambdaExpression keySel, DryadQueryNode child)
+        internal override DLinqQueryNode CreatePartitionNode(LambdaExpression keySel, DLinqQueryNode child)
         {
             Expression comparerExpr = Expression.Constant(this.m_comparer, typeof(IEqualityComparer<TKey>));
-            return new DryadHashPartitionNode(keySel, comparerExpr, this.Count, child.QueryExpression, child);
+            return new DLinqHashPartitionNode(keySel, comparerExpr, this.Count, child.QueryExpression, child);
         }
 
         internal override PartitionInfo Create(LambdaExpression keySel)
@@ -542,7 +540,7 @@ namespace Microsoft.Research.DryadLinq
         {
             ParameterExpression a = this.m_keySelector.Parameters[0];
             Substitution pSubst = Substitution.Empty.Cons(a, param);
-            LambdaExpression newKeySel = HpcLinqExpression.Rewrite(this.m_keySelector, resultSel, pSubst);
+            LambdaExpression newKeySel = DryadLinqExpression.Rewrite(this.m_keySelector, resultSel, pSubst);
             if (newKeySel == null)
             {
                 return new RandomPartition(this.m_count);
@@ -554,7 +552,8 @@ namespace Microsoft.Research.DryadLinq
         {
             Type sourceType = this.m_keySelector.Parameters[0].Type;
             MethodInfo operation = TypeSystem.FindStaticMethod(
-                                       typeof(Microsoft.Research.DryadLinq.HpcLinqQueryable), "HashPartition",
+                                       typeof(Microsoft.Research.DryadLinq.DryadLinqQueryable),
+                                       "HashPartition",
                                        new Type[] { typeof(IQueryable<>).MakeGenericType(sourceType),
                                                     m_keySelector.GetType(),
                                                     m_comparer.GetType(),
@@ -730,7 +729,7 @@ namespace Microsoft.Research.DryadLinq
         {
             ParameterExpression a = this.m_keySelector.Parameters[0];
             Substitution pSubst = Substitution.Empty.Cons(a, param);
-            LambdaExpression newKeySel = HpcLinqExpression.Rewrite(this.m_keySelector, resultSel, pSubst);
+            LambdaExpression newKeySel = DryadLinqExpression.Rewrite(this.m_keySelector, resultSel, pSubst);
             if (newKeySel == null)
             {
                 return DataSetInfo.NoOrderBy;

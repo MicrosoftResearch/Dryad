@@ -48,7 +48,7 @@ void DrDynamicBroadcastManager::MaybeMakeRoundRobinPodMachines()
         m_roundRobinMachines = DrNew DrResourceList();
 
         /* we have to look down a long chain to find who's in the cluster, but it's there somewhere... */
-        DrUniversePtr universe = m_copyVertex->GetStageManager()->GetGraph()->GetXCompute()->GetUniverse();
+        DrUniversePtr universe = m_copyVertex->GetStageManager()->GetGraph()->GetCluster()->GetUniverse();
 
         {
             DrAutoCriticalSection acs(universe->GetResourceLock());

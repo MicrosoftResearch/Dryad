@@ -1277,7 +1277,7 @@ bool DryadSubGraphVertex::SetUpChannels(WorkQueue* sharedWorkQueue,
 void DryadSubGraphVertex::LaunchSubGraph(WorkQueue* sharedWorkQueue)
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         m_outstandingVertices = m_numberOfVertices;
     }
@@ -1312,7 +1312,7 @@ void DryadSubGraphVertex::VertexCompleted(DrError status,
     bool finished = false;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(GetErrorCode() != DryadError_VertexCompleted);
         if (status == DryadError_VertexCompleted)

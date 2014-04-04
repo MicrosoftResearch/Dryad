@@ -248,7 +248,7 @@ private:
     TagMap                      m_elementMap;
     DrRef<DrMemoryBuffer> m_cachedSerialization;
 
-    CRITSEC                     m_baseDR;
+    CRITSEC                     m_baseCS;
 };
 
 class DryadMetaDataParser : public DrPropertyParser

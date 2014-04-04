@@ -52,19 +52,24 @@ typedef enum
     LogLevel_Debug = 31
 } LogLevel;
 
+typedef void DrLogAssertCallback(void* cookie, const char* assertString);
+
 //
 // Expose functions to set the logging level, check the logging level, and flush the log
 //
 class DrLogging
 {   
 public:
+    static void Initialize(const WCHAR* logFileName);
     static void SetLoggingLevel(LogLevel type);
     static bool Enabled(LogLevel type);
     static void FlushLog();
     static FILE* GetLogFile();
 
+    static void SetAssertCallback(DrLogAssertCallback callback, void* cookie);
+
 private:   
-    static FILE* CreateLogFile();
+    static FILE* CreateLogFile(const WCHAR* logFileName);
     static FILE* m_logFile;
 };
 

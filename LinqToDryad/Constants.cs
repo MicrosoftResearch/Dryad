@@ -18,16 +18,13 @@ limitations under the License.
 
 */
 
-//------------------------------------------------------------------------------
-// <summary>
-//      Constants used by managed code in Dryad
-// </summary>
-//------------------------------------------------------------------------------
+using System;
 
-namespace Microsoft.Hpc.Dryad
+namespace Microsoft.Research.DryadLinq
 {
-    using System;
-
+    /// <summary>
+    /// Constants used by Dryad and DryadLINQ
+    /// </summary>
     internal class Constants
     {
         //
@@ -41,22 +38,6 @@ namespace Microsoft.Hpc.Dryad
         public static readonly TimeSpan ReceiveTimeout = new TimeSpan(0, 10, 0);
         public static readonly TimeSpan VertexSendTimeout = new TimeSpan(0, 1, 0);
 
-        // For Seal and Delete Node, use 6 minutes for the WCF timeout because of the 5 minute SQL timeout for the DB call
-        // Otherwise, default to 2 minutes
-        // TODO: Post-SP3, re-examine longest running operations, as they slow down service failure and failover time
-        public static readonly TimeSpan DscOperationTimeout = new TimeSpan(0, 2, 0);
-        public static readonly TimeSpan DscExtendedOperationTimeout = new TimeSpan(0, 6, 0);
-        
-        public static readonly String DryadConnectionString = String.Empty;
-      
-        public const string CommonRegistryPath = @"SOFTWARE\Microsoft\HPC";
-        public const string HpcSchedulerNameString = "ClusterName";
-        public const string HpcInstallPath = "BinDir";
-        public const string DscServerName = "DscServiceNodeName";
-        public const string DscConnectionFormat = @"net.tcp://{0}:{1}/HpcDsc/Service/DscService";
-        public const string DscServiceDefaultScheme = "hpcdsc";
-        public const UInt32 DscServiceDefaultPort = 6498;
-        
         public const string ServiceLocationString = @"ServiceLocation";
 
         public const String jobManager = "XCJOBMANAGER";
@@ -68,9 +49,9 @@ namespace Microsoft.Hpc.Dryad
         public const string vertexFileServiceName = "DryadVertexFileService";
         public const int vertexFileChunkSize = 1024 * 16;
 
-        public const string vertexCountEnvVar = "HPC_VERTEXCOUNT";
-        public const string vertexEnvVarFormat = "HPC_VERTEX{0}";
-        public const string vertexSvcInstanceEnvVar = "HPC_VERTEXSVCINST";
+        public const string vertexCountEnvVar = "DRYAD_VERTEXCOUNT";
+        public const string vertexEnvVarFormat = "DRYAD_VERTEX{0}";
+        public const string vertexSvcInstanceEnvVar = "DRYAD_VERTEXSVCINST";
         public const string vertexSvcLocalAddrEnvVar = "CCP_DRYADVERTEXLOCALADDRESS";
 
         public const string schedulerTypeEnvVar = "CCP_SCHEDULERTYPE";
@@ -80,22 +61,20 @@ namespace Microsoft.Hpc.Dryad
         public const string debugAzure = "DEBUG_AZURE";
 
         // Recognized values are: OFF, CRITICAL, ERROR, WARN, INFO, VERBOSE
-        public const string traceLevelEnvVar = "CCP_DRYADTRACELEVEL";
-        public const string traceOff = "OFF";
-        public const string traceCritical = "CRITICAL";
-        public const string traceError = "ERROR";
-        public const string traceWarning = "WARN";
-        public const string traceInfo = "INFO";
-        public const string traceVerbose = "VERBOSE";
+        public const string TraceLevelEnvVar = "CCP_DRYADTRACELEVEL";
+        public const string TraceOff = "OFF";
+        public const string TraceCritical = "CRITICAL";
+        public const string TraceError = "ERROR";
+        public const string TraceWarning = "WARN";
+        public const string TraceInfo = "INFO";
+        public const string TraceVerbose = "VERBOSE";
 
-        public const int traceOffNum = 0;
-        public const int traceCriticalNum = 1;
-        public const int traceErrorNum = 3;
-        public const int traceWarningNum = 7;
-        public const int traceInfoNum = 15;
-        public const int traceVerboseNum = 31;
-
-        public const string VertexSecurityEnvVar = "HPC_VERTEX_SECURITY";
+        public const int TraceOffLevel = 0;
+        public const int TraceCriticalLevel = 1;
+        public const int TraceErrorLevel = 3;
+        public const int TraceWarningLevel = 7;
+        public const int TraceInfoLevel = 15;
+        public const int TraceVerboseLevel = 31;
 
         // SchedulerHelper environment variables
         public const string clusterNameEnvVar = "CCP_CLUSTER_NAME";
@@ -115,35 +94,24 @@ namespace Microsoft.Hpc.Dryad
         public const uint DrError_ProcessingInterrupted = 0x830A001A;
         public const uint DrError_VertexHostLostCommunication = 0x830A0FFF;
 
-        // DSC Share Names
-        public const string DscTempShare = "HpcTemp";
-        public const string DscDataShare = "HpcData";
-        public const string RuntimeShareConfig = "HPC_RUNTIMESHARE";
-
-        // Cluster name
-        public const string ClusterNameConfig = "CCP_CLUSTER_NAME";
-
         // NodeAdmin constants
         // Retain time set to one day
         // todo: this should be configurable
         public static readonly TimeSpan RetainTime = new TimeSpan(1, 0, 0, 0);
         public static readonly TimeSpan FileTimeStampMarginForGC = new TimeSpan(0, 0, 5, 0);
         public const string runningJobEnvVar = "CCP_RUNNING_JOBS";
-        public const string replicaPathFormat = @"\\{0}\HpcData\{1}.data";
+        public const string replicaPathFormat = @"\\{0}\DscData\{1}.data";
         public const string nodeAdminMutexName = "A19A8AC1-4129-46e2-BB81-ED7EE3265B05";
         public const string nodeAdminUsage = "Syntax:\n\t" + 
-                                                "HpcDscNodeAdmin [/r] [/g] [/wd] [/e] [/v] [/u]\n\n" +
+                                                "DscNodeAdmin [/r] [/g] [/wd] [/e] [/v] [/u]\n\n" +
                                              "Parameters:\n\t" + 
                                                 "/? \t- Display this help message.\n\t" +
-                                                "/g \t- Delete files not managed by DSC from the HpcData share.\n\t" +
-                                                "/wd\t- Delete old job working directories from the HpcTemp share.\n\t" +
+                                                "/g \t- Delete files not managed by DSC from the DscData share.\n\t" +
+                                                "/wd\t- Delete old job working directories from the DscTemp share.\n\t" +
                                                 "/r \t- Replicate DSC files onto this node.\n\t" +
                                                 "/e \t- Print full error traces.\n\t" +
-                                                "/u \t- Resets HpcReplication account password.\n\t" +
-                                               "/v \t- Print verbose activity traces.\n";
-
-        // HpcReplication user account
-        internal const string HpcReplicationUserName = "HpcReplication";
+                                                "/u \t- Resets DscReplication account password.\n\t" +
+                                                "/v \t- Print verbose activity traces.\n";
 
         // Client retry period is 1 second for first retry, increasing up to 12 seconds for a total of 30 seconds
         // These timeouts are intended to ride through transient network failures

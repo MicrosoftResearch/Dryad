@@ -43,16 +43,6 @@ public:
 };
 
 
-DrOverlapped::~DrOverlapped()
-{
-}
-
-HRESULT* DrOverlapped::GetOperationStatePtr()
-{
-    return &m_operationState;
-}
-
-
 DrMessagePump::DrMessagePump(int numWorkerThreads,
                              int numConcurrentThreads)
 {
@@ -79,7 +69,6 @@ DrMessagePump::DrMessagePump(int numWorkerThreads,
     m_listLength = 0;
 
     m_pendingMessages = DrNew MessageQueue();
-    m_submittedOverlapped = DrNew OverlappedSet();
 }
 
 DrMessagePump::~DrMessagePump()
@@ -205,42 +194,19 @@ void DrMessagePump::ThreadMain(int threadId)
         bool mustDecrementCount = false;
         if (retval != 0)
         {
-            if (overlapped == NULL)
-            {
-                /* This is a queue wakeup event */
-                mustDecrementCount = true;
-                finished = (numBytes == DRMESSAGEPUMP_EXIT);
+            DrAssert(overlapped == NULL);
 
-                if (finished)
-                {
-                    DrLogI("received shutdown event");
-                }
-                else
-                {
-                    //DrLogI("Received queued wakeup");
-                }
+            /* This is a queue wakeup event */
+            mustDecrementCount = true;
+            finished = (numBytes == DRMESSAGEPUMP_EXIT);
+
+            if (finished)
+            {
+                DrLogI("received shutdown event");
             }
             else
             {
-                /* This is an async completion event from xcompute */
-                DrAssert(numBytes == 0);
-                DrAssert(completionKey == NULL);
-                DrOverlapped* messageWrapper = (DrOverlapped *) overlapped;
-
-                {
-                    DrAutoCriticalSection acs(this);
-#ifdef _MANAGED              
-                    System::IntPtr messagePtr(messageWrapper);
-                    bool removed = m_submittedOverlapped->Remove(messagePtr);
-                    DrAssert(removed);
-#else 
-                    bool removed = m_submittedOverlapped->Remove(messageWrapper);
-                    DrAssert(removed);
-#endif
-                }
-
-                messageWrapper->Process();
-                delete messageWrapper;
+                //DrLogI("Received queued wakeup");
             }
         }
         else
@@ -571,19 +537,6 @@ void DrMessagePump::Stop()
                    "error code: %d", errCode);
         }
 
-        OverlappedSet::DrEnumerator e = m_submittedOverlapped->GetDrEnumerator();
-        while (e.MoveNext())
-        {
-            DrOverlapped* element;
-#ifdef _MANAGED
-            element = (DrOverlapped*) e.GetElement().ToPointer();
-#else
-            element = e.GetElement();
-#endif
-            element->Discard();
-        }
-        m_submittedOverlapped = DrNew OverlappedSet();
-
         DrAssert(ListEmpty());
 
         m_pendingMessages = DrNew MessageQueue();
@@ -658,17 +611,4 @@ bool DrMessagePump::EnQueueDelayed(DrTimeInterval delay, DrMessageBasePtr messag
     }
 
     return true;
-}
-
-void DrMessagePump::NotifySubmissionToCompletionPort(DrOverlapped* overlapped)
-{
-
-    DrAutoCriticalSection acs(this);
-    
-#ifdef _MANAGED
-    System::IntPtr ptr(overlapped);
-    m_submittedOverlapped->Add(ptr);
-#else
-    m_submittedOverlapped->Add(overlapped);
-#endif
 }

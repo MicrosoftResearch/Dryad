@@ -35,12 +35,18 @@ DrGraphPtr DrGraphExecutor::Initialize(DrGraphParametersPtr parameters)
     DrMessagePumpRef pump = DrNew DrMessagePump(8, 4);
     pump->Start();
 
-    DrUniverseRef cluster = DrNew DrUniverse();
+    DrUniverseRef universe = DrNew DrUniverse();
 
-    DrXComputeRef xc = DrXCompute::Create();
-    if (SUCCEEDED( xc->Initialize(cluster, pump) ))
+    DrClusterRef cluster = DrCluster::Create();
+    if (SUCCEEDED( cluster->Initialize(universe, pump, parameters->m_propertyUpdateInterval) ))
     {
-        m_graph = DrNew DrGraph(xc, parameters);
+        m_graph = DrNew DrGraph(cluster, parameters);
+    }
+
+    for (int i=0; i<parameters->m_reporters->Size(); ++i)
+    {
+        parameters->m_defaultVertexTemplate->GetListenerList()->Add(parameters->m_reporters[i]);
+        parameters->m_defaultProcessTemplate->GetListenerList()->Add(parameters->m_reporters[i]);
     }
 
     return m_graph;
@@ -67,20 +73,22 @@ DrErrorPtr DrGraphExecutor::Join()
 
     if (m_exitStatus && m_exitStatus->m_code != 0)
     {
-        m_graph->GetXCompute()->CompleteProgress( m_exitStatus->m_explanation.GetChars());
+        m_graph->GetCluster()->CompleteProgress( m_exitStatus->m_explanation.GetChars());
     }
     else
     {
-        m_graph->GetXCompute()->CompleteProgress( "" );
+        m_graph->GetCluster()->CompleteProgress( "" );
     }
 
-    DrMessagePumpRef pump = m_graph->GetXCompute()->GetMessagePump();
+    m_graph->GetCluster()->Shutdown();
+
+    DrMessagePumpRef pump = m_graph->GetCluster()->GetMessagePump();
 
     pump->Stop();
 
     m_graph->CancelListener(this);
 
-    DrUniverseRef cluster = m_graph->GetXCompute()->GetUniverse();
+    DrUniverseRef cluster = m_graph->GetCluster()->GetUniverse();
     cluster->Discard();
 
     m_graph->Discard();

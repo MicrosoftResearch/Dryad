@@ -63,12 +63,12 @@ static const DrErrorDescription s_errorTable[] =
     { DrError_ComposeStageEmpty, "Stage for composition is empty" },
     { DrError_VertexNotInGraph, "Vertex not in graph" },
     { DrError_HardConstraintCannotBeMet, "Hard constraint cannot be met" },
-    { DrError_XComputeError, "XCompute error" },
+    { DrError_ClusterError, "Cluster error" },
     { DrError_CohortShutdown, "Cohort shutdown" },
     { DrError_Unexpected, "Unexpected" },
     { DrError_DependentVertexFailure, "Dependent vertex failure" },
     { DrError_BadOutputReported, "Bad output reported" },
-    { DrError_InputUnavailable, "Input unavailabled" },
+    { DrError_InputUnavailable, "Input unavailable" },
 
     { DrError_EndOfStream, "End of stream" },
 

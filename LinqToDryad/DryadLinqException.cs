@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -30,9 +27,6 @@ using Microsoft.Research.DryadLinq.Internal;
 
 namespace Microsoft.Research.DryadLinq
 {
-    /// <summary>
-    /// 
-    /// </summary>
     [Serializable]
     public class DryadLinqException : Exception
     {
@@ -58,18 +52,18 @@ namespace Microsoft.Research.DryadLinq
         internal DryadLinqException(int errorCode, string message)
             : base(message)
         {
-            m_errorCode = errorCode;
+            this.m_errorCode = errorCode;
         }
 
 
         internal DryadLinqException(int errorCode, string message, Exception innerException)
             : base(message, innerException)
         {
-            m_errorCode = errorCode;
+            this.m_errorCode = errorCode;
         }
 
         /// <summary>
-        /// Exception's error code. Maps to values in HpcLinqErrorCode.
+        /// Exception's error code. Maps to values in DryadLinqErrorCode.
         /// </summary>
         public int ErrorCode { get { return m_errorCode; } }
 
@@ -78,7 +72,7 @@ namespace Microsoft.Research.DryadLinq
             StringBuilder sb = new StringBuilder();
             sb.Append(msg);
             sb.Append(" Expression : ");
-            sb.AppendLine(HpcLinqExpression.Summarize(expr, 1));
+            sb.AppendLine(DryadLinqExpression.Summarize(expr, 1));
 
             return new DryadLinqException(errorCode, sb.ToString());
         }

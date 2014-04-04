@@ -57,7 +57,7 @@ private:
     UInt32                               m_maxOpenFiles;
     UInt32                               m_openFileCount;
     std::list<RChannelThrottledStream*>  m_blockedFileList;
-    CRITSEC                              m_baseDR;
+    CRITSEC                              m_baseCS;
 };
 
 class RChannelFifoHolder

@@ -23,15 +23,20 @@ limitations under the License.
 #ifdef _MANAGED
 using namespace System;
 using namespace System::Collections::Generic;
+using namespace System::Collections::Specialized;
+using namespace System::Diagnostics;
+using namespace System::IO;
 using namespace System::Runtime::InteropServices;
+using namespace System::Text;
 #else
 using namespace HdfsBridgeNative;
 #include <Wininet.h>
 #endif
 
-/* Returns 'name' from a stream URI of the form hpchdfs://server:port/name */
-
 #ifdef _MANAGED
+
+/* Returns 'name' from a stream URI of the form hdfs://server:port/name */
+
 /* Returns 'host' from a UNC path of the form \\host\dir\file.ext */
 String ^HdfsStorageNodeFromReadPath(String ^readPath)
 {
@@ -50,10 +55,9 @@ String ^HdfsStorageNodeFromReadPath(String ^readPath)
     return storageNode;
 }
 
-
 HdfsInstance ^GetHdfsServiceInstance(String ^HdfsUri)
 {
-    return DrNew HdfsInstance(HdfsUri);
+    return DrNew HdfsInstance(DrNew Uri(HdfsUri));
 }
 
 HdfsInstance ^GetHdfsServiceInstance(DrString DrHdfsUri)
@@ -129,6 +133,8 @@ HRESULT DrHdfsInputStream::Open(DrUniversePtr universe, DrNativeString streamUri
 {
     DrString uri = DrString(streamUri);
 
+    DrLogI("Opening instance for %s", uri.GetChars());
+
     return OpenInternal(universe, uri);
 }
 
@@ -144,12 +150,12 @@ HRESULT DrHdfsInputStream::OpenInternal(DrUniversePtr universe, DrString streamU
     {
 #endif
       
-
+        DrLogI("Opening instance for %s", streamUri.GetChars());
         m_hdfsInstance = GetHdfsServiceInstance(streamUri);
         
 #ifdef _MANAGED
-        String ^StreamName = m_hdfsInstance->FromInternalUri(streamUri.GetString());
-        HdfsFileInfo^ stream = m_hdfsInstance->GetFileInfo(StreamName, true);
+        DrLogI("Getting file info for %s", streamUri.GetChars());
+        HdfsFileInfo^ stream = m_hdfsInstance->GetFileInfo(streamUri.GetString(), true);
         m_fileNameArray = stream->fileNameArray;
         UInt32 totalPartitionCount = static_cast<UInt32>(stream->blockArray->Length);
 
@@ -191,6 +197,8 @@ HRESULT DrHdfsInputStream::OpenInternal(DrUniversePtr universe, DrString streamU
         m_fileNameArray = (const char **)fs.GetFileNameArray();
 #endif
       
+        DrLogI("Partition count %d", totalPartitionCount);
+
         /* Allocate these arrays even if they're size 0, to avoid
         NullReferenceException later */
         m_affinity = DrNew DrAffinityArray(totalPartitionCount); 
@@ -229,16 +237,28 @@ HRESULT DrHdfsInputStream::OpenInternal(DrUniversePtr universe, DrString streamU
     }
     catch (System::Exception ^e)
     {
+        m_error = e->ToString();
+        DrString msg(m_error);
+        DrLogE("Got HDFS exception %s", msg.GetChars());
         err = System::Runtime::InteropServices::Marshal::GetHRForException(e);
     }
     finally
     {
         // TODO: How do we clean this up?
-        //hdfsInstance->Dispose();
+        //hdfsInstance->Discard();
     }
 #endif
 
     return err;
+}
+
+DrNativeString DrHdfsInputStream::GetError()
+{
+#ifdef _MANAGED
+    return m_error;
+#else
+    return m_error.GetString();
+#endif
 }
 
 DrString DrHdfsInputStream::GetStreamName() 
@@ -246,7 +266,7 @@ DrString DrHdfsInputStream::GetStreamName()
     return m_streamUri;
 }
 
-int DrHdfsInputStream::GetNumberOfPartitions() 
+int DrHdfsInputStream::GetNumberOfParts() 
 {
     return m_affinity->Allocated();
 }
@@ -264,17 +284,23 @@ DrString DrHdfsInputStream::GetURIForRead(int partitionIndex,
 
 #ifdef _MANAGED
     String ^HdfsStreamUri = DrNew String(m_streamUri.GetString());
-    Uri ^HdfsServiceUri = DrNew Uri(HdfsStreamUri);
-    String ^HdfsPartitionUri =
-        String::Format("hpchdfspt://{0}:{1}/{2}?{3}?{4}",
-        HdfsServiceUri->Host,
-        HdfsServiceUri->Port,
-        m_fileNameArray[m_partFileIds[partitionIndex]],
-        m_partOffsets[partitionIndex],
-        m_affinity[partitionIndex]->GetWeight());
-    uri.Set(HdfsPartitionUri);
+    UriBuilder ^HdfsServiceUri = DrNew UriBuilder(HdfsStreamUri);
+
+    // rewrite the scheme to be our private scheme including partition information
+    HdfsServiceUri->Scheme = HdfsServiceUri->Scheme + "pt";
+
+    // the easiest way to get an empty query collection is to parse an empty string
+    // this is a subtype of NameValueCollection that implements ToString to render
+    // an http query
+    NameValueCollection ^query = System::Web::HttpUtility::ParseQueryString("");
+    query->Add("offset", m_partOffsets[partitionIndex].ToString());
+    query->Add("length", m_affinity[partitionIndex]->GetWeight().ToString());
+
+    HdfsServiceUri->Query = query->ToString();
+
+    uri.Set(HdfsServiceUri->Uri->AbsoluteUri);
 #else
-        uri.SetF("hpchdfspt://%s:%d/%s?%I64u?%I64u", m_hostname, m_portNum, 
+        uri.SetF("hdfspt://%s:%d/%s?%I64u?%I64u", m_hostname, m_portNum, 
             m_fileNameArray[m_partFileIds[partitionIndex]],  m_partOffsets[partitionIndex],
             m_affinity[partitionIndex]->GetWeight());
 #endif
@@ -297,10 +323,25 @@ HRESULT DrHdfsOutputStream::Open(DrNativeString streamUri)
 #ifdef _MANAGED
     try
     {
+        DrLogI("Opening Hdfs for output node");
         m_hdfsInstance = GetHdfsServiceInstance(m_baseUri);
+
+        DrLogI("Checking for Hdfs existence");
+        if (m_hdfsInstance->IsFileExists(m_baseUri))
+        {
+            DrString u(m_baseUri);
+            DrLogW("Won't open %s to write since it already exists", u.GetChars());
+            m_error = "Fileset exists: " + m_baseUri;
+            return DrError_FailedToCreateFileset;
+        }
+
+        String^ tmpDir = m_baseUri + "-tmp";
+        DrLogI("Trying to delete Hdfs temp directory");
+        m_hdfsInstance->DeleteFile(tmpDir, true);
     }
     catch (System::Exception ^e)
     {
+        m_error = e->ToString();
         return System::Runtime::InteropServices::Marshal::GetHRForException(e);
     }
 #else 
@@ -322,13 +363,22 @@ HRESULT DrHdfsOutputStream::Open(DrNativeString streamUri)
     return S_OK;
 }
 
-void DrHdfsOutputStream::SetNumberOfPartitions(int numberOfPartitions)
+DrNativeString DrHdfsOutputStream::GetError()
 {
-    // For now, assume that the number of partitions cannot change
+#ifdef _MANAGED
+    return m_error;
+#else
+    return m_error.GetString();
+#endif
+}
+
+void DrHdfsOutputStream::SetNumberOfParts(int numberOfParts)
+{
+    // For now, assume that the number of parts cannot change
     DrAssert(m_numParts == -1);
     DrAssert(m_hdfsInstance != DrNull);
 
-    m_numParts = numberOfPartitions;
+    m_numParts = numberOfParts;
 }
 
 DrString DrHdfsOutputStream::GetURIForWrite(int partitionIndex, 
@@ -346,13 +396,21 @@ DrString DrHdfsOutputStream::GetURIForWrite(int partitionIndex,
     return DrString(fileName);
 }
 
-void DrHdfsOutputStream::DiscardUnusedPartition(int partitionIndex, 
-                                                int id, 
-                                                int version, 
-                                                int outputPort,
-                                                DrResourcePtr runningResource)
+void DrHdfsOutputStream::DiscardUnusedPart(int partitionIndex, 
+                                           int id, 
+                                           int version, 
+                                           int outputPort,
+                                           DrResourcePtr runningResource,
+                                           bool jobSuccess)
 {
     DrAssert(m_hdfsInstance != DrNull);
+
+    if (!jobSuccess)
+    {
+        // if the job has failed we will delete all the parts in one go when discarding
+        // the stream, so nothing to do here
+        return;
+    }
 
     /* delete the partition if it has been created */
     DrString uriString = GetURIForWrite(
@@ -364,8 +422,7 @@ void DrHdfsOutputStream::DiscardUnusedPartition(int partitionIndex,
         DrNull);
 
 #ifdef _MANAGED
-    String^ path = m_hdfsInstance->FromInternalUri(uriString.GetString());
-    bool deleted = m_hdfsInstance->DeleteFile(path, false);
+    bool deleted = m_hdfsInstance->DeleteFile(uriString.GetString(), false);
 #else 
   
     DrString path = FromInternalUri(m_baseUri, uriString);
@@ -380,43 +437,45 @@ void DrHdfsOutputStream::DiscardUnusedPartition(int partitionIndex,
         );
 }
 
-HRESULT DrHdfsOutputStream::FinalizeSuccessfulPartitions(DrOutputPartitionArrayRef partitionArray)
+HRESULT DrHdfsOutputStream::FinalizeSuccessfulParts(DrOutputPartitionArrayRef partitionArray, DrStringR errorText)
 {
     DrAssert(m_numParts == partitionArray->Allocated());
     DrAssert(m_hdfsInstance != DrNull);
 
 #ifdef _MANAGED
     String^ srcUri = m_baseUri + "-tmp";
-    String^ srcPath = m_hdfsInstance->FromInternalUri(srcUri);
-    HdfsFileInfo^ directoryInfo = m_hdfsInstance->GetFileInfo(srcPath, false);
+    HdfsFileInfo^ directoryInfo = m_hdfsInstance->GetFileInfo(srcUri, false);
 
     if (directoryInfo == DrNull)
     {
-        DrString drSrc(srcPath);
-        DrLogE("Can't read %s finalizing HDFS output",
-            drSrc.GetChars());
+        DrString drSrc(srcUri);
+        DrLogE("Can't read %s finalizing HDFS output", drSrc.GetChars());
+        m_error = "Can't read " + srcUri + " finalizing HDFS output";
+        errorText.SetF("%s", DrString(m_error).GetChars());
         return E_FAIL;
     }
 
     if (directoryInfo->fileNameArray->Length == m_numParts)
     {
-        String^ dstPath = m_hdfsInstance->FromInternalUri(m_baseUri);
-
-        bool renamed = m_hdfsInstance->RenameFile(dstPath, srcPath);
+        bool renamed = m_hdfsInstance->RenameFile(m_baseUri, srcUri);
         if (!renamed)
         {
-            DrString drSrc(srcPath);
-            DrString drDst(dstPath);
+            DrString drSrc(srcUri);
+            DrString drDst(m_baseUri);
             DrLogE("Can't rename %s to %s finalizing HDFS output",
                 drSrc.GetChars(), drDst.GetChars());
+            m_error = "Can't rename " + srcUri + " to " + m_baseUri + " finalizing HDFS output";
+            errorText.SetF("%s", DrString(m_error).GetChars());
             return E_FAIL;
         }
     }
     else
     {
-        DrString drSrc(srcPath);
+        DrString drSrc(srcUri);
         DrLogE("Won't rename %s: should contain %d files, but has %d",
             drSrc.GetChars(), m_numParts, directoryInfo->fileNameArray->Length);
+        m_error = "Won't rename " + srcUri + ": should contain " + m_numParts + " files but has " + directoryInfo->fileNameArray->Length;
+        errorText.SetF("%s", DrString(m_error).GetChars());
         return E_FAIL;
     }
 #else 
@@ -460,6 +519,30 @@ HRESULT DrHdfsOutputStream::FinalizeSuccessfulPartitions(DrOutputPartitionArrayR
 #endif
 
     return S_OK;
+}
+
+HRESULT DrHdfsOutputStream::DiscardFailedStream(DrStringR errorText)
+{
+    DrAssert(m_hdfsInstance != DrNull);
+    String^ fileName = m_baseUri + "-tmp";
+    try
+    {
+        bool deleted = m_hdfsInstance->DeleteFile(fileName, true);
+        if (deleted)
+        {
+            return S_OK;
+        }
+        else
+        {
+            errorText.SetF("Unknown error deleting HDFS directory %s", DrString(fileName).GetChars());
+            return DrError_FailedToDeleteFileset;
+        }
+    }
+    catch (System::Exception^ e)
+    {
+        errorText.SetF("Exception deleting HDFS directory %s: %s", DrString(fileName).GetChars(), DrString(e->ToString()).GetChars());
+        return DrError_FailedToDeleteFileset;
+    }
 }
 
 void DrHdfsOutputStream::ExtendLease(DrTimeInterval /*lease*/) 

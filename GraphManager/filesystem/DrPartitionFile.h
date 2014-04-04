@@ -27,7 +27,7 @@ public:
     HRESULT OpenInternal(DrUniversePtr universe, DrString streamName);
 
     virtual DrString GetStreamName() DROVERRIDE;
-    virtual int GetNumberOfPartitions() DROVERRIDE;
+    virtual int GetNumberOfParts() DROVERRIDE;
     virtual DrAffinityRef GetAffinity(int partitionIndex) DROVERRIDE;
     virtual DrString GetURIForRead(int partitionIndex, DrResourcePtr runningResource) DROVERRIDE;
 
@@ -53,21 +53,24 @@ public:
     HRESULT Open(DrNativeString streamName, DrNativeString pathBase);
     HRESULT OpenInternal(DrString streamName, DrString pathBase);
 
-    virtual void SetNumberOfPartitions(int numberOfPartitions) DROVERRIDE;
+    virtual void SetNumberOfParts(int numberOfParts) DROVERRIDE;
     virtual DrString GetURIForWrite(int partitionIndex, int id, int version, int outputPort,
                                     DrResourcePtr runningResource,
                                     DrMetaDataRef metaData) DROVERRIDE;
-    virtual void DiscardUnusedPartition(int partitionIndex, int id, int version, int outputPort,
-                                        DrResourcePtr runningResource) DROVERRIDE;
-    virtual HRESULT FinalizeSuccessfulPartitions(DrOutputPartitionArrayRef partitionArray) DROVERRIDE;
+    virtual void DiscardUnusedPart(int partitionIndex, int id, int version, int outputPort,
+                                   DrResourcePtr runningResource, bool jobSuccess) DROVERRIDE;
+    virtual HRESULT FinalizeSuccessfulParts(
+        DrOutputPartitionArrayRef partitionArray,
+        DrStringR errorText) DROVERRIDE;
+    virtual HRESULT DiscardFailedStream(DrStringR errorText) DROVERRIDE;
     virtual void ExtendLease(DrTimeInterval) DROVERRIDE;
 
 private:
-    HRESULT RenameSuccessfulPartition(int partitionIndex, DrOutputPartition p);
+    HRESULT RenameSuccessfulPart(int partitionIndex, DrOutputPartition p);
 
     DrString                    m_streamName;
     DrString                    m_pathBase;
-
-    DrOutputPartitionArrayRef   m_successfulPartitions;
+	bool						m_isPathBaseRooted;
+    DrOutputPartitionArrayRef   m_successfulParts;
 };
 DRREF(DrPartitionOutputStream);

@@ -28,6 +28,8 @@ DEFINE_DRPROPERTY(Prop_Dryad_ChannelTotalLength, PROP_SHORTATOM(0x4005), UInt64,
 DEFINE_DRPROPERTY(Prop_Dryad_ChannelProcessedLength, PROP_SHORTATOM(0x4006), UInt64, "ChannelProcessedLength")
 DEFINE_DRPROPERTY(Prop_Dryad_StreamExpireTimeWhileOpen, PROP_SHORTATOM(0x4007), TimeInterval, "StreamExpireTimeWhileOpen")
 DEFINE_DRPROPERTY(Prop_Dryad_StreamExpireTimeWhileClosed, PROP_SHORTATOM(0x4008), TimeInterval, "StreamExpireTimeWhileClosed")
+DEFINE_DRPROPERTY(Prop_Dryad_ChannelErrorCode, PROP_SHORTATOM(0x4009), DrError, "ChannelErrorCode")
+DEFINE_DRPROPERTY(Prop_Dryad_ChannelErrorString, PROP_LONGATOM(0x400a), String, "ChannelErrorString")
 
 DEFINE_DRPROPERTY(Prop_Dryad_VertexState, PROP_SHORTATOM(0x4010), DrError, "VertexState")
 DEFINE_DRPROPERTY(Prop_Dryad_VertexErrorCode, PROP_SHORTATOM(0x4011), DrError, "VertexErrorCode")
@@ -44,6 +46,7 @@ DEFINE_DRPROPERTY(Prop_Dryad_AssertFailure, PROP_LONGATOM(0x401c), String, "Asse
 DEFINE_DRPROPERTY(Prop_Dryad_CanShareWorkQueue, PROP_SHORTATOM(0x401d), Boolean, "CanShareWorkQueue")
 DEFINE_DRPROPERTY(Prop_Dryad_VertexMaxOpenInputChannelCount, PROP_SHORTATOM(0x401e), UInt32, "VertexMaxOpenInputChannelCount")
 DEFINE_DRPROPERTY(Prop_Dryad_VertexMaxOpenOutputChannelCount, PROP_SHORTATOM(0x401f), UInt32, "VertexMaxOpenOutputChannelCount")
+DEFINE_DRPROPERTY(Prop_Dryad_VertexErrorString, PROP_LONGATOM(0x4020), String, "VertexErrorString")
 
 DEFINE_DRPROPERTY(Prop_Dryad_ErrorCode, PROP_SHORTATOM(0x4040), DrError, "ErrorCode")
 DEFINE_DRPROPERTY(Prop_Dryad_ErrorString, PROP_LONGATOM(0x4041), String, "ErrorString")

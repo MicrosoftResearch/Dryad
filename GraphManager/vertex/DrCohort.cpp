@@ -25,7 +25,7 @@ DrCohortProcess::DrCohortProcess(DrGraphPtr graph, DrCohortPtr parent, int versi
     : DrSharedCritSec(graph)
 {
     m_receivedProcess = false;
-    m_messagePump = graph->GetXCompute()->GetMessagePump();
+    m_messagePump = graph->GetCluster()->GetMessagePump();
     m_parent = parent;
     m_version = version;
     m_numberOfVerticesLeftToComplete = numberOfVertices;
@@ -269,12 +269,12 @@ void DrCohortProcess::Discard()
 DRBASECLASS(DrCohortStartInfo)
 {
 public:
-    DrCohortStartInfo(DrXComputeRef xcompute, DrCohortProcessRef cohort,
+    DrCohortStartInfo(DrClusterRef cluster, DrCohortProcessRef cohort,
                       DrString processName, DrString commandLine,
                       DrProcessTemplateRef processTemplate,
                       DrAffinityListRef affinityList)
     {
-        m_xcompute = xcompute;
+        m_cluster = cluster;
         m_cohort = cohort;
         m_processName = processName;
         m_commandLine = commandLine;
@@ -282,7 +282,7 @@ public:
         m_affinityList = affinityList;
     }
 
-    DrXComputeRef                m_xcompute;
+    DrClusterRef                 m_cluster;
     DrCohortProcessRef           m_cohort;
     DrString                     m_processName;
     DrString                     m_commandLine;
@@ -326,7 +326,7 @@ public:
                 DrProcessMessageRef failureMessage = DrNew DrProcessMessage(message->m_cohort,
                                                                             failureNotification);
 
-                message->m_xcompute->GetMessagePump()->EnQueue(failureMessage);
+                message->m_cluster->GetMessagePump()->EnQueue(failureMessage);
 
                 return;
             }
@@ -335,7 +335,7 @@ public:
             affinityList->Add(hardConstraint);
         }
 
-        DrProcessRef process = DrNew DrProcess(message->m_xcompute, message->m_processName,
+        DrProcessRef process = DrNew DrProcess(message->m_cluster, message->m_processName,
                                                message->m_commandLine, message->m_processTemplate);
 
         /* make a message to the cohort that will get delivered before the first message from its
@@ -351,7 +351,7 @@ public:
         startNotification->m_state->m_state = DPS_NotStarted;
         DrProcessMessageRef startMessage = DrNew DrProcessMessage(message->m_cohort,
                                                                   startNotification);
-        message->m_xcompute->GetMessagePump()->EnQueue(startMessage);
+        message->m_cluster->GetMessagePump()->EnQueue(startMessage);
 
         /* now actually schedule the process */
         process->SetAffinityList(affinityList);
@@ -470,7 +470,7 @@ void DrCohort::StartProcess(DrGraphPtr graph, int version)
     processName.SetF("%s v.%d", m_description.GetChars(), version);
 
     DrString commandLine;
-    commandLine.SetF("%s --vertex --startfrompn %d",
+    commandLine.SetF("%s --noredirect --startfrompn %d",
                      m_processTemplate->GetCommandLineBase().GetChars(), m_list->Size());
 
     for (i=0; i<m_list->Size(); ++i)
@@ -497,12 +497,12 @@ void DrCohort::StartProcess(DrGraphPtr graph, int version)
 
     /* hand off the computation to merge the affinities (which can be slow) and the actual call to
        start the process onto the work queue */
-    DrCohortStartInfoRef info = DrNew DrCohortStartInfo(graph->GetXCompute(), process,
+    DrCohortStartInfoRef info = DrNew DrCohortStartInfo(graph->GetCluster(), process,
                                                         processName, commandLine,
                                                         m_processTemplate, affinity);
     DrCohortStarterRef starter = DrNew DrCohortStarter();
     DrCohortStartMessageRef message = DrNew DrCohortStartMessage(starter, info);
-    graph->GetXCompute()->GetMessagePump()->EnQueue(message);
+    graph->GetCluster()->GetMessagePump()->EnQueue(message);
 }
 
 void DrCohort::NotifyProcessHasStarted(int version)
@@ -738,7 +738,7 @@ void DrGang::StartVersion(DrGraphPtr graph, int version)
 
 	m_runningVersion->Add(rv);
 
-    /* if we had a gang-scheduling interface to XCompute we would be calling it here */
+    /* if we had a gang-scheduling interface to Cluster we would be calling it here */
     for (i=0; i<m_cohort->Size(); ++i)
     {
         m_cohort[i]->StartProcess(graph, version);

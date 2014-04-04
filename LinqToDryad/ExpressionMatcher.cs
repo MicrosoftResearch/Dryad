@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -132,9 +129,9 @@ namespace Microsoft.Research.DryadLinq
                         MatchUnary((UnaryExpression)e1, (UnaryExpression)e2, subst));
             }
 
-            throw new DryadLinqException(HpcLinqErrorCode.ExpressionTypeNotHandled,
-                                       String.Format(SR.ExpressionTypeNotHandled,
-                                                     "ExpressionMatcher", e1.NodeType));
+            throw new DryadLinqException(DryadLinqErrorCode.ExpressionTypeNotHandled,
+                                         String.Format(SR.ExpressionTypeNotHandled,
+                                                       "ExpressionMatcher", e1.NodeType));
         }
 
         private static bool MatchInvocation(InvocationExpression e1,

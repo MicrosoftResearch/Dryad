@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/01/nuspec.xsd">
+    <metadata minClientVersion="2.5">
+        <id>Microsoft.Research.Dryad</id>
+        <version>0.7.0-beta022</version>
+        <title>Dryad and DryadLINQ for YARN</title>
+        <authors>bigdatadev@microsoft.com</authors>
+        <owners>bigdatadev@microsoft.com,Microsoft</owners>
+        <licenseUrl>http://research.microsoft.com/en-us/projects/dryad/</licenseUrl>
+        <projectUrl>http://research.microsoft.com/en-us/projects/dryad/</projectUrl>
+        <requireLicenseAcceptance>true</requireLicenseAcceptance>
+        <description>The goal of DryadLINQ is to make distributed computing on large compute cluster simple enough for every programmer. DryadLINQ combines two important pieces of Microsoft technology: the Dryad distributed execution engine and the .NET Language Integrated Query (LINQ). 
+
+Dryad provides reliable, distributed computing on thousands of servers for large-scale data parallel applications. LINQ enables developers to write and debug their applications in a SQL-like query language, relying on the entire .NET library and using Visual Studio.</description>
+        <summary>DryadLINQ is a simple, powerful, and elegant programming environment for writing large-scale data parallel applications running on large PC clusters.</summary>
+        <copyright>Microsoft Corporation</copyright>
+        <language>en-US</language>
+        <dependencies>
+            <group targetFramework=".NETFramework4.5">
+                <dependency id="Microsoft.Research.Peloponnese" version="0.7.0-beta022" />
+            </group>
+        </dependencies>
+        <frameworkAssemblies>
+            <frameworkAssembly assemblyName="System" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.Core" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.Data.DataSetExtensions" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.Data.Linq" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.Drawing" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.Runtime.Serialization" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.ServiceModel" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.Xml" targetFramework=".NETFramework4.5" />
+          <frameworkAssembly assemblyName="System.Xml.Linq" targetFramework=".NETFramework4.5" />
+        </frameworkAssemblies>
+      <references>
+        <reference file="Microsoft.Research.DryadLinq.dll" />
+      </references>
+    </metadata>
+    <files>     
+        <file src="bin\Release\Microsoft.Research.DryadLinq.dll" target="lib\net45\Microsoft.Research.DryadLinq.dll" />
+        <file src="bin\Release\Microsoft.Research.DryadLinq.pdb" target="lib\net45\Microsoft.Research.DryadLinq.pdb" />
+        <file src="bin\Release\DryadHttpClusterInterface.pdb" target="lib\net45\DryadHttpClusterInterface.pdb" />
+        <file src="bin\Release\DryadLinqGraphManager.pdb" target="lib\net45\DryadLinqGraphManager.pdb" />
+      
+        <file src="bin\Release\DryadLINQNativeChannels.dll" target="lib\net45\DryadLINQNativeChannels.dll" />
+        <file src="bin\Release\DryadLINQNativeChannels.pdb" target="lib\net45\DryadLINQNativeChannels.pdb" />
+      
+        <file src="bin\Release\DryadLocalScheduler.dll" target="lib\net45\DryadLocalScheduler.dll" />
+        <file src="bin\Release\DryadLocalScheduler.pdb" target="lib\net45\DryadLocalScheduler.pdb" />
+        <file src="bin\Release\DryadManagedChannel.dll" target="lib\net45\DryadManagedChannel.dll" />
+        <file src="bin\Release\DryadManagedChannel.pdb" target="lib\net45\DryadManagedChannel.pdb" />
+        <file src="bin\Release\Microsoft.Research.Dryad.dll" target="lib\net45\Microsoft.Research.Dryad.dll" />
+        <file src="bin\Release\Microsoft.Research.Dryad.pdb" target="lib\net45\Microsoft.Research.Dryad.pdb" />
+        <file src="bin\Release\ProcessService.pdb" target="lib\net45\ProcessService.pdb" />
+        <file src="bin\Release\DryadLinqGraphManager.exe.config" target="lib\net45\DryadLinqGraphManager.exe.config" />
+        <file src="bin\Release\DryadLinqGraphManager.exe" target="lib\net45\DryadLinqGraphManager.exe" />
+        <file src="bin\Release\ProcessService.exe" target="lib\net45\ProcessService.exe" />
+        <file src="bin\Release\ProcessService.exe.config" target="lib\net45\ProcessService.exe.config" />
+        <file src="bin\Release\DryadHttpClusterInterface.dll" target="lib\net45\DryadHttpClusterInterface.dll" />
+        <file src="bin\Release\VertexHost.exe.config" target="lib\net45\VertexHost.exe.config" />
+        <file src="bin\Release\VertexHost.exe" target="lib\net45\VertexHost.exe" />
+        <file src="bin\Release\VertexHost.pdb" target="lib\net45\VertexHost.pdb" />
+        <file src="Microsoft.Research.Dryad.targets" target="build\Microsoft.Research.Dryad.targets" />
+        <file src="Install.ps1" target="tools\Install.ps1" />
+    </files>
+</package>

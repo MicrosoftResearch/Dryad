@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/01/nuspec.xsd">
+    <metadata minClientVersion="2.5">
+        <id>Microsoft.Research.DryadLinq.Samples</id>
+        <version>0.7.0-beta022</version>
+        <title>Sample DryadLINQ Programs</title>
+        <authors>bigdatadev@microsoft.com</authors>
+        <owners>bigdatadev@microsoft.com,Microsoft</owners>
+        <licenseUrl>http://research.microsoft.com/en-us/projects/dryad/</licenseUrl>
+        <projectUrl>http://research.microsoft.com/en-us/projects/dryad/</projectUrl>
+        <requireLicenseAcceptance>true</requireLicenseAcceptance>
+        <description>Sample DryadLINQ programs.</description>
+        <copyright>Microsoft Corporation</copyright>
+        <language>en-US</language>
+        <dependencies>
+            <group targetFramework=".NETFramework4.5">
+                <dependency id="Microsoft.Research.Dryad" version="0.7.0-beta022" />
+            </group>
+        </dependencies>
+        <frameworkAssemblies>
+            <frameworkAssembly assemblyName="System" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.Core" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.Data.DataSetExtensions" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.Data.Linq" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.Drawing" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.Runtime.Serialization" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.ServiceModel" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.Xml" targetFramework=".NETFramework4.5" />
+          <frameworkAssembly assemblyName="System.Xml.Linq" targetFramework=".NETFramework4.5" />
+        </frameworkAssemblies>
+    </metadata>
+    <files>     
+        <file src="WordCount.cs.pp" target="content\WordCount.cs.pp" />
+    </files>
+</package>

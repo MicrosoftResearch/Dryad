@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -40,12 +37,34 @@ namespace Microsoft.Research.DryadLinq
 {
     internal class VertexCodeGen
     {
-        internal virtual IEnumerable<string> GetResources()
+        protected DryadLinqContext m_context;
+
+        internal VertexCodeGen(DryadLinqContext context)
         {
-            return new string[0];
+            this.m_context = context;
         }
 
-        internal virtual string AddVertexCode(DryadQueryNode node,
+        internal virtual IEnumerable<string> ResourcesToAdd()
+        {
+            return Enumerable.Empty<string>();
+        }
+
+        internal virtual IEnumerable<string> ResourcesToRemove()
+        {
+            return Enumerable.Empty<string>();
+        }
+
+        internal virtual IEnumerable<string> GetReferencedAssemblies()
+        {
+            return Enumerable.Empty<string>();
+        }
+
+        internal virtual IEnumerable<string> GetGeneratedSources()
+        {
+            return Enumerable.Empty<string>();
+        }
+
+        internal virtual string AddVertexCode(DLinqQueryNode node,
                                               CodeMemberMethod vertexMethod,
                                               string[] readerNames,
                                               string[] writerNames)
@@ -54,113 +73,115 @@ namespace Microsoft.Research.DryadLinq
             {
                 case QueryNodeType.InputTable:
                 {
-                    return this.Visit((DryadInputNode)node, vertexMethod, readerNames, writerNames);
+                    return this.Visit((DLinqInputNode)node, vertexMethod, readerNames, writerNames);
                 }
                 case QueryNodeType.OutputTable:
                 {   
-                    return this.Visit((DryadOutputNode)node, vertexMethod, readerNames, writerNames);
+                    return this.Visit((DLinqOutputNode)node, vertexMethod, readerNames, writerNames);
                 }
                 case QueryNodeType.Aggregate:
                 {    
-                    return this.Visit((DryadAggregateNode)node, vertexMethod, readerNames, writerNames);
+                    return this.Visit((DLinqAggregateNode)node, vertexMethod, readerNames, writerNames);
                 }
                 case QueryNodeType.Select:
                 case QueryNodeType.SelectMany:
                 {
-                    return this.Visit((DryadSelectNode)node, vertexMethod, readerNames, writerNames);
+                    return this.Visit((DLinqSelectNode)node, vertexMethod, readerNames, writerNames);
                 }
                 case QueryNodeType.Where:
                 {
-                    return this.Visit((DryadWhereNode)node, vertexMethod, readerNames, writerNames);
+                    return this.Visit((DLinqWhereNode)node, vertexMethod, readerNames, writerNames);
                 }
                 case QueryNodeType.Distinct:
                 {
-                    return this.Visit((DryadDistinctNode)node, vertexMethod, readerNames, writerNames);
+                    return this.Visit((DLinqDistinctNode)node, vertexMethod, readerNames, writerNames);
                 }
                 case QueryNodeType.BasicAggregate:
                 {
-                    return this.Visit((DryadBasicAggregateNode)node, vertexMethod, readerNames, writerNames);
+                    return this.Visit((DLinqBasicAggregateNode)node, vertexMethod, readerNames, writerNames);
                 }
                 case QueryNodeType.GroupBy:
                 {
-                    return this.Visit((DryadGroupByNode)node, vertexMethod, readerNames, writerNames);
+                    return this.Visit((DLinqGroupByNode)node, vertexMethod, readerNames, writerNames);
                 }
                 case QueryNodeType.OrderBy:
                 {
-                    return this.Visit((DryadOrderByNode)node, vertexMethod, readerNames, writerNames);
+                    return this.Visit((DLinqOrderByNode)node, vertexMethod, readerNames, writerNames);
                 }
                 case QueryNodeType.Skip:
                 case QueryNodeType.SkipWhile:
                 case QueryNodeType.Take:
                 case QueryNodeType.TakeWhile:
                 {
-                    return this.Visit((DryadPartitionOpNode)node, vertexMethod, readerNames, writerNames);
+                    return this.Visit((DLinqPartitionOpNode)node, vertexMethod, readerNames, writerNames);
                 }
                 case QueryNodeType.Contains:
                 {
-                    return this.Visit((DryadContainsNode)node, vertexMethod, readerNames, writerNames);
+                    return this.Visit((DLinqContainsNode)node, vertexMethod, readerNames, writerNames);
                 }
                 case QueryNodeType.Join:
                 case QueryNodeType.GroupJoin:
                 {
-                    return this.Visit((DryadJoinNode)node, vertexMethod, readerNames, writerNames);
+                    return this.Visit((DLinqJoinNode)node, vertexMethod, readerNames, writerNames);
                 }
                 case QueryNodeType.Union:
                 case QueryNodeType.Intersect:
                 case QueryNodeType.Except:
                 {
-                    return this.Visit((DryadSetOperationNode)node, vertexMethod, readerNames, writerNames);
+                    return this.Visit((DLinqSetOperationNode)node, vertexMethod, readerNames, writerNames);
                 }
                 case QueryNodeType.Concat:
                 {
-                    return this.Visit((DryadConcatNode)node, vertexMethod, readerNames, writerNames);
+                    return this.Visit((DLinqConcatNode)node, vertexMethod, readerNames, writerNames);
                 }
                 case QueryNodeType.Zip:
                 {
-                    return this.Visit((DryadZipNode)node, vertexMethod, readerNames, writerNames);
+                    return this.Visit((DLinqZipNode)node, vertexMethod, readerNames, writerNames);
                 }
                 case QueryNodeType.Super:
                 {
-                    return this.Visit((DryadSuperNode)node, vertexMethod, readerNames, writerNames);
+                    return this.Visit((DLinqSuperNode)node, vertexMethod, readerNames, writerNames);
                 }
                 case QueryNodeType.RangePartition:
                 {
-                    return this.Visit((DryadRangePartitionNode)node, vertexMethod, readerNames, writerNames);
+                    return this.Visit((DLinqRangePartitionNode)node, vertexMethod, readerNames, writerNames);
                 }
                 case QueryNodeType.HashPartition:
                 {
-                    return this.Visit((DryadHashPartitionNode)node, vertexMethod, readerNames, writerNames);
+                    return this.Visit((DLinqHashPartitionNode)node, vertexMethod, readerNames, writerNames);
                 }
                 case QueryNodeType.Merge:
                 {
-                    return this.Visit((DryadMergeNode)node, vertexMethod, readerNames, writerNames);
+                    return this.Visit((DLinqMergeNode)node, vertexMethod, readerNames, writerNames);
                 }
                 case QueryNodeType.Apply:
                 {
-                    return this.Visit((DryadApplyNode)node, vertexMethod, readerNames, writerNames);
+                    return this.Visit((DLinqApplyNode)node, vertexMethod, readerNames, writerNames);
                 }
                 case QueryNodeType.Fork:
                 {
-                    return this.Visit((DryadForkNode)node, vertexMethod, readerNames, writerNames);
+                    return this.Visit((DLinqForkNode)node, vertexMethod, readerNames, writerNames);
                 }
                 case QueryNodeType.Tee:
                 {
-                    return this.Visit((DryadTeeNode)node, vertexMethod, readerNames, writerNames);
+                    return this.Visit((DLinqTeeNode)node, vertexMethod, readerNames, writerNames);
                 }
                 case QueryNodeType.Dynamic:
                 {
-                    return this.Visit((DryadDynamicNode)node, vertexMethod, readerNames, writerNames);
+                    return this.Visit((DLinqDynamicNode)node, vertexMethod, readerNames, writerNames);
                 }
                 case QueryNodeType.Dummy:
                 {
-                    return this.Visit((DryadDummyNode)node, vertexMethod, readerNames, writerNames);
+                    return this.Visit((DLinqDummyNode)node, vertexMethod, readerNames, writerNames);
                 }
                 default:
+                {
                     throw new DryadLinqException("Internal error: unhandled node type " + node.NodeType);
+                }
             }
         }
 
-        internal virtual string Visit(DryadInputNode node,
+        internal virtual string Visit(DLinqInputNode node,
                                       CodeMemberMethod vertexMethod,
                                       string[] readerNames,
                                       string[] writerNames)
@@ -168,7 +189,7 @@ namespace Microsoft.Research.DryadLinq
             return node.AddVertexCode(vertexMethod, readerNames, writerNames);
         }
 
-        internal virtual string Visit(DryadOutputNode node,
+        internal virtual string Visit(DLinqOutputNode node,
                                       CodeMemberMethod vertexMethod,
                                       string[] readerNames,
                                       string[] writerNames)
@@ -176,7 +197,7 @@ namespace Microsoft.Research.DryadLinq
             return node.AddVertexCode(vertexMethod, readerNames, writerNames);
         }
 
-        internal virtual string Visit(DryadWhereNode node,
+        internal virtual string Visit(DLinqWhereNode node,
                                       CodeMemberMethod vertexMethod,
                                       string[] readerNames,
                                       string[] writerNames)
@@ -184,7 +205,7 @@ namespace Microsoft.Research.DryadLinq
             return node.AddVertexCode(vertexMethod, readerNames, writerNames);
         }
 
-        internal virtual string Visit(DryadSelectNode node,
+        internal virtual string Visit(DLinqSelectNode node,
                                       CodeMemberMethod vertexMethod,
                                       string[] readerNames,
                                       string[] writerNames)
@@ -192,7 +213,7 @@ namespace Microsoft.Research.DryadLinq
             return node.AddVertexCode(vertexMethod, readerNames, writerNames);
         }
 
-        internal virtual string Visit(DryadZipNode node,
+        internal virtual string Visit(DLinqZipNode node,
                                       CodeMemberMethod vertexMethod,
                                       string[] readerNames,
                                       string[] writerNames)
@@ -200,7 +221,7 @@ namespace Microsoft.Research.DryadLinq
             return node.AddVertexCode(vertexMethod, readerNames, writerNames);
         }
 
-        internal virtual string Visit(DryadOrderByNode node,
+        internal virtual string Visit(DLinqOrderByNode node,
                                       CodeMemberMethod vertexMethod,
                                       string[] readerNames,
                                       string[] writerNames)
@@ -208,7 +229,7 @@ namespace Microsoft.Research.DryadLinq
             return node.AddVertexCode(vertexMethod, readerNames, writerNames);
         }
 
-        internal virtual string Visit(DryadGroupByNode node,
+        internal virtual string Visit(DLinqGroupByNode node,
                                       CodeMemberMethod vertexMethod,
                                       string[] readerNames,
                                       string[] writerNames)
@@ -216,7 +237,7 @@ namespace Microsoft.Research.DryadLinq
             return node.AddVertexCode(vertexMethod, readerNames, writerNames);
         }
 
-        internal virtual string Visit(DryadPartitionOpNode node,
+        internal virtual string Visit(DLinqPartitionOpNode node,
                                       CodeMemberMethod vertexMethod,
                                       string[] readerNames,
                                       string[] writerNames)
@@ -224,7 +245,7 @@ namespace Microsoft.Research.DryadLinq
             return node.AddVertexCode(vertexMethod, readerNames, writerNames);
         }
 
-        internal virtual string Visit(DryadJoinNode node,
+        internal virtual string Visit(DLinqJoinNode node,
                                       CodeMemberMethod vertexMethod,
                                       string[] readerNames,
                                       string[] writerNames)
@@ -232,7 +253,7 @@ namespace Microsoft.Research.DryadLinq
             return node.AddVertexCode(vertexMethod, readerNames, writerNames);
         }
 
-        internal virtual string Visit(DryadDistinctNode node,
+        internal virtual string Visit(DLinqDistinctNode node,
                                       CodeMemberMethod vertexMethod,
                                       string[] readerNames,
                                       string[] writerNames)
@@ -240,7 +261,7 @@ namespace Microsoft.Research.DryadLinq
             return node.AddVertexCode(vertexMethod, readerNames, writerNames);
         }
 
-        internal virtual string Visit(DryadContainsNode node,
+        internal virtual string Visit(DLinqContainsNode node,
                                       CodeMemberMethod vertexMethod,
                                       string[] readerNames,
                                       string[] writerNames)
@@ -248,7 +269,7 @@ namespace Microsoft.Research.DryadLinq
             return node.AddVertexCode(vertexMethod, readerNames, writerNames);
         }
 
-        internal virtual string Visit(DryadBasicAggregateNode node,
+        internal virtual string Visit(DLinqBasicAggregateNode node,
                                       CodeMemberMethod vertexMethod,
                                       string[] readerNames,
                                       string[] writerNames)
@@ -256,7 +277,7 @@ namespace Microsoft.Research.DryadLinq
             return node.AddVertexCode(vertexMethod, readerNames, writerNames);
         }
 
-        internal virtual string Visit(DryadAggregateNode node,
+        internal virtual string Visit(DLinqAggregateNode node,
                                       CodeMemberMethod vertexMethod,
                                       string[] readerNames,
                                       string[] writerNames)
@@ -264,7 +285,7 @@ namespace Microsoft.Research.DryadLinq
             return node.AddVertexCode(vertexMethod, readerNames, writerNames);
         }
 
-        internal virtual string Visit(DryadConcatNode node,
+        internal virtual string Visit(DLinqConcatNode node,
                                       CodeMemberMethod vertexMethod,
                                       string[] readerNames,
                                       string[] writerNames)
@@ -272,7 +293,7 @@ namespace Microsoft.Research.DryadLinq
             return node.AddVertexCode(vertexMethod, readerNames, writerNames);
         }
 
-        internal virtual string Visit(DryadSetOperationNode node,
+        internal virtual string Visit(DLinqSetOperationNode node,
                                       CodeMemberMethod vertexMethod,
                                       string[] readerNames,
                                       string[] writerNames)
@@ -280,7 +301,7 @@ namespace Microsoft.Research.DryadLinq
             return node.AddVertexCode(vertexMethod, readerNames, writerNames);
         }
 
-        internal virtual string Visit(DryadMergeNode node,
+        internal virtual string Visit(DLinqMergeNode node,
                                       CodeMemberMethod vertexMethod,
                                       string[] readerNames,
                                       string[] writerNames)
@@ -288,7 +309,7 @@ namespace Microsoft.Research.DryadLinq
             return node.AddVertexCode(vertexMethod, readerNames, writerNames);
         }
 
-        internal virtual string Visit(DryadHashPartitionNode node,
+        internal virtual string Visit(DLinqHashPartitionNode node,
                                       CodeMemberMethod vertexMethod,
                                       string[] readerNames,
                                       string[] writerNames)
@@ -296,7 +317,7 @@ namespace Microsoft.Research.DryadLinq
             return node.AddVertexCode(vertexMethod, readerNames, writerNames);
         }
 
-        internal virtual string Visit(DryadRangePartitionNode node,
+        internal virtual string Visit(DLinqRangePartitionNode node,
                                       CodeMemberMethod vertexMethod,
                                       string[] readerNames,
                                       string[] writerNames)
@@ -304,7 +325,7 @@ namespace Microsoft.Research.DryadLinq
             return node.AddVertexCode(vertexMethod, readerNames, writerNames);
         }
 
-        internal virtual string Visit(DryadSuperNode node,
+        internal virtual string Visit(DLinqSuperNode node,
                                       CodeMemberMethod vertexMethod,
                                       string[] readerNames,
                                       string[] writerNames)
@@ -312,7 +333,7 @@ namespace Microsoft.Research.DryadLinq
             return node.AddVertexCode(vertexMethod, readerNames, writerNames);
         }
 
-        internal virtual string Visit(DryadApplyNode node,
+        internal virtual string Visit(DLinqApplyNode node,
                                       CodeMemberMethod vertexMethod,
                                       string[] readerNames,
                                       string[] writerNames)
@@ -320,7 +341,7 @@ namespace Microsoft.Research.DryadLinq
             return node.AddVertexCode(vertexMethod, readerNames, writerNames);
         }
 
-        internal virtual string Visit(DryadForkNode node,
+        internal virtual string Visit(DLinqForkNode node,
                                       CodeMemberMethod vertexMethod,
                                       string[] readerNames,
                                       string[] writerNames)
@@ -328,7 +349,7 @@ namespace Microsoft.Research.DryadLinq
             return node.AddVertexCode(vertexMethod, readerNames, writerNames);
         }
 
-        internal virtual string Visit(DryadTeeNode node,
+        internal virtual string Visit(DLinqTeeNode node,
                                       CodeMemberMethod vertexMethod,
                                       string[] readerNames,
                                       string[] writerNames)
@@ -336,7 +357,7 @@ namespace Microsoft.Research.DryadLinq
             return node.AddVertexCode(vertexMethod, readerNames, writerNames);
         }
 
-        internal virtual string Visit(DryadDynamicNode node,
+        internal virtual string Visit(DLinqDynamicNode node,
                                       CodeMemberMethod vertexMethod,
                                       string[] readerNames,
                                       string[] writerNames)
@@ -344,7 +365,7 @@ namespace Microsoft.Research.DryadLinq
             return node.AddVertexCode(vertexMethod, readerNames, writerNames);
         }
 
-        internal virtual string Visit(DryadDummyNode node,
+        internal virtual string Visit(DLinqDummyNode node,
                                       CodeMemberMethod vertexMethod,
                                       string[] readerNames,
                                       string[] writerNames)

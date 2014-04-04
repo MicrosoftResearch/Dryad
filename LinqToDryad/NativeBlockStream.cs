@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -31,16 +28,14 @@ using Microsoft.Win32.SafeHandles;
 using System.Diagnostics;
 using System.IO;
 using Microsoft.Research.DryadLinq;
-using Microsoft.Research.DryadLinq.Internal;
-
 
 namespace Microsoft.Research.DryadLinq.Internal
 {
     internal unsafe struct DataBlockInfo
     {
-        internal byte* dataBlock;
-        internal Int32 blockSize;        
-        internal IntPtr itemHandle;
+        internal byte* DataBlock;
+        internal Int32 BlockSize;        
+        internal IntPtr ItemHandle;
     }
 
     // this type is public on the outside but all its members are marked internal
@@ -64,31 +59,31 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         internal virtual string GetURI()
         {
-            throw new DryadLinqException(HpcLinqErrorCode.GetURINotSupported,
-                                       SR.GetURINotSupported);
+            throw new DryadLinqException(DryadLinqErrorCode.GetURINotSupported,
+                                         SR.GetURINotSupported);
         }
 
         internal virtual void SetCalcFP()
         {
-            throw new DryadLinqException(HpcLinqErrorCode.SetCalcFPNotSupported,
-                                       SR.SetCalcFPNotSupported);
+            throw new DryadLinqException(DryadLinqErrorCode.SetCalcFPNotSupported,
+                                         SR.SetCalcFPNotSupported);
         }
 
         internal virtual UInt64 GetFingerPrint()
         {
-            throw new DryadLinqException(HpcLinqErrorCode.GetFPNotSupported,
-                                       SR.GetFPNotSupported);
+            throw new DryadLinqException(DryadLinqErrorCode.GetFPNotSupported,
+                                         SR.GetFPNotSupported);
         }
     }
 
-    internal sealed class HpcLinqChannel : NativeBlockStream
+    internal sealed class DryadLinqChannel : NativeBlockStream
     {
         private IntPtr m_vertexInfo;
         private UInt32 m_portNum;
         private bool m_isInput;
         private bool m_isClosed;
 
-        internal HpcLinqChannel(IntPtr vertexInfo, UInt32 portNum, bool isInput)
+        internal DryadLinqChannel(IntPtr vertexInfo, UInt32 portNum, bool isInput)
         {
             this.m_vertexInfo = vertexInfo;
             this.m_portNum = portNum;
@@ -96,7 +91,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             this.m_isClosed = false;
         }
 
-        ~HpcLinqChannel()
+        ~DryadLinqChannel()
         {
             this.Close();
         }
@@ -115,7 +110,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         {
             if (this.m_isInput)
             {
-                return HpcLinqNative.GetExpectedLength(this.m_vertexInfo, this.m_portNum);
+                return DryadLinqNative.GetExpectedLength(this.m_vertexInfo, this.m_portNum);
             }
             else
             {
@@ -126,15 +121,15 @@ namespace Microsoft.Research.DryadLinq.Internal
         internal override unsafe DataBlockInfo AllocateDataBlock(Int32 size)
         {
             DataBlockInfo blockInfo;
-            blockInfo.itemHandle =
-                HpcLinqNative.AllocateDataBlock(this.m_vertexInfo, size, &blockInfo.dataBlock);
-            blockInfo.blockSize = size;
-            if (blockInfo.itemHandle == IntPtr.Zero)
+            blockInfo.ItemHandle =
+                DryadLinqNative.AllocateDataBlock(this.m_vertexInfo, size, &blockInfo.DataBlock);
+            blockInfo.BlockSize = size;
+            if (blockInfo.ItemHandle == IntPtr.Zero)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.FailedToAllocateNewNativeBuffer,
-                                           String.Format(SR.FailedToAllocateNewNativeBuffer, size));
+                throw new DryadLinqException(DryadLinqErrorCode.FailedToAllocateNewNativeBuffer,
+                                             String.Format(SR.FailedToAllocateNewNativeBuffer, size));
             }
-            // DryadLinqLog.Add("Allocated data block {0} of {1} bytes.", blockInfo.itemHandle, size);
+            // DryadLinqLog.AddInfo("Allocated data block {0} of {1} bytes.", blockInfo.itemHandle, size);
             return blockInfo;
         }
 
@@ -142,26 +137,26 @@ namespace Microsoft.Research.DryadLinq.Internal
         {
             if (itemHandle != IntPtr.Zero)
             {
-                HpcLinqNative.ReleaseDataBlock(this.m_vertexInfo, itemHandle);
+                DryadLinqNative.ReleaseDataBlock(this.m_vertexInfo, itemHandle);
             }
-            // DryadLinqLog.Add("Released data block {0}.", itemHandle);
+            // DryadLinqLog.AddInfo("Released data block {0}.", itemHandle);
         }
 
         internal override unsafe DataBlockInfo ReadDataBlock()
         {
             DataBlockInfo blockInfo;
             Int32 errorCode = 0;
-            blockInfo.itemHandle = HpcLinqNative.ReadDataBlock(this.m_vertexInfo,
+            blockInfo.ItemHandle = DryadLinqNative.ReadDataBlock(this.m_vertexInfo,
                                                                  this.m_portNum,
-                                                                 &blockInfo.dataBlock,
-                                                                 &blockInfo.blockSize,
+                                                                 &blockInfo.DataBlock,
+                                                                 &blockInfo.BlockSize,
                                                                  &errorCode);
             if (errorCode != 0)
             {
-                HpcLinqVertexEnv.ErrorCode = errorCode;
-                throw new DryadLinqException(HpcLinqErrorCode.FailedToReadFromInputChannel,
-                                           String.Format(SR.FailedToReadFromInputChannel,
-                                                         this.m_portNum, errorCode));
+                VertexEnv.ErrorCode = errorCode;
+                throw new DryadLinqException(DryadLinqErrorCode.FailedToReadFromInputChannel,
+                                             String.Format(SR.FailedToReadFromInputChannel,
+                                                           this.m_portNum, errorCode));
             }
             return blockInfo;
         }
@@ -171,7 +166,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             bool success = true;
             if (numBytesToWrite > 0)
             {
-                success = HpcLinqNative.WriteDataBlock(this.m_vertexInfo,
+                success = DryadLinqNative.WriteDataBlock(this.m_vertexInfo,
                                                          this.m_portNum,
                                                          itemHandle,
                                                          numBytesToWrite);
@@ -179,9 +174,9 @@ namespace Microsoft.Research.DryadLinq.Internal
                 if (!success)
                 {
 
-                    throw new DryadLinqException(HpcLinqErrorCode.FailedToWriteToOutputChannel,
-                                               String.Format(SR.FailedToWriteToOutputChannel,
-                                                             this.m_portNum));
+                    throw new DryadLinqException(DryadLinqErrorCode.FailedToWriteToOutputChannel,
+                                                 String.Format(SR.FailedToWriteToOutputChannel,
+                                                               this.m_portNum));
                 }
             }
             return success;
@@ -189,14 +184,14 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         internal override void SetCalcFP()
         {
-            throw new DryadLinqException(HpcLinqErrorCode.SetCalcFPNotSupported,
-                                       SR.SetCalcFPNotSupported);
+            throw new DryadLinqException(DryadLinqErrorCode.SetCalcFPNotSupported,
+                                         SR.SetCalcFPNotSupported);
         }
 
         internal override UInt64 GetFingerPrint()
         {
-            throw new DryadLinqException(HpcLinqErrorCode.GetFPNotSupported,
-                                       SR.GetFPNotSupported);
+            throw new DryadLinqException(DryadLinqErrorCode.GetFPNotSupported,
+                                         SR.GetFPNotSupported);
         }
 
         internal override unsafe string GetURI()
@@ -204,18 +199,18 @@ namespace Microsoft.Research.DryadLinq.Internal
             IntPtr uriPtr;
             if (this.m_isInput)
             {
-                uriPtr = HpcLinqNative.GetInputChannelURI(this.m_vertexInfo, this.m_portNum);
+                uriPtr = DryadLinqNative.GetInputChannelURI(this.m_vertexInfo, this.m_portNum);
             }
             else
             {
-                uriPtr = HpcLinqNative.GetOutputChannelURI(this.m_vertexInfo, this.m_portNum);
+                uriPtr = DryadLinqNative.GetOutputChannelURI(this.m_vertexInfo, this.m_portNum);
             }
             return Marshal.PtrToStringAnsi(uriPtr);
         }
 
         internal override void Flush()
         {
-            HpcLinqNative.Flush(this.m_vertexInfo, this.m_portNum);
+            DryadLinqNative.Flush(this.m_vertexInfo, this.m_portNum);
         }
 
         internal override void Close()
@@ -224,9 +219,9 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 this.m_isClosed = true;
                 this.Flush();
-                HpcLinqNative.Close(this.m_vertexInfo, this.m_portNum);
+                DryadLinqNative.Close(this.m_vertexInfo, this.m_portNum);
                 string ctype = (this.m_isInput) ? "Input" : "Output";
-                DryadLinqLog.Add(ctype + " channel {0} was closed.", this.m_portNum);
+                DryadLinqLog.AddInfo(ctype + " channel {0} was closed.", this.m_portNum);
             }
             GC.SuppressFinalize(this);
         }

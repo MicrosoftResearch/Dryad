@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,20 +25,29 @@ using System.Text;
 
 namespace Microsoft.Research.DryadLinq.Internal
 {
-    public class HpcLinqVertexParams
+    public class DryadLinqVertexParams
     {
+        private Int32 m_inputArity;
+        private Int32 m_outputArity;
+        private UInt32[] m_inputPortCounts;
+        private bool[] m_keepInputPortOrder;
         private string m_vertexStageName;
         private bool m_useLargeBuffer;
-        private bool m_keepInputPortOrder;
         private string m_remoteArch;
-        private int _inputArity;
-        private int _outputArity;
         private bool m_multiThreading;
 
-        public HpcLinqVertexParams(int inputArity, int outputArity)
+        public DryadLinqVertexParams(int inputArity, int outputArity)
         {
-            _inputArity = inputArity;
-            _outputArity = outputArity;
+            this.m_inputArity = inputArity;
+            this.m_outputArity = outputArity;
+            this.m_inputPortCounts = new UInt32[inputArity];
+            this.m_keepInputPortOrder = new bool[inputArity];
+        }
+
+        public void SetInputParams(int index, UInt32 portCount, bool keepPortOrder)
+        {
+            this.m_inputPortCounts[index] = portCount;
+            this.m_keepInputPortOrder[index] = keepPortOrder;
         }
 
         public string VertexStageName
@@ -52,16 +58,15 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public int InputArity
         {
-            get { return _inputArity; }
-            set { _inputArity = value; }
+            get { return this.m_inputArity; }
+            set { this.m_inputArity = value; }
         }
 
         public int OutputArity
         {
-            get { return _outputArity; }
-            set { _outputArity = value; }
+            get { return this.m_outputArity; }
+            set { this.m_outputArity = value; }
         }
-        
 
         public string RemoteArch
         {
@@ -75,16 +80,20 @@ namespace Microsoft.Research.DryadLinq.Internal
             set { this.m_useLargeBuffer = value; }
         }
 
-        public bool KeepInputPortOrder
+        public bool KeepInputPortOrder(UInt32 index)
         {
-            get { return this.m_keepInputPortOrder; }
-            set { this.m_keepInputPortOrder = value; }
+            return this.m_keepInputPortOrder[index];
+        }
+
+        public UInt32 InputPortCount(UInt32 index)
+        {
+            return this.m_inputPortCounts[index];
         }
 
         public bool MultiThreading
         {
-            get { return m_multiThreading; }
-            set { m_multiThreading = value; }
+            get { return this.m_multiThreading; }
+            set { this.m_multiThreading = value; }
         }
     }
 }

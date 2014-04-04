@@ -131,7 +131,7 @@ protected:
 
     DrStr128                                   m_uri;
 
-    CRITSEC                                   m_baseDR;
+    CRITSEC                                   m_baseCS;
 
     friend class RChannelFifoUnit;
     friend class RChannelFifo;

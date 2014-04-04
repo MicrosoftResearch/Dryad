@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -99,7 +96,7 @@ namespace Microsoft.Research.DryadLinq
         }
     }
 
-    public static class HpcLinqExtension
+    public static class DryadLinqExtension
     {
         /// <summary>
         /// The standard MapReduce.
@@ -139,7 +136,7 @@ namespace Microsoft.Research.DryadLinq
                                      IQueryable<T2> source2,
                                      Expression<Func<T1, T2, T3>> procFunc)
         {
-            return source1.ApplyPerPartition(source2, (x_1, y_1) => HpcLinqHelper.Cross(x_1, y_1, procFunc), true);
+            return source1.ApplyPerPartition(source2, (x_1, y_1) => DryadLinqHelper.Cross(x_1, y_1, procFunc), true);
         }
 
         /// <summary>
@@ -149,6 +146,7 @@ namespace Microsoft.Research.DryadLinq
         /// <param name="source">The input dataset</param>
         /// <param name="body">The code body of the DoWhile loop</param>
         /// <param name="cond">The termination condition of the DoWhile loop</param>
+        /// <param name="count">The loop unrolling count</param>
         /// <returns>The output dataset</returns>
         public static IQueryable<T>
             DoWhile<T>(this IQueryable<T> source,
@@ -171,7 +169,7 @@ namespace Microsoft.Research.DryadLinq
                     after = body(after);
                 }
                 var more = cond(before, after);
-                HpcLinqQueryable.SubmitAndWait(after, more);
+                DryadLinqQueryable.SubmitAndWait(after, more);
                 if (!more.Single()) return after;
                 before = after;
             }
@@ -195,7 +193,7 @@ namespace Microsoft.Research.DryadLinq
             {
                 IQueryable<T> after = body(before);
                 var more = cond(before, after);
-                HpcLinqQueryable.SubmitAndWait(after, more);
+                DryadLinqQueryable.SubmitAndWait(after, more);
                 if (!more.Single()) return after;
                 before = after;
             }
@@ -209,7 +207,7 @@ namespace Microsoft.Research.DryadLinq
         /// <returns>The output dataset, which consists of multiple copies of source</returns>
         public static IQueryable<T> BroadCast<T>(this IQueryable<T> source)
         {
-            return source.ApplyPerPartition(source, (x, y) => HpcLinqHelper.SelectSecond(x, y), true);
+            return source.ApplyPerPartition(source, (x, y) => y, true);
         }
 
         /// <summary>
@@ -220,9 +218,9 @@ namespace Microsoft.Research.DryadLinq
         /// <returns>The output dataset, each partition of which is a copy of source</returns>
         public static IQueryable<T> BroadCast<T>(this IQueryable<T> source, int n)
         {
-            var dummy = source.ApplyPerPartition(x => HpcLinqHelper.ValueZero(x))
+            var dummy = source.ApplyPerPartition(x => DryadLinqHelper.ValueZero(x))
                               .HashPartition(x => x, n);
-            return dummy.ApplyPerPartition(source, (x, y) => HpcLinqHelper.SelectSecond(x, y), true);
+            return dummy.ApplyPerPartition(source, (x, y) => y, true);
         }
 
         /// <summary>
@@ -241,7 +239,7 @@ namespace Microsoft.Research.DryadLinq
                                         IComparer<TKey> comparer,
                                         bool isDescending)
         {
-            return source.ApplyPerPartition(x_1 => HpcLinqHelper.CheckSort(x_1, keySelector, comparer, isDescending));
+            return source.ApplyPerPartition(x_1 => DryadLinqHelper.CheckSort(x_1, keySelector, comparer, isDescending));
         }
     }
 }

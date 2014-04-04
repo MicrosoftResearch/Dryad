@@ -32,7 +32,7 @@ using System.Linq;
 namespace Microsoft.Research.DryadLinq
 {
     //YARN 
-    public enum DscCompressionScheme
+    public enum CompressionScheme
     {
         None,
         Gzip
@@ -61,7 +61,7 @@ namespace Microsoft.Research.DryadLinq
             throw new NotImplementedException();
         }
 
-        internal DscFileSet CreateFileSet(string streamName, DscCompressionScheme compressionScheme)
+        internal DscFileSet CreateFileSet(string streamName, CompressionScheme compressionScheme)
         {
             throw new NotImplementedException();
         }
@@ -76,13 +76,12 @@ namespace Microsoft.Research.DryadLinq
 
     public class DscFileSet
     {
-
         internal DscFile AddNewFile(int p)
         {
             throw new NotImplementedException();
         }
 
-        public DscCompressionScheme CompressionScheme { get; set; }
+        public CompressionScheme CompressionScheme { get; set; }
 
         internal byte[] GetMetadata(string p)
         {
@@ -123,12 +122,10 @@ namespace Microsoft.Research.DryadLinq
 
     internal class DscInstance: IDisposable
     {
-
         public DscInstance(Uri uri)
         {
             throw new NotImplementedException();
         }
-
 
         internal DscStream GetStream(Uri uri)
         {
@@ -143,7 +140,6 @@ namespace Microsoft.Research.DryadLinq
 
     internal class DscStream
     {
-
         public long Length { get; set; }
 
         public int PartitionCount { get; set; }
@@ -154,19 +150,15 @@ namespace Microsoft.Research.DryadLinq
 
     }
 
-    public interface IScheduler
+    public interface IScheduler : IDisposable
     {
-
         void Connect(string headNode);
-
-        void Dispose();
 
         IServerVersion GetServerVersion();
     }
 
     public interface IServerVersion
     {
-
         int Major { get; set; }
 
         int Minor { get; set; }

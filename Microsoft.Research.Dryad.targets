@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+   <DryadFiles Include="DRYAD_PACKAGE_DIRECTORY\lib\net45\*.*"  />
+  </ItemGroup>
+
+  <Target Name="CopyDryadFiles" AfterTargets="AfterBuild">
+    <Copy
+        SourceFiles="@(DryadFiles)"
+        DestinationFolder="$(TargetDir)"
+        SkipUnchangedFiles="true"
+        />
+    <Message Text="Done copying Dryad files..." />
+  </Target>
+</Project>

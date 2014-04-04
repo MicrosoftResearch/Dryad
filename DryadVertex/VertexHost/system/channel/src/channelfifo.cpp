@@ -135,7 +135,7 @@ void RChannelFifoWriterBase::SetInitialSizeHint(UInt64 /*hint*/)
 void RChannelFifoWriterBase::SetReader(RChannelReaderImpl* reader)
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_reader == NULL);
         LogAssert(reader != NULL);
@@ -175,7 +175,7 @@ void RChannelFifoWriterBase::ReturnHandlers(ChannelFifoUnitList* returnList)
         }
 
         {
-            AutoCriticalSection acs(&m_baseDR);
+            AutoCriticalSection acs(&m_baseCS);
 
             m_returnLatch.TransferList(returnList);
         }
@@ -189,7 +189,7 @@ void RChannelFifoWriterBase::SendUnits(ChannelUnitList* unitList)
         m_reader->AddUnitList(unitList);
 
         {
-            AutoCriticalSection acs(&m_baseDR);
+            AutoCriticalSection acs(&m_baseCS);
 
             m_sendLatch.TransferList(unitList);
         }
@@ -240,7 +240,7 @@ RChannelItemType RChannelFifoWriterBase::
         syncHandler.Wait();
 
         {
-            AutoCriticalSection acs(&m_baseDR);
+            AutoCriticalSection acs(&m_baseCS);
 
             m_eventCache.ReturnEvent(syncHandler.GetEvent());
         }
@@ -257,7 +257,7 @@ UInt64 RChannelFifoWriterBase::GetDataSizeWritten()
 void RChannelFifoWriterBase::CloseSupplier()
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_supplierState == SS_Stopped);
         m_supplierState = SS_Closed;
@@ -267,7 +267,7 @@ void RChannelFifoWriterBase::CloseSupplier()
 void RChannelFifoWriterBase::Close()
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_writerState == WS_Stopped);
         m_writerState = WS_Closed;
@@ -297,7 +297,7 @@ RChannelFifoWriter::~RChannelFifoWriter()
 void RChannelFifoWriter::Start()
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_writerState == WS_Stopped);
         LogAssert(m_availableUnits == 0);
@@ -335,7 +335,7 @@ void RChannelFifoWriter::
     ChannelUnitList unblockedList;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_supplierState == SS_Stopped);
 
@@ -394,7 +394,7 @@ void RChannelFifoWriter::
     SendUnits(&unblockedList);
 }
 
-/* called with m_baseDR held */
+/* called with m_baseCS held */
 bool RChannelFifoWriter::CheckForTerminationItem(RChannelFifoUnit* unit)
 {
     if (m_writerTerminationItem != NULL || m_writerState == WS_Stopped)
@@ -487,7 +487,7 @@ void RChannelFifoWriter::
     LogAssert(itemArray->GetNumberOfItems() > 0);
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         unit->SetPayload(itemArray, handler, RChannelItem_MarshalError);
 
@@ -676,7 +676,7 @@ void RChannelFifoWriter::
     ReturnHandlers(&returnList);
 }
 
-/* called with m_baseDR held */
+/* called with m_baseCS held */
 bool RChannelFifoWriter::ReWriteBlockedListForEarlyReturn(RChannelItemType
                                                           drainType)
 {
@@ -714,7 +714,7 @@ void RChannelFifoWriter::AcceptReturningUnit(RChannelFifoUnit* unit)
     bool wakeUpSupplierDrain = false;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_outstandingUnits > 0);
         --m_outstandingUnits;
@@ -817,7 +817,7 @@ void RChannelFifoWriter::InterruptSupplier()
     bool waitForLatch;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_supplierState == SS_Running);
 
@@ -847,7 +847,7 @@ void RChannelFifoWriter::DrainSupplier(RChannelItem* drainItem)
     bool waitForSupplierDrain = false;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_supplierState == SS_Interrupted);
         LogAssert(m_availableUnits == 0);
@@ -902,7 +902,7 @@ void RChannelFifoWriter::Drain(DrTimeInterval csTimeOut,
     bool waitForWriterDrain = false;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_writerState == WS_Running);
         LogAssert(m_writerTerminationItem != NULL);
@@ -928,7 +928,7 @@ void RChannelFifoWriter::Drain(DrTimeInterval csTimeOut,
     }
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_outstandingUnits == 0);
         LogAssert(m_blockedList.IsEmpty());
@@ -954,7 +954,7 @@ void RChannelFifoWriter::Drain(DrTimeInterval csTimeOut,
 
     if (pReturnItem != NULL)
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         *pReturnItem = m_readerTerminationItem;
     }
@@ -964,7 +964,7 @@ void RChannelFifoWriter::GetTerminationItems(RChannelItemRef* pWriterDrainItem,
                                              RChannelItemRef* pReaderDrainItem)
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         *pWriterDrainItem = m_writerTerminationItem;
         *pReaderDrainItem = m_readerTerminationItem;
@@ -980,7 +980,7 @@ RChannelFifoNBWriter::RChannelFifoNBWriter(RChannelFifo* parent) :
 void RChannelFifoNBWriter::Start()
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_writerState == WS_Stopped);
         LogAssert(m_outstandingUnits == 0);
@@ -1009,7 +1009,7 @@ void RChannelFifoNBWriter::
     ChannelUnitList unblockedList;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_supplierState == SS_Stopped);
 
@@ -1038,7 +1038,7 @@ void RChannelFifoNBWriter::
     SendUnits(&unblockedList);
 }
 
-/* called with m_baseDR held */
+/* called with m_baseCS held */
 bool RChannelFifoNBWriter::CheckForTerminationItem(RChannelFifoUnit* unit)
 {
     if (m_writerTerminationItem != NULL || m_writerState == WS_Stopped)
@@ -1107,7 +1107,7 @@ void RChannelFifoNBWriter::
     LogAssert(itemArray->GetNumberOfItems() > 0);
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         unit->SetPayload(itemArray, handler, RChannelItem_MarshalError);
 
@@ -1220,7 +1220,7 @@ void RChannelFifoNBWriter::AcceptReturningUnit(RChannelFifoUnit* unit)
     bool wakeUpSupplierDrain = false;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_outstandingUnits > 0);
         --m_outstandingUnits;
@@ -1251,7 +1251,7 @@ void RChannelFifoNBWriter::InterruptSupplier()
     bool waitForLatch;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_supplierState == SS_Running);
 
@@ -1276,7 +1276,7 @@ void RChannelFifoNBWriter::DrainSupplier(RChannelItem* drainItem)
     bool waitForSupplierDrain = false;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_supplierState == SS_Interrupted);
 
@@ -1316,7 +1316,7 @@ void RChannelFifoNBWriter::Drain(DrTimeInterval csTimeOut,
                                  RChannelItemRef* pReturnItem)
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_writerState == WS_Running);
         LogAssert(m_writerTerminationItem != NULL);
@@ -1338,7 +1338,7 @@ void RChannelFifoNBWriter::
                         RChannelItemRef* pReaderDrainItem)
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         *pWriterDrainItem = m_writerTerminationItem;
         *pReaderDrainItem = m_readerTerminationItem;

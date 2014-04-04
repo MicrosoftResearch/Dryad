@@ -24,6 +24,7 @@ limitations under the License.
 #include "dvertexmain.h"
 #include "managedwrapper.h"
 #include "recorditem.h"
+#include "DrString.h"
 
 #pragma managed
 
@@ -31,38 +32,6 @@ limitations under the License.
 // Managed Wrapper vertex factory. 
 //
 extern FactoryMWrapper s_factoryHWrapper;
-
-//
-// Output stream files
-//
-FILE* g_oldStdout = NULL;
-FILE* g_oldStderr = NULL;
-
-//
-// Attempts to open stdout.txt and stderr.txt in current directory
-// If successful, redirects output streams to these files. 
-// If unsucessful, no error, just retains original stdout/stderr streams
-// _wfreopen_s locks the logs so that they cannot be read while the vertex is running.
-//
-#pragma warning (disable: 4996) // _wfreopen : This function may be unsafe, consider using _wfreopen_s
-static void RedirectOutputStreams()
-{
-    WCHAR szCurrentDir[MAX_PATH + 1] = {0};
-    WCHAR szStdout[MAX_PATH + 1] = {0};
-    WCHAR szStderr[MAX_PATH + 1] = {0};
-
-    if (GetCurrentDirectory(MAX_PATH, szCurrentDir) != 0)
-    {
-        if (S_OK == StringCchPrintf(szStdout, MAX_PATH, L"%s\\stdout.txt", szCurrentDir))
-        {
-            g_oldStdout = _wfreopen(szStdout, L"w", stdout);
-        }
-        if (S_OK == StringCchPrintf(szStderr, MAX_PATH, L"%s\\stderr.txt", szCurrentDir))
-        {
-            g_oldStderr = _wfreopen(szStderr, L"w", stderr);
-        }
-    }
-}
 
 //
 // Eliminates arguments used by previous operations. 
@@ -152,13 +121,61 @@ void DrGetUtf8CommandArgs(int argc, wchar_t *wargv[], char ***pargv)
     *pargv = newArgv;
 }
 
+void GetLoggingFileName(WCHAR* fileName)
+{
+    WCHAR* logDir = NULL;
+
+    WCHAR currentDir[MAX_PATH + 1];
+
+    if (GetCurrentDirectory(MAX_PATH, currentDir) != 0)
+    {
+        WCHAR logDirectory[MAX_PATH+1];
+        HRESULT hr = DrGetEnvironmentVariable(L"LOG_DIRS", logDirectory);
+        if(SUCCEEDED(hr))
+        {
+            // deal with comma-separated list of directories
+            WCHAR* firstComma = wcschr(logDirectory, ',');
+            if (firstComma != NULL)
+            {
+                *firstComma = '\0';
+                WCHAR* firstSpace = wcschr(logDirectory, ' ');
+                if (firstSpace != NULL)
+                {
+                    *firstSpace = '\0';
+                }
+            }
+            logDir = logDirectory;
+        }
+        else
+        {
+            logDir = currentDir;
+        }
+
+        WCHAR* dirLoc = wcsrchr(currentDir, L'\\');
+        if (dirLoc != NULL)
+        {
+            ++dirLoc;
+            if (S_OK == StringCchPrintf(fileName, MAX_PATH, L"%s\\process-%s-vertexhost.log", logDir, dirLoc))
+            {
+                return;
+            }
+        }
+    }
+
+    wcscpy_s(fileName, MAX_PATH, L"vertexhost.log");
+}
+
 //
 // Sets the logging level based on the environment variable
 //
 void SetLoggingLevel()
 {
+    WCHAR logFileName[MAX_PATH + 1];
+    GetLoggingFileName(logFileName);
+    DrLogging::Initialize(logFileName);
+
     WCHAR traceLevel [MAX_PATH];
-    HRESULT hr = DrGetEnvironmentVariable(L"CCP_DRYADTRACELEVEL", traceLevel);
+    HRESULT hr = DrGetEnvironmentVariable(L"DRYAD_TRACE_LEVEL", traceLevel);
     if(hr == DrError_OK)
     {
         if(wcscmp(traceLevel, L"OFF") == 0)
@@ -213,109 +230,122 @@ void BreakForDebugger()
     }
 }
 
+[System::Security::SecurityCriticalAttribute]
+[System::Runtime::ExceptionServices::HandleProcessCorruptedStateExceptionsAttribute]
+static void ExceptionHandler(System::Object^ sender, System::UnhandledExceptionEventArgs^ args)
+{
+    DrLogI("In exception handler");
+    HRESULT result = E_FAIL;
+    System::Exception^ e = dynamic_cast<System::Exception^>(args->ExceptionObject);
+    System::String^ errorString = "Unknown exception";
+    if (e != nullptr)
+    {
+        result = System::Runtime::InteropServices::Marshal::GetHRForException(e);
+        errorString = e->ToString();
+        DrLogA("Unhandled exception: %s", DrString(errorString).GetChars());
+    }
+}
+
 //
 // Start up vertex host
 //
+[System::Security::SecurityCriticalAttribute]
+[System::Runtime::ExceptionServices::HandleProcessCorruptedStateExceptionsAttribute]
 #if defined(_AMD64_)
 int wmain(int argc, wchar_t* wargv[])
 #else
 int __cdecl wmain(int argc, wchar_t* wargv[])
 #endif
 {
-    //
-    // Set up std.out and std.err files in current directory and redirect to them
-    //
-    RedirectOutputStreams();
-
-    //
-    // Enable logging based on environment variable
-    //
-    SetLoggingLevel();
-
-    //
-    // trace for startup
-    //
-    DrLogI("Vertex Host starting");
-
-    //
-    // Get environment variable to know whether to break into debugger
-    //
-    BreakForDebugger();
-
-    //
-    // We call Register on the Managed Wrapper vertex factory to force its library to be linked.
-    // Registration actually occurs during static initialization.
-    //
-    s_factoryHWrapper.Register();
-
-    //
-    // Get command line arguments
-    //
-    char** argv;
-    DrGetUtf8CommandArgs(argc, wargv, &argv);
-
-    //
-    // Initialize the dryad communication layer with the command line arguments
-    //
-    int nOpts;
-    DrError e;
-    e = DryadInitializeXCompute(NULL, NULL, argc, argv, &nOpts);
-    if (e != DrError_OK)
+    try
     {
         //
-        // Report error in initializing xcompute layter
+        // Enable logging based on environment variable
         //
-        DrLogE("Couldn't initialise XCompute");
-        return 1;
-    }
+        SetLoggingLevel();
 
-    //
-    // Update the argument list to just those parameters that weren't used by xcompute init
-    //
-    EliminateArguments(&argc, argv, 1, nOpts);
+        DrInitErrorTable();
+        DrInitExitCodeTable();
+        DrInitLastAccessTable();
 
-    int exitCode;
+        // Set unhandled exception handler to catch anything thrown from 
+        // managed code
+        System::AppDomain^ currentDomain = System::AppDomain::CurrentDomain;
+        currentDomain->UnhandledException += gcnew System::UnhandledExceptionEventHandler(ExceptionHandler);
 
-    //
-    // Check if --vertex argument provided. 
-    // If it is, remove it from the argument list and call DryadVertexMain
-    // If it is not, report error
-    //
-    if (argc > 1 && ::_stricmp(argv[1], "--vertex") == 0)
-    {
-        EliminateArguments(&argc, argv, 1, 1);
+        //
+        // trace for startup
+        //
+        DrLogI("Vertex Host starting");
+
+        //
+        // Get environment variable to know whether to break into debugger
+        //
+        BreakForDebugger();
+
+        //
+        // We call Register on the Managed Wrapper vertex factory to force its library to be linked.
+        // Registration actually occurs during static initialization.
+        //
+        s_factoryHWrapper.Register();
+
+        //
+        // Get command line arguments
+        //
+        char** argv;
+        DrGetUtf8CommandArgs(argc, wargv, &argv);
+
+        //
+        // Initialize the dryad communication layer with the command line arguments
+        //
+        int nOpts;
+        DrError e;
+        e = DryadInitialize(argc, argv, &nOpts);
+        if (e != DrError_OK)
+        {
+            //
+            // Report error in initializing cluster layer
+            //
+            DrLogE("Couldn't initialise Cluster");
+            return 1;
+        }
+
+        //
+        // Update the argument list to just those parameters that weren't used by cluster init
+        //
+        EliminateArguments(&argc, argv, 1, nOpts);
 
         //
         // Call main function to continue execution of vertex
         //
-        exitCode = DryadVertexMain(argc, argv, NULL);
+        int exitCode = DryadVertexMain(argc, argv, NULL);
+
+        //
+        // Close the cluster connection after dryadvertexmain returns
+        //
+        e = DryadShutdown();
+        if (e == DrError_OK)
+        {
+            //
+            // Report success
+            //
+            DrLogI("Completed uninitialise cluster");
+        }
+        else
+        {
+            //
+            // Report failure
+            //
+            DrLogE("Couldn't uninitialise cluster");
+        }
+
+        return exitCode;
     }
-    else
+    catch (System::Exception^ e)
     {
-        DrLogE("--vertex argument required - only vertex execution mode is supported.");
+        DrLogA("Unhandled exception: %s", DrString(e->ToString()).GetChars());
         return 1;
     }
-
-    //
-    // Close the xcompute connection after dryadvertexmain returns
-    //
-    e = DryadShutdownXCompute();
-    if (e == DrError_OK)
-    {
-        //
-        // Report success
-        //
-        DrLogI("Completed uninitialise xcompute");
-    }
-    else
-    {
-        //
-        // Report failure
-        //
-        DrLogE("Couldn't uninitialise xcompute");
-    }
-
-    return exitCode;
 }
 
 //

@@ -48,6 +48,27 @@ DrString DrError::ToShortText()
     return s;
 }
 
+DrString DrError::ToFullText()
+{
+    DrString s = ToShortText();
+
+    if (m_errorProvenance != DrNull)
+    {
+        for (int i=0; i<m_errorProvenance->Size(); ++i)
+        {
+            DrString subError = m_errorProvenance[i]->ToFullText();
+            s = s.AppendF("\nPrevious error %s", subError.GetChars());
+        }
+    }
+
+    return s;
+}
+
+DrNativeString DrError::ToFullTextNative()
+{
+    return ToFullText().GetString();
+}
+
 void DrError::AddProvenance(DrErrorPtr previousError)
 {
     if (m_errorProvenance == DrNull)

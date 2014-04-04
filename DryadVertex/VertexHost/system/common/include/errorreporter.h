@@ -39,6 +39,8 @@ public:
 
     void InterruptProcessing();
 
+    static DrError GetFormattedErrorFromMetaData(DryadMetaData* metaData, DrStr* pFormattedOutput);
+
 private:
     void ReportFormattedErrorInternal(DrError errorStatus,
                                       const char *formatString,

@@ -26,6 +26,7 @@ static const char* s_CommandPropertyLabel = "DVertexCommand";
 DrChannelDescription::DrChannelDescription(bool isInputChannel)
 {
     m_state = DrError_ChannelAbort;
+    m_errorCode = S_OK;
     m_totalLength = 0;
     m_processedLength = 0;
     m_isInputChannel = isInputChannel;
@@ -63,6 +64,26 @@ DrMetaDataPtr DrChannelDescription::GetChannelMetaData()
 void DrChannelDescription::SetChannelMetaData(DrMetaDataPtr metaData)
 {
     m_metaData = metaData;
+}
+
+HRESULT DrChannelDescription::GetChannelErrorCode()
+{
+    return m_errorCode;
+}
+
+void DrChannelDescription::SetChannelErrorCode(HRESULT errorCode)
+{
+    m_errorCode = errorCode;
+}
+
+DrString DrChannelDescription::GetChannelErrorString()
+{
+    return m_errorString;
+}
+
+void DrChannelDescription::SetChannelErrorString(DrString errorString)
+{
+    m_errorString = errorString;
 }
 
 UINT64 DrChannelDescription::GetChannelTotalLength()
@@ -103,6 +124,14 @@ void DrChannelDescription::Serialize(DrPropertyWriterPtr writer)
         m_metaData->Serialize(writer);
         writer->WriteProperty(DrProp_EndTag, DrTag_ChannelMetaData);
     }
+    if (m_errorCode != S_OK)
+    {
+        writer->WriteProperty(DrProp_ChannelErrorCode, m_errorCode);
+    }
+    if (m_errorString.GetChars() != NULL)
+    {
+        writer->WriteProperty(DrProp_ChannelErrorString, m_errorString);
+    }
 
     writer->WriteProperty(DrProp_EndTag, tagValue);
 }
@@ -130,6 +159,21 @@ HRESULT DrChannelDescription::ParseProperty(DrPropertyReaderPtr reader,
             if (err == S_OK)
             {
                 SetChannelURI(URI);
+            }
+        }
+        break;
+
+    case DrProp_ChannelErrorCode:
+        err = reader->ReadNextProperty(enumID, m_errorCode);
+        break;
+
+    case DrProp_ChannelErrorString:
+        {
+            DrString errorString;
+            err = reader->ReadNextProperty(enumID, errorString);
+            if (err == S_OK)
+            {
+                SetChannelErrorString(errorString);
             }
         }
         break;
@@ -176,6 +220,8 @@ void DrChannelDescription::CopyFrom(DrChannelDescriptionPtr src, bool includeLen
     SetChannelURI(src->GetChannelURI());
     SetChannelState(src->GetChannelState());
     SetChannelMetaData(src->GetChannelMetaData());
+    SetChannelErrorCode(src->GetChannelErrorCode());
+    SetChannelErrorString(src->GetChannelErrorString());
     if (includeLengths)
     {
         SetChannelProcessedLength(src->GetChannelProcessedLength());
@@ -200,6 +246,7 @@ DrVertexProcessStatus::DrVertexProcessStatus()
 {
     m_id = 0;
     m_version = 0;
+    m_errorCode = S_OK;
     m_maxInputChannels = 0;
     m_maxOutputChannels = 0;
     m_canShareWorkQueue = false;
@@ -236,6 +283,26 @@ DrMetaDataPtr DrVertexProcessStatus::GetVertexMetaData()
 void DrVertexProcessStatus::SetVertexMetaData(DrMetaDataPtr metaData)
 {
     m_metaData = metaData;
+}
+
+HRESULT DrVertexProcessStatus::GetVertexErrorCode()
+{
+    return m_errorCode;
+}
+
+void DrVertexProcessStatus::SetVertexErrorCode(HRESULT errorCode)
+{
+    m_errorCode = errorCode;
+}
+
+DrString DrVertexProcessStatus::GetVertexErrorString()
+{
+    return m_errorString;
+}
+
+void DrVertexProcessStatus::SetVertexErrorString(DrString errorString)
+{
+    m_errorString = errorString;
 }
 
 DrInputChannelArrayRef DrVertexProcessStatus::GetInputChannels()
@@ -318,6 +385,14 @@ void DrVertexProcessStatus::Serialize(DrPropertyWriterPtr writer)
         m_metaData->Serialize(writer);
         writer->WriteProperty(DrProp_EndTag, DrTag_VertexMetaData);
     }
+    if (m_errorCode != S_OK)
+    {
+        writer->WriteProperty(DrProp_VertexErrorCode, m_errorCode);
+    }
+    if (m_errorString.GetChars() != NULL)
+    {
+        writer->WriteProperty(DrProp_VertexErrorString, m_errorString);
+    }
 
     if (m_inputChannel == DrNull)
     {
@@ -394,6 +469,21 @@ HRESULT DrVertexProcessStatus::ParseProperty(DrPropertyReaderPtr reader,
             else
             {
                 m_version = version;
+            }
+        }
+        break;
+
+    case DrProp_VertexErrorCode:
+        err = reader->ReadNextProperty(enumID, m_errorCode);
+        break;
+
+    case DrProp_VertexErrorString:
+        {
+            DrString errorString;
+            err = reader->ReadNextProperty(enumID, errorString);
+            if (err == S_OK)
+            {
+                SetVertexErrorString(errorString);
             }
         }
         break;
@@ -545,6 +635,8 @@ void DrVertexProcessStatus::CopyFrom(DrVertexProcessStatusPtr src,
     SetVertexId(src->GetVertexId());
     SetVertexInstanceVersion(src->GetVertexInstanceVersion());
     SetVertexMetaData(src->GetVertexMetaData());
+    SetVertexErrorCode(src->GetVertexErrorCode());
+    SetVertexErrorString(src->GetVertexErrorString());
 
     SetInputChannelCount(src->GetInputChannels()->Allocated());
     DrInputChannelArrayRef srcInputs = src->GetInputChannels();

@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -38,13 +35,13 @@ namespace Microsoft.Research.DryadLinq.Internal
     // needed for remote execution of managed vertex code. All objects put
     // in the store must have the .NET Serializable attribute.
     // Note: this class is not thread safe
-    public sealed class HpcLinqObjectStore
+    public sealed class DryadLinqObjectStore
     {
-        private const string ObjectStoreFileName = "HpcLinqObjectStore.bin";
+        private const string ObjectStoreFileName = "DryadLinqObjectStore.bin";
 
         internal static string GetClientSideObjectStorePath()
         {
-            return HpcLinqCodeGen.GetPathForGeneratedFile(ObjectStoreFileName, null);            
+            return DryadLinqCodeGen.GetPathForGeneratedFile(ObjectStoreFileName, null);            
         }
 
         private static ArrayList s_objectList = null;
@@ -62,7 +59,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         }
         
         // this method is only used by the generated vertex code, and always
-        // assumes "HpcLinqObjectStore.bin" to be in the current directory
+        // assumes "DryadLinqObjectStore.bin" to be in the current directory
         public static object Get(int idx)
         {
             if (s_objectList == null)
@@ -86,8 +83,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                 }
                 catch (SerializationException e)
                 {
-                    throw new DryadLinqException(HpcLinqErrorCode.FailedToDeserialize,
-                                               SR.FailedToDeserialize, e);
+                    throw new DryadLinqException(DryadLinqErrorCode.FailedToDeserialize,
+                                                 SR.FailedToDeserialize, e);
                 }
                 finally
                 {
@@ -97,8 +94,8 @@ namespace Microsoft.Research.DryadLinq.Internal
 
             if (idx >= s_objectList.Count)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.IndexOutOfRange,
-                                           SR.IndexOutOfRange);
+                throw new DryadLinqException(DryadLinqErrorCode.IndexOutOfRange,
+                                             SR.IndexOutOfRange);
             }
             return s_objectList[idx];
         }
@@ -132,9 +129,9 @@ namespace Microsoft.Research.DryadLinq.Internal
             string objectStorePath = GetClientSideObjectStorePath();
 
             FileStream fs = new FileStream(objectStorePath, FileMode.Create);
-            BinaryFormatter bfm = new BinaryFormatter();
             try
             {
+                BinaryFormatter bfm = new BinaryFormatter();
                 bfm.Serialize(fs, s_objectList);
             }
             catch (SerializationException e)
@@ -147,19 +144,19 @@ namespace Microsoft.Research.DryadLinq.Internal
                         if (badType.IsGenericType &&
                             badType.GetGenericTypeDefinition() == typeof(DryadLinqQuery<>))
                         {
-                            throw new DryadLinqException(HpcLinqErrorCode.CannotSerializeHpcLinqQuery,
-                                                       SR.CannotSerializeHpcLinqQuery);
+                            throw new DryadLinqException(DryadLinqErrorCode.CannotSerializeDryadLinqQuery,
+                                                         SR.CannotSerializeDryadLinqQuery);
                         }
                         else
                         {
-                            throw new DryadLinqException(HpcLinqErrorCode.CannotSerializeObject,
-                                                       string.Format(SR.CannotSerializeObject, obj));
+                            throw new DryadLinqException(DryadLinqErrorCode.CannotSerializeObject,
+                                                         string.Format(SR.CannotSerializeObject, obj));
                         }
                     }
                 }
 
-                throw new DryadLinqException(HpcLinqErrorCode.GeneralSerializeFailure,
-                                           SR.GeneralSerializeFailure, e);
+                throw new DryadLinqException(DryadLinqErrorCode.GeneralSerializeFailure,
+                                             SR.GeneralSerializeFailure, e);
             }
             finally
             {

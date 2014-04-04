@@ -20,129 +20,53 @@ limitations under the License.
 
 #pragma once
 
-DRENUM(DrResourceLevel)
-{
-    DRL_Core,
-    DRL_Socket,
-    DRL_Computer,
-    DRL_Rack,
-    DRL_Cluster
-};
+DRDECLARECLASS(DrCluster);
+DRREF(DrCluster);
 
-DRDECLARECLASS(DrResource);
-DRREF(DrResource);
+/* DrCluster abstracts away all the internal types used by the concrete cluster interface.
+DrClusterInternal.h defines the concrete implementation that talks to the (currently managed-only)
+interface */
 
-typedef DrArrayList<DrResourceRef> DrResourceList;
-DRAREF(DrResourceList,DrResourceRef);
-
-DRBASECLASS(DrResource)
+DRCLASS(DrCluster abstract) : public DrCritSec
 {
 public:
-    DrResource(DrResourceLevel level, DrString name, DrString locality, DrResourcePtr parent);
+    /* this returns an object of the concrete type */
+    static DrClusterRef Create();
 
-    void Discard();
+    virtual ~DrCluster();
 
-    DrResourceLevel GetLevel();
-    DrString GetName();
-    DrString GetLocality();
-    DrResourcePtr GetParent();
-    DrResourceListRef GetChildren();
+    virtual HRESULT Initialize(DrUniversePtr universe, DrMessagePumpPtr pump, DrTimeInterval propertyUpdateInterval) = 0;
+    virtual void Shutdown() = 0;
+    virtual DrUniversePtr GetUniverse() = 0;
+    virtual DrMessagePumpPtr GetMessagePump() = 0;
+    virtual DrDateTime GetCurrentTimeStamp() = 0;
 
-    bool Contains(DrResourcePtr resource);
+    virtual DrString TranslateFileToURI(DrString fileName, DrString directory,
+                                        DrResourcePtr srcResource, DrResourcePtr dstResource, int compressionMode) = 0;
 
-private:
-    DrResourceLevel          m_level;
-    DrString                 m_name;
-    DrString                 m_locality;
-    DrResourcePtr            m_parent; /* does not hold a reference to its parent */
-    DrResourceListRef        m_children;
+    virtual void ScheduleProcess(DrAffinityListRef affinities,
+                                 DrString name, DrString commandLine,
+                                 DrProcessTemplatePtr processTemplate,
+                                 DrPSRListenerPtr listener) = 0;
+    virtual void CancelScheduleProcess(DrProcessHandlePtr process) = 0;
+
+    virtual void WaitForStateChange(DrProcessHandlePtr process, DrPSRListenerPtr listener) = 0;
+
+    virtual void GetProcessProperty(DrProcessHandlePtr process,
+                                    UINT64 lastSeenVersion, DrString propertyName,
+                                    DrPropertyListenerPtr propertyListener) = 0;
+
+    virtual void SetProcessCommand(DrProcessHandlePtr p,
+                                   DrString propertyName,
+                                   DrString propertyDescription,
+                                   DrByteArrayRef propertyBlock,
+                                   DrErrorListenerPtr listener) = 0;
+
+    virtual void ResetProgress(UINT32 totalSteps, bool update) = 0;
+    virtual void IncrementTotalSteps(bool update) = 0;
+    virtual void DecrementTotalSteps(bool update) = 0;
+    virtual void IncrementProgress(PCSTR message) = 0;
+    virtual void CompleteProgress(PCSTR message) = 0;
+
 };
-
-typedef DrStringDictionary<DrResourceRef> DrResourceDictionary;
-DRREF(DrResourceDictionary);
-/* the following exercises the template machinery to avoid a spurious compiler error */
-template DRDECLARECLASS(DrStringDictionary<DrResourceRef>);
-
-typedef DrArray<DrResourceRef> DrResourceArray;
-DRAREF(DrResourceArray,DrResourceRef);
-
-DRBASECLASS(DrUniverse)
-{
-public:
-    DrUniverse();
-
-    void Discard();
-
-    DrCritSecPtr GetResourceLock();
-
-    void AddResource(DrResourcePtr resource);
-
-    DrResourceListRef GetResources(DrResourceLevel level);
-    DrResourcePtr LookUpResource(DrNativeString name);
-    DrResourcePtr LookUpResourceInternal(DrString name);
-
-private:
-    typedef DrArray<DrResourceListRef> RAArray;
-    DRAREF(RAArray,DrResourceListRef);
-
-    DrCritSecRef             m_resourceLock;
-    RAArrayRef               m_resourceAtLevel;
-    DrResourceDictionaryRef  m_resource;
-};
-DRREF(DrUniverse);
-
-DRBASECLASS(DrAffinity)
-{
-public:
-    DrAffinity();
-
-    void SetHardConstraint(bool isHardConstraint);
-    bool GetHardConstraint();
-
-    void SetWeight(UINT64 weight);
-    UINT64 GetWeight();
-
-    void AddLocality(DrResourcePtr locality);
-    DrResourceListRef GetLocalityArray();
-
-private:
-    bool               m_isHardConstraint;
-    UINT64             m_weight;
-    DrResourceListRef  m_locality;
-};
-DRREF(DrAffinity);
-
-typedef DrArray<DrAffinityRef> DrAffinityArray;
-DRAREF(DrAffinityArray,DrAffinityRef);
-
-typedef DrArrayList<DrAffinityRef> DrAffinityList;
-DRAREF(DrAffinityList,DrAffinityRef);
-
-typedef DrArrayList<DrAffinityListRef> DrAffinityListList;
-DRAREF(DrAffinityListList,DrAffinityListRef);
-
-class DrAffinityIntersector
-{
-public:
-    static DrAffinityRef IntersectHardConstraints(DrAffinityPtr existingConstraints,
-                                                  DrAffinityListRef newAffinities);
-};
-
-DRBASECLASS(DrAffinityMerger)
-{
-public:
-    DrAffinityMerger();
-
-    void AccumulateWeights(DrAffinityPtr affinity);
-    void AccumulateWeights(DrAffinityListRef affinityList);
-
-    DrAffinityListRef GetMergedAffinities(DrFloatArrayRef levelThreshold);
-
-private:
-    typedef DrDictionary<DrResourcePtr,UINT64> ResourceWeightDictionary;
-    DRREF(ResourceWeightDictionary);
-
-    ResourceWeightDictionaryRef m_dictionary;
-};
-DRREF(DrAffinityMerger);
-
+DRREF(DrCluster);

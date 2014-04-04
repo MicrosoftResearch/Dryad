@@ -53,7 +53,6 @@ private:
 class DVertexXComputePnControllerOuter : public DVertexPnControllerOuter
 {
 private:
-    DVertexEnvironment* MakeEnvironment();
     DVertexPnController* MakePnController(UInt32 vertexId,
                                           UInt32 vertexVersion);
 };

@@ -21,7 +21,7 @@ limitations under the License.
 #pragma once
 
 #ifdef _MANAGED
-using namespace Microsoft::Research::Dryad::Hdfs;
+using namespace Microsoft::Research::Peloponnese::Hdfs;
 #else 
 #include "HdfsBridgeNative.h"
 #endif
@@ -32,9 +32,10 @@ public:
     DrHdfsInputStream();
     HRESULT Open(DrUniversePtr universe, DrNativeString streamUri);
     HRESULT OpenInternal(DrUniversePtr universe, DrString streamUri);
+    DrNativeString GetError();
 
     virtual DrString GetStreamName() DROVERRIDE;
-    virtual int GetNumberOfPartitions() DROVERRIDE;
+    virtual int GetNumberOfParts() DROVERRIDE;
     virtual DrAffinityRef GetAffinity(int partitionIndex) DROVERRIDE;
     virtual DrString GetURIForRead(int partitionIndex, DrResourcePtr runningResource) DROVERRIDE;
 
@@ -47,11 +48,13 @@ private:
 #ifdef _MANAGED
     array<System::String^>^ m_fileNameArray;
     HdfsInstance^           m_hdfsInstance;
+    System::String^         m_error;
 #else 
     HdfsBridgeNative::Instance* m_hdfsInstance;
     DrString                m_hostname;
     int                     m_portNum;
     const char**            m_fileNameArray;
+    DrString                m_error;
     
 #endif
 };
@@ -63,8 +66,9 @@ public:
     DrHdfsOutputStream();
 
     HRESULT Open(DrNativeString streamUri);
+    DrNativeString GetError();
 
-    virtual void SetNumberOfPartitions(int numberOfPartitions) DROVERRIDE;
+    virtual void SetNumberOfParts(int numberOfParts) DROVERRIDE;
     virtual DrString GetURIForWrite(
         int partitionIndex, 
         int id, 
@@ -73,15 +77,19 @@ public:
         DrResourcePtr runningResource,
         DrMetaDataRef metaData) DROVERRIDE;
 
-    virtual void DiscardUnusedPartition(
+    virtual void DiscardUnusedPart(
         int partitionIndex,
         int id, 
         int version, 
         int outputPort,
-        DrResourcePtr runningResource) DROVERRIDE;
+        DrResourcePtr runningResource,
+        bool jobSuccess) DROVERRIDE;
 
-    virtual HRESULT FinalizeSuccessfulPartitions(
-        DrOutputPartitionArrayRef partitionArray) DROVERRIDE;
+    virtual HRESULT FinalizeSuccessfulParts(
+        DrOutputPartitionArrayRef partitionArray,
+        DrStringR errorText) DROVERRIDE;
+
+    virtual HRESULT DiscardFailedStream(DrStringR errorText) DROVERRIDE;
 
     virtual void ExtendLease(DrTimeInterval) DROVERRIDE;
 
@@ -90,9 +98,11 @@ private:
 #ifdef _MANAGED
     System::String^    m_baseUri;
     HdfsInstance^      m_hdfsInstance;
+    System::String^    m_error;
 #else 
     HdfsBridgeNative::Instance* m_hdfsInstance;
     DrString           m_baseUri;
+    DrString           m_error;
 #endif
 };
-DRREF(DrPartitionOutputStream);
+DRREF(DrHdfsOutputStream);

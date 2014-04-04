@@ -74,11 +74,11 @@ void DrCriticalSectionBase::Enter( PCSTR functionName, PCSTR fileName, UINT line
 
     Int32 entryCount = -1;
     Int32 contentionCount = -1;
-    if ( DebugInfo != NULL )
-    {
-        entryCount = (Int32)DebugInfo->EntryCount;
-        contentionCount = (Int32)DebugInfo->ContentionCount;
-    }
+//    if ( DebugInfo != NULL )
+//    {
+//        entryCount = (Int32)DebugInfo->EntryCount;
+//        contentionCount = (Int32)DebugInfo->ContentionCount;
+//    }
 
     _lastFunctionName = functionName;
     _lastFileName = fileName;
@@ -124,11 +124,11 @@ void DrCriticalSectionBase::Leave( PCSTR functionName, PCSTR fileName, UINT line
 
     Int32 entryCount = -1;
     Int32 contentionCount = -1;
-    if ( DebugInfo != NULL )
-    {
-        entryCount = (Int32)DebugInfo->EntryCount;
-        contentionCount = (Int32)DebugInfo->ContentionCount;
-    }
+//    if ( DebugInfo != NULL )
+//    {
+//        entryCount = (Int32)DebugInfo->EntryCount;
+//        contentionCount = (Int32)DebugInfo->ContentionCount;
+//    }
 
     if ( tms > _logHeldTooLongTimeoutMs )
     {

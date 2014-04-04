@@ -148,6 +148,36 @@ void RChannelBufferDataDefault::ProcessingComplete(RChannelBufferPrefetchInfo*
     m_parent->ReturnBuffer(this);
 }
 
+
+RChannelBufferDataSettableOffset::
+    RChannelBufferDataSettableOffset(DryadLockedMemoryBuffer* dataBuffer,
+                                     RChannelBufferDefaultHandler* parent) :
+        RChannelBufferDataDefault(dataBuffer, RCHANNEL_BUFFER_OFFSET_UNDEFINED, parent)
+{
+}
+
+RChannelBufferDataSettableOffset::~RChannelBufferDataSettableOffset()
+{
+}
+
+RChannelBufferDataSettableOffset*
+    RChannelBufferDataSettableOffset::Create(DryadLockedMemoryBuffer* dataBuffer,
+                                             RChannelBufferDefaultHandler* parent)
+{
+    return new RChannelBufferDataSettableOffset(dataBuffer, parent);
+}
+
+UInt64 RChannelBufferDataSettableOffset::GetOffset()
+{
+    return m_startOffset;
+}
+
+void RChannelBufferDataSettableOffset::SetOffset(UInt64 offset)
+{
+    m_startOffset = offset;
+}
+
+
 RChannelBufferMarker::RChannelBufferMarker(RChannelBufferType type,
                                            RChannelItem* item) :
     RChannelBuffer(type)

@@ -69,5 +69,5 @@ private:
     HANDLE*           m_threadHandle;
     DWORD             m_numQueuedWakeUps;
 
-    CRITSEC           m_baseDR;
+    CRITSEC           m_baseCS;
 };

@@ -20,8 +20,8 @@ limitations under the License.
 
 #pragma once
 
-DRDECLARECLASS(DrXCompute);
-DRREF(DrXCompute);
+DRDECLARECLASS(DrCluster);
+DRREF(DrCluster);
 
 // DrProcessState is also in Java class DryadAppMaster 
 DRENUM(DrProcessState)
@@ -30,6 +30,7 @@ DRENUM(DrProcessState)
     DPS_Initializing,
     DPS_Scheduling,
     DPS_Starting,
+    DPS_Created,
     DPS_Running,
     DPS_Completed,
     DPS_Failed,
@@ -51,14 +52,8 @@ public:
 
     virtual void CloseHandle() DRABSTRACT;
     virtual DrString GetHandleIdAsString() DRABSTRACT;
-    virtual DrProcessState GetState(HRESULT& reason) DRABSTRACT;
-    virtual DrString GetFileURIBase() DRABSTRACT;
-
-    void SetAssignedNode(DrResourcePtr);
-    DrResourcePtr GetAssignedNode();
-
-private:
-    DrResourceRef   m_node;
+    virtual DrString GetDirectory() DRABSTRACT;
+    virtual DrResourcePtr GetAssignedNode() DRABSTRACT;
 };
 DRREF(DrProcessHandle);
 
@@ -125,28 +120,20 @@ DRBASECLASS(DrProcessStateRecord)
 public:
     DrProcessStateRecord();
     DrProcessStateRecordRef Clone();
+    void Assimilate(DrProcessStateRecordPtr newState);
 
     DrProcessHandleRef  m_process;
     DrProcessState      m_state;
     UINT32              m_exitCode;
     DrErrorRef          m_status;
-};
 
-DRDECLARECLASS(DrProcessStats);
-DRREF(DrProcessStats);
-DRBASECLASS(DrProcessStats)
-{
-public:
-    DrProcessStats();
-    bool Different(DrProcessStatsPtr other);
-    DrProcessStatsRef Clone();
-
-    DWORD               m_exitCode;
-    UINT32              m_pid;
+    DrDateTime          m_creatingTime;
     DrDateTime          m_createdTime;
     DrDateTime          m_beginExecutionTime;
     DrDateTime          m_terminatedTime;
 
+    /* currently not being collected, but easy to add
+    UINT32              m_pid;
     DrTimeInterval      m_userTime;
     DrTimeInterval      m_kernelTime;
     INT32               m_pageFaults;
@@ -154,6 +141,7 @@ public:
     UINT64              m_peakMemUsage;
     UINT64              m_memUsageSeconds;
     UINT64              m_totalIO;    
+    */
 };
 
 DRDECLARECLASS(DrProcess);
@@ -164,7 +152,6 @@ DRBASECLASS(DrProcessInfo)
 public:
     DrLockBox<DrProcess>        m_process;
     DrProcessStateRecordRef     m_state;
-    DrProcessStatsRef           m_statistics;
 
     DrDateTime                  m_jmProcessCreatedTime;
     DrDateTime                  m_jmProcessScheduledTime;
@@ -204,21 +191,6 @@ DRREF(DrPropertyMessage);
 
 typedef DrNotifier<DrPropertyStatusRef> DrPropertyNotifier;
 
-DRBASECLASS(DrProcessPropertyStatus)
-{
-public:
-    DrProcessHandleRef      m_process;
-    DrProcessStatsRef       m_statistics;
-    DrPropertyMessageRef    m_message;
-};
-DRREF(DrProcessPropertyStatus);
-
-typedef DrListener<DrProcessPropertyStatusRef> DrPPSListener;
-DRIREF(DrPPSListener);
-
-typedef DrMessage<DrProcessPropertyStatusRef> DrPPSMessage;
-DRREF(DrPPSMessage);
-
 typedef DrListener<DrProcessState> DrPStateListener;
 DRIREF(DrPStateListener);
 
@@ -226,11 +198,10 @@ typedef DrMessage<DrProcessState> DrPStateMessage;
 DRREF(DrPStateMessage);
 
 DRCLASS(DrProcess)
-    : public DrProcessNotifier, public DrPSRListener, public DrPPSListener, public DrErrorListener,
-      public DrPStateListener
+    : public DrProcessNotifier, public DrPSRListener, public DrErrorListener, public DrPStateListener
 {
 public:
-    DrProcess(DrXComputePtr xc, DrString name, DrString commandLine,
+    DrProcess(DrClusterPtr cluster, DrString name, DrString commandLine,
               DrProcessTemplatePtr processTemplate);
 
     void SetAffinityList(DrAffinityListPtr list);
@@ -239,17 +210,12 @@ public:
     DrString GetName();
 
     void Schedule();
-    void RequestProperty(UINT64 lastSeenVersion, DrString propertyName, DrTimeInterval maxBlockTime,
-                         DrPropertyListenerPtr listener);
-    void SendCommand(UINT64 version, DrString propertyName,
-                     DrString propertyDescription, DrByteArrayPtr propertyBlock);
+    void RequestProperty(UINT64 lastSeenVersion, DrString propertyName, DrPropertyListenerPtr listener);
+    void SendCommand(DrString propertyName, DrString propertyDescription, DrByteArrayPtr propertyBlock);
     void Terminate();
 
     /* DrPSRListener implementation */
     virtual void ReceiveMessage(DrProcessStateRecordRef message);
-
-    /* DrPPSListener implementation */
-    virtual void ReceiveMessage(DrProcessPropertyStatusRef message);
 
     /* DrErrorListener implementation, used for the result of sending a command */
     virtual void ReceiveMessage(DrErrorRef message);
@@ -260,7 +226,7 @@ public:
 private:
     void CloneAndDeliverNotification(bool delay);
 
-    DrXComputeRef          m_xc;
+    DrClusterRef           m_cluster;
     DrString               m_name;
     DrString               m_commandLine;
     DrProcessTemplateRef   m_template;

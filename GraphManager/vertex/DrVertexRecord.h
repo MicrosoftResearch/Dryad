@@ -129,6 +129,8 @@ DRBASECLASS(DrVertexInfo)
 {
 public:
     DrString                         m_name;
+    DrString                         m_stageName;
+    int                              m_partInStage;
     DrVertexState                    m_state;
     DrVertexStatusRef                m_info;
     DrVertexExecutionStatisticsRef   m_statistics;
@@ -151,13 +153,9 @@ DRBASECLASS(DrVertexTemplate)
 public:
     DrVertexTemplate();
 
-    void SetStatusBlockTime(DrTimeInterval delay);
-    DrTimeInterval GetStatusBlockTime();
-
     DrVertexListenerIRefListPtr GetListenerList();
 
 private:
-    DrTimeInterval                m_statusBlockTime;
     DrVertexListenerIRefListRef   m_listenerList;
 };
 DRREF(DrVertexTemplate);
@@ -196,7 +194,7 @@ DRREF(DrActiveVertex);
 DRCLASS(DrVertexRecord) : public DrVertexNotifier, public DrPropertyListener
 {
 public:
-    DrVertexRecord(DrXComputePtr xcompute, DrActiveVertexPtr parent, DrCohortProcessPtr cohort,
+    DrVertexRecord(DrClusterPtr cluster, DrActiveVertexPtr parent, DrCohortProcessPtr cohort,
                    DrVertexVersionGeneratorPtr generator, DrVertexTemplatePtr vertexTemplate);
 
     void Discard();

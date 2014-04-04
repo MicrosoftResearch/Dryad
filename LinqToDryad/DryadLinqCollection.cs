@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -71,8 +68,9 @@ namespace Microsoft.Research.DryadLinq.Internal
         public override bool Equals(object obj)
         {
             if (!(obj is IndexedValue<T>))
+            {
                 return false;
-
+            }
             return this.Equals((IndexedValue<T>)obj);
         }
 
@@ -87,12 +85,12 @@ namespace Microsoft.Research.DryadLinq.Internal
         }    
     }
 
-    public struct HpcLinqGrouping<K, T> : IGrouping<K, T>
+    public struct DryadLinqGrouping<K, T> : IGrouping<K, T>
     {
         private K m_key;
         private IEnumerable<T> m_elems;
 
-        public HpcLinqGrouping(K key, IEnumerable<T> elems)
+        public DryadLinqGrouping(K key, IEnumerable<T> elems)
         {
             this.m_key = key;
             this.m_elems = elems;
@@ -124,13 +122,15 @@ namespace Microsoft.Research.DryadLinq.Internal
         protected const int ChunkSize = (1 << 21);
 
         private TElement[][] m_elements;
+        private TElement[] m_curChunk;
         private Int32 m_pos1;
         private Int32 m_pos2;
 
         public BigCollection()
         {
             this.m_elements = new TElement[4][];
-            this.m_elements[0] = new TElement[2];
+            this.m_elements[0] = new TElement[256];
+            this.m_curChunk = this.m_elements[0];
             this.m_pos1 = 0;
             this.m_pos2 = 0;
         }
@@ -148,7 +148,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         
         public void Add(TElement elem)
         {
-            if (this.m_pos2 == this.m_elements[this.m_pos1].Length)
+            if (this.m_pos2 == this.m_curChunk.Length)
             {
                 if (this.m_pos2 == ChunkSize)
                 {
@@ -168,9 +168,10 @@ namespace Microsoft.Research.DryadLinq.Internal
                     Array.Copy(this.m_elements[this.m_pos1], 0, newElems, 0, this.m_pos2);
                     this.m_elements[this.m_pos1] = newElems;
                 }
+                this.m_curChunk = this.m_elements[this.m_pos1];
             }
 
-            this.m_elements[this.m_pos1][this.m_pos2] = elem;
+            this.m_curChunk[this.m_pos2] = elem;
             this.m_pos2++;
         }
 
@@ -194,15 +195,16 @@ namespace Microsoft.Research.DryadLinq.Internal
         {
             for (int i = 0; i < this.m_pos1; i++)
             {
-                TElement[] elems = this.m_elements[i];
-                for (int j = 0; j < elems.Length; j++)
+                TElement[] chunk = this.m_elements[i];
+                for (int j = 0; j < chunk.Length; j++)
                 {
-                    yield return elems[j];
+                    yield return chunk[j];
                 }
             }
+            TElement[] lastChunk = this.m_elements[this.m_pos1];
             for (int i = 0; i < this.m_pos2; i++)
             {
-                yield return this.m_elements[this.m_pos1][i];
+                yield return lastChunk[i];
             }
         }
 
@@ -261,7 +263,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                 TValue value;
                 if (!this.TryGetValue(key, out value))
                 {
-                    throw new DryadLinqException(HpcLinqErrorCode.KeyNotFound, SR.KeyNotFound);
+                    throw new DryadLinqException(DryadLinqErrorCode.KeyNotFound, SR.KeyNotFound);
                 }
                 return value;
             }
@@ -330,7 +332,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                 {
                     if (this.m_count >= MaxCount)
                     {
-                        throw new DryadLinqException(HpcLinqErrorCode.TooManyItems, SR.TooManyItems);
+                        throw new DryadLinqException(DryadLinqErrorCode.TooManyItems, SR.TooManyItems);
                     }
                     this.m_pos1++;
                     this.m_pos2 = 0;
@@ -767,7 +769,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                 {
                     if (this.m_count >= MaxCount)
                     {
-                        throw new DryadLinqException(HpcLinqErrorCode.TooManyItems, SR.TooManyItems);
+                        throw new DryadLinqException(DryadLinqErrorCode.TooManyItems, SR.TooManyItems);
                     }
                     this.m_pos1++;
                     this.m_pos2 = 0;
@@ -1143,7 +1145,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 if (elemCnt >= 0x800000)
                 {
-                    throw new DryadLinqException(HpcLinqErrorCode.TooManyElementsBeforeReduction,
+                    throw new DryadLinqException(DryadLinqErrorCode.TooManyElementsBeforeReduction,
                                                SR.TooManyElementsBeforeReduction);
                 }
                 TElement[] newElems = new TElement[elemCnt * 2];

@@ -20,6 +20,23 @@ limitations under the License.
 
 #pragma once
 
-#include <DrStageHeaders.h>
+DRCLASS(DrIReporter abstract) : public DrCritSec, public DrProcessListener, public DrVertexListener,
+    public DrVertexTopologyReporter
+{
+public:
+    /* the DrProcessListener implementation */
+    virtual void ReceiveMessage(DrProcessInfoRef info) DRABSTRACT;
 
-#include <DrArtemisLegacyReporting.h>
+    /* the DrVertexListener implementation */
+    virtual void ReceiveMessage(DrVertexInfoRef info) DRABSTRACT;
+
+    /* the DrVertexTopologyReporter implementation */
+    virtual void ReportFinalTopology(DrVertexPtr vertex, DrResourcePtr runningMachine,
+                                     DrTimeInterval runningTime) DRABSTRACT;
+
+    virtual void ReportStart(DrDateTime startTime) DRABSTRACT;
+    virtual void ReportStop(UINT exitCode, DrNativeString errorString, DrDateTime stopTime) DRABSTRACT;
+};
+DRREF(DrIReporter);
+
+DRMAKEARRAYLIST(DrIReporterRef);

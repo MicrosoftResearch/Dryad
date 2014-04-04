@@ -193,7 +193,7 @@ bool DryadMetaData::Append(DryadMTag* tag, bool allowDuplicateNames)
     bool appended = true;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         if (!allowDuplicateNames)
         {
@@ -221,12 +221,12 @@ void DryadMetaData::AppendMetaDataTags(DryadMetaData* metaData,
     TagListIter endIter;
 
     {
-        AutoCriticalSection outerAcs(&(metaData->m_baseDR));
+        AutoCriticalSection outerAcs(&(metaData->m_baseCS));
 
         TagListIter iter = metaData->LookUpInSequence(NULL, &endIter);
 
         {
-            AutoCriticalSection acs(&m_baseDR);
+            AutoCriticalSection acs(&m_baseCS);
 
             while (iter != endIter)
             {
@@ -244,7 +244,7 @@ bool DryadMetaData::Replace(DryadMTag* newTag, DryadMTag* oldTag)
     bool replaced = false;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(oldTag->GetTagValue() == newTag->GetTagValue());
 
@@ -271,7 +271,7 @@ bool DryadMetaData::Remove(DryadMTag* tag)
     bool removed = false;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         TagMapIter mIter = m_elementMap.find(tag->GetTagValue());
         while (mIter != m_elementMap.end() &&
@@ -304,7 +304,7 @@ DryadMTag* DryadMetaData::LookUpTag(UInt16 enumId)
     DryadMTag* tag = NULL;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         TagMapIter iter = m_elementMap.find(enumId);
         if (iter != m_elementMap.end())
@@ -363,7 +363,7 @@ void DryadMetaData::Clone(DryadMetaDataRef* dstMetaData)
     TagListIter lIter;
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         for (lIter = m_elementList.begin();
              lIter != m_elementList.end();
@@ -427,7 +427,7 @@ const char* DryadMetaData::GetErrorString()
 void DryadMetaData::Serialize(DrMemoryWriter* writer)
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         if (m_cachedSerialization.Ptr() != NULL)
         {

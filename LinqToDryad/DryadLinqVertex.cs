@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -39,15 +36,14 @@ using System.Data.SqlClient;
 using System.Collections.ObjectModel;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
-
 using Microsoft.Research.DryadLinq;
 
 namespace Microsoft.Research.DryadLinq.Internal
 {
     // This class contains the generic vertex code for each query operation
-    // supported by HpcLinq. We hope to support most of the LINQ operators.
+    // supported by DryadLinq. We hope to support most of the LINQ operators.
     // Applications can add their own vertex method using extension methods.
-    public static class HpcLinqVertex
+    public static class DryadLinqVertex
     {
         public static bool s_multiThreading = true; //vertex code will set this at runtime. 
 
@@ -74,7 +70,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                                           Func<TSource, bool> predicate,
                                                           bool orderPreserving)
         {
-            if(s_multiThreading)
+            if (s_multiThreading)
             {
                 return source.ExtendParallelPipeline(s => s.Where(predicate), orderPreserving);
             }
@@ -95,7 +91,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                                               Func<TSource, long, bool> predicate,
                                                               bool orderPreserving)
         {
-            return HpcLinqEnumerable.LongWhere(source, predicate);
+            return DryadLinqEnumerable.LongWhere(source, predicate);
         }
 
         // Operator: Select        
@@ -127,7 +123,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                          Func<TSource, long, TResult> selector,
                                          bool orderPreserving)
         {
-            return HpcLinqEnumerable.LongSelect(source, selector);
+            return DryadLinqEnumerable.LongSelect(source, selector);
         }
 
         // Operator: SelectMany
@@ -184,7 +180,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                              Func<TSource, long, IEnumerable<TResult>> collectionSelector,
                                              bool orderPreserving)
         {
-            return HpcLinqEnumerable.LongSelectMany(source, collectionSelector);
+            return DryadLinqEnumerable.LongSelectMany(source, collectionSelector);
         }
 
         public static IEnumerable<TResult>
@@ -193,7 +189,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                              Func<TSource, TResult, TResult> resultSelector,
                                              bool orderPreserving)
         {
-            return HpcLinqEnumerable.LongSelectMany(source, collectionSelector, resultSelector);
+            return DryadLinqEnumerable.LongSelectMany(source, collectionSelector, resultSelector);
         }
 
         // Operator: Zip
@@ -260,7 +256,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static IEnumerable<TSource>
             LongSkipWhile<TSource>(IEnumerable<TSource> source,
-                                        Func<TSource, long, bool> predicate)
+                                   Func<TSource, long, bool> predicate)
         {
             long index = -1;
             bool yielding = false;
@@ -294,11 +290,12 @@ namespace Microsoft.Research.DryadLinq.Internal
                                 IComparer<TKey> comparer,
                                 bool isDescending,
                                 bool isIdKeySelector,
-                                HpcLinqFactory<TSource> factory)
+                                DryadLinqFactory<TSource> factory)
         {
             if (s_multiThreading)
             {
-                return new ParallelSort<TSource, TKey>(source, keySelector, comparer, isDescending, isIdKeySelector, factory);
+                return new ParallelSort<TSource, TKey>(
+                         source, keySelector, comparer, isDescending, isIdKeySelector, factory);
             }
             else
             {
@@ -322,8 +319,8 @@ namespace Microsoft.Research.DryadLinq.Internal
             IMultiEnumerable<TSource> msource = source as IMultiEnumerable<TSource>;
             if (msource == null)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.SourceOfMergesortMustBeMultiEnumerable,
-                                           SR.SourceOfMergesortMustBeMultiEnumerable);
+                throw new DryadLinqException(DryadLinqErrorCode.SourceOfMergesortMustBeMultiEnumerable,
+                                             SR.SourceOfMergesortMustBeMultiEnumerable);
             }
             if (msource.NumberOfInputs == 1)
             {
@@ -355,8 +352,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                 readers[i] = source[i].GetEnumerator();
             }
 
-            DryadLinqLog.Add("Sequential MergeSort started reading at {0}",
-                           DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+            DryadLinqLog.AddInfo("Sequential MergeSort started reading at {0}",
+                                 DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
             TSource[] elems = new TSource[readers.Length];
             TKey[] keys = new TKey[readers.Length];
@@ -416,8 +413,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                 }
             }
             
-            DryadLinqLog.Add("Sequential MergeSort ended reading at {0}",
-                           DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+            DryadLinqLog.AddInfo("Sequential MergeSort ended reading at {0}",
+                                 DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
         }
 
         // Operator: ThenBy        
@@ -427,7 +424,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                   IComparer<TKey> comparer,
                                   bool isDescending)
         {
-            throw new DryadLinqException(HpcLinqErrorCode.ThenByNotSupported, SR.ThenByNotSupported);
+            throw new DryadLinqException(DryadLinqErrorCode.ThenByNotSupported, SR.ThenByNotSupported);
         }
 
         // Operator: GroupBy
@@ -489,8 +486,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                               Func<TResult, TElement, TResult> accumulator,
                               IEqualityComparer<TKey> comparer)
         {
-            DryadLinqLog.Add("Sequential HashGroupBy (Acc) started reading at {0}",
-                           DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+            DryadLinqLog.AddInfo("Sequential HashGroupBy (Acc) started reading at {0}",
+                                 DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
             
             AccumulateDictionary<TKey, TElement, TResult>
                 groups = new AccumulateDictionary<TKey, TElement, TResult>(comparer, 16411, seed, accumulator);
@@ -499,8 +496,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                 groups.Add(keySelector(item), elementSelector(item));
             }
 
-            DryadLinqLog.Add("Sequential HashGroupBy (Acc) ended reading at {0}",
-                           DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+            DryadLinqLog.AddInfo("Sequential HashGroupBy (Acc) ended reading at {0}",
+                                 DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
             return groups;
         }
@@ -579,6 +576,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
+        // Operator: OrderedGroupBy        
         public static IEnumerable<Pair<TKey, TResult>>
             OrderedGroupBy<TSource, TKey, TResult>(IEnumerable<TSource> source,
                                                    Func<TSource, TKey> keySelector,
@@ -619,8 +617,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                                  Func<TResult, TElement, TResult> accumulator,
                                  IEqualityComparer<TKey> comparer)
         {
-            DryadLinqLog.Add("Sequential OrderedGroupBy (Acc) started reading at {0}",
-                           DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+            DryadLinqLog.AddInfo("Sequential OrderedGroupBy (Acc) started reading at {0}",
+                                 DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
             using (IEnumerator<TSource> elems = source.GetEnumerator())
             {
@@ -647,8 +645,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                 }
             }
             
-            DryadLinqLog.Add("Sequential OrderedGroupBy (Acc) ended reading at {0}",
-                           DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")); 
+            DryadLinqLog.AddInfo("Sequential OrderedGroupBy (Acc) ended reading at {0}",
+                                 DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff")); 
         }
 
         public static IEnumerable<IGrouping<TKey, TSource>>
@@ -661,8 +659,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                 comparer = EqualityComparer<TKey>.Default;
             }
 
-            DryadLinqLog.Add("Sequential OrderedGroupBy started reading at {0}",
-                           DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));            
+            DryadLinqLog.AddInfo("Sequential OrderedGroupBy started reading at {0}",
+                                 DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));            
 
             using (IEnumerator<TSource> elems = source.GetEnumerator())
             {
@@ -685,8 +683,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                 }
             }
 
-            DryadLinqLog.Add("Sequential OrderedGroupBy ended reading at {0}",
-                           DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));            
+            DryadLinqLog.AddInfo("Sequential OrderedGroupBy ended reading at {0}",
+                                 DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));            
         }
 
         public static IEnumerable<IGrouping<TKey, TElement>>
@@ -700,8 +698,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                 comparer = EqualityComparer<TKey>.Default;
             }
 
-            DryadLinqLog.Add("Sequential OrderedGroupBy started reading at {0}",
-                           DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));            
+            DryadLinqLog.AddInfo("Sequential OrderedGroupBy started reading at {0}",
+                                 DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));            
 
             using (IEnumerator<TSource> elems = source.GetEnumerator())
             {
@@ -724,8 +722,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                 }
             }
 
-            DryadLinqLog.Add("Sequential OrderedGroupBy ended reading at {0}",
-                           DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));            
+            DryadLinqLog.AddInfo("Sequential OrderedGroupBy ended reading at {0}",
+                                 DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));            
         }
 
         public static IEnumerable<TResult>
@@ -782,14 +780,14 @@ namespace Microsoft.Research.DryadLinq.Internal
                 comparer = EqualityComparer<TKey>.Default;
             }
 
-            DryadLinqLog.Add("Sequential HashJoin started reading at {0}",
-                           DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+            DryadLinqLog.AddInfo("Sequential HashJoin started reading at {0}",
+                                 DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
             
             bool hashInner = true;
-            if ((outer is HpcVertexReader<TOuter>) && (inner is HpcVertexReader<TInner>))
+            if ((outer is DryadLinqVertexReader<TOuter>) && (inner is DryadLinqVertexReader<TInner>))
             {
-                Int64 outerLen = ((HpcVertexReader<TOuter>)outer).GetTotalLength();
-                Int64 innerLen = ((HpcVertexReader<TInner>)inner).GetTotalLength();
+                Int64 outerLen = ((DryadLinqVertexReader<TOuter>)outer).GetTotalLength();
+                Int64 innerLen = ((DryadLinqVertexReader<TInner>)inner).GetTotalLength();
                 if (innerLen >= 0 && outerLen >= 0)
                 {
                     hashInner = innerLen <= outerLen;
@@ -840,8 +838,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                 }
             }
 
-            DryadLinqLog.Add("Sequential HashJoin ended reading at {0}",
-                           DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));            
+            DryadLinqLog.AddInfo("Sequential HashJoin ended reading at {0}",
+                                 DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));            
         }
         
         // Perform a hash join.
@@ -946,8 +944,8 @@ namespace Microsoft.Research.DryadLinq.Internal
         {        
             comparer = TypeSystem.GetComparer<TKey>(comparer);
 
-            DryadLinqLog.Add("Sequential MergeJoin started reading at {0}",
-                           DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));            
+            DryadLinqLog.AddInfo("Sequential MergeJoin started reading at {0}",
+                                 DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));            
 
             IEnumerator<TOuter> outerEnum = outer.GetEnumerator();
             IEnumerator<TInner> innerEnum = inner.GetEnumerator();
@@ -1025,8 +1023,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                 }
             }
 
-            DryadLinqLog.Add("Sequential MergeJoin ended reading at {0}",
-                           DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));            
+            DryadLinqLog.AddInfo("Sequential MergeJoin ended reading at {0}",
+                                 DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));            
         }
 
         internal static IEnumerable<TResult>
@@ -1165,8 +1163,8 @@ namespace Microsoft.Research.DryadLinq.Internal
         {
             comparer = TypeSystem.GetComparer<TKey>(comparer);
 
-            DryadLinqLog.Add("Sequential MergeGroupJoin started reading at {0}",
-                           DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));            
+            DryadLinqLog.AddInfo("Sequential MergeGroupJoin started reading at {0}",
+                                 DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));            
 
             IEnumerator<TOuter> outerEnum = outer.GetEnumerator();
             IEnumerator<TInner> innerEnum = inner.GetEnumerator();
@@ -1220,8 +1218,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                 }
             }
 
-            DryadLinqLog.Add("Sequential MergeGroupJoin ended reading at {0}",
-                           DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));            
+            DryadLinqLog.AddInfo("Sequential MergeGroupJoin ended reading at {0}",
+                                 DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));            
         }
 
         // Operator: Concat
@@ -1793,6 +1791,14 @@ namespace Microsoft.Research.DryadLinq.Internal
             return System.Linq.Enumerable.Aggregate(source, seed, aggregator);
         }
 
+        public static TAccumulate
+            Aggregate<TSource, TAccumulate>(IEnumerable<TSource> source,
+                                            Func<TAccumulate> seedFunc,
+                                            Func<TAccumulate, TSource, TAccumulate> aggregator)
+        {
+            return System.Linq.Enumerable.Aggregate(source, seedFunc(), aggregator);
+        }
+
         public static TResult
             Aggregate<TSource, TAccumulate, TResult>(IEnumerable<TSource> source,
                                                      TAccumulate seed,
@@ -1802,103 +1808,132 @@ namespace Microsoft.Research.DryadLinq.Internal
             return System.Linq.Enumerable.Aggregate(source, seed, aggregator, resultSelector);
         }
 
-        // If the aggregate function is associative...
-        public static AggregateValue<TSource>
+        public static TResult
+            Aggregate<TSource, TAccumulate, TResult>(IEnumerable<TSource> source,
+                                                     Func<TAccumulate> seedFunc,
+                                                     Func<TAccumulate, TSource, TAccumulate> aggregator,
+                                                     Func<TAccumulate, TResult> resultSelector)
+        {
+            return System.Linq.Enumerable.Aggregate(source, seedFunc(), aggregator, resultSelector);
+        }
+
+        // If the aggregate function is associative, AssocAggregate is the first/second stage
+        // of the aggregation.
+        public static IEnumerable<TSource>
             AssocAggregate<TSource>(IEnumerable<TSource> source,
+                                    Func<TSource, TSource, TSource> aggregator,
+                                    Func<TSource, TSource, TSource> combiner)
+        {
+            TSource result = default(TSource);
+            var partialResults = source.ExtendParallelPipeline(s => AggregateInner(s, aggregator), false);
+            using (IEnumerator<TSource> elems = partialResults.GetEnumerator())
+            {
+                bool hasElem = elems.MoveNext();
+                if (hasElem)
+                {
+                    result = elems.Current;
+                    while (elems.MoveNext())
+                    {
+                        result = combiner(result, elems.Current);
+                    }
+                }
+                if (hasElem) yield return result;
+            }
+        }
+
+        private static IEnumerable<TSource>
+            AggregateInner<TSource>(IEnumerable<TSource> source,
                                     Func<TSource, TSource, TSource> aggregator)
         {
             TSource result = default(TSource);
-            long count = 0;
             using (IEnumerator<TSource> elems = source.GetEnumerator())
             {
-                if (elems.MoveNext())
+                bool hasElem = elems.MoveNext();
+                if (hasElem)
                 {
                     result = elems.Current;
-                    count = 1;
                     while (elems.MoveNext())
                     {
                         result = aggregator(result, elems.Current);
                     }
                 }
+                if (hasElem) yield return result;
             }
-            return new AggregateValue<TSource>(result, count);
+        }
+        
+        public static IEnumerable<TAccumulate>
+            AssocAggregate<TSource, TAccumulate>(IEnumerable<TSource> source,
+                                                 TAccumulate seed,
+                                                 Func<TAccumulate, TSource, TAccumulate> aggregator,
+                                                 Func<TAccumulate, TAccumulate, TAccumulate> combiner)
+        {
+            TAccumulate result = seed;
+            var partialResults = source.ExtendParallelPipeline(s => AggregateInner(s, seed, aggregator), false);
+            foreach (var elem in partialResults)
+            {
+                result = combiner(result, elem);
+            }
+            yield return result;
         }
 
-        public static AggregateValue<TAccumulate>
-            AssocAggregate<TSource, TAccumulate>(IEnumerable<TSource> source,
+        private static IEnumerable<TAccumulate>
+            AggregateInner<TSource, TAccumulate>(IEnumerable<TSource> source,
                                                  TAccumulate seed,
                                                  Func<TAccumulate, TSource, TAccumulate> aggregator)
         {
             TAccumulate result = seed;
-            long count = 1;
             foreach (TSource elem in source)
             {
                 result = aggregator(result, elem);
             }
-            return new AggregateValue<TAccumulate>(result, count);
+            yield return result;
         }
-
-        /// <summary>
-        /// This is an aggregation function used for intermediate layers in the aggregation tree.
-        /// This function is just like AssocAggregate, but it retunrs a different type.
-        /// </summary>
-        /// <typeparam name="TSource">Type of elements to aggregate.</typeparam>
-        /// <param name="source">A collection of AggregateValue objects to aggregate.</param>
-        /// <param name="combiner">A combiner function which perform aggregation on TSource</param>
-        /// <returns>Another AggregateValue.</returns>
-        public static AggregateValue<TSource>
-            AssocTreeAggregate<TSource>(IEnumerable<AggregateValue<TSource>> source,
-                                        Func<TSource, TSource, TSource> combiner)
+        
+        public static IEnumerable<TAccumulate>
+            AssocAggregate<TSource, TAccumulate>(IEnumerable<TSource> source,
+                                                 Func<TAccumulate> seedFunc,
+                                                 Func<TAccumulate, TSource, TAccumulate> aggregator,
+                                                 Func<TAccumulate, TAccumulate, TAccumulate> combiner)
         {
-            TSource result = default(TSource);
-            bool hasElem = false;
-            long count = 0;
-            foreach (var elem in source)
+            TAccumulate result = seedFunc();
+            var partialResults = source.ExtendParallelPipeline(s => AggregateInner(s, seedFunc, aggregator), false);
+            foreach (var elem in partialResults)
             {
-                if (elem.Count > 0)
-                {
-                    if (hasElem)
-                    {
-                        result = combiner(result, elem.Value);
-                    }
-                    else
-                    {
-                        result = elem.Value;
-                        hasElem = true;
-                    }
-                    count += elem.Count;
-                }
+                result = combiner(result, elem);
             }
-            return new AggregateValue<TSource>(result, count);
+            yield return result;
         }
 
+        private static IEnumerable<TAccumulate>
+            AggregateInner<TSource, TAccumulate>(IEnumerable<TSource> source,
+                                                 Func<TAccumulate> seedFunc,
+                                                 Func<TAccumulate, TSource, TAccumulate> aggregator)
+        {
+            TAccumulate result = seedFunc();
+            foreach (TSource elem in source)
+            {
+                result = aggregator(result, elem);
+            }
+            yield return result;
+        }
+
+        // If the aggregate function is associative, we use the following two operators for
+        // the final aggregation.
         public static TSource
-            AssocAggregate<TSource>(IEnumerable<AggregateValue<TSource>> source,
+            AssocAggregate<TSource>(IEnumerable<TSource> source,
                                     Func<TSource, TSource, TSource> combiner)
         {
-            TSource result = default(TSource);
-            bool hasElem = false;
-            foreach (var elem in source)
+            IEnumerable<TSource> result = AssocAggregate(source, combiner, combiner);
+            using (IEnumerator<TSource> elems = result.GetEnumerator())
             {
-                if (elem.Count > 0)
-                {
-                    if (hasElem)
-                    {
-                        result = combiner(result, elem.Value);
-                    }
-                    else
-                    {
-                        result = elem.Value;
-                        hasElem = true;
-                    }
-                }
+                bool hasElem = elems.MoveNext();
+                if (hasElem) return elems.Current;
+                throw new DryadLinqException(DryadLinqErrorCode.AggregateNoElements, SR.AggregateNoElements);
             }
-            if (hasElem) return result;
-            throw new DryadLinqException(HpcLinqErrorCode.AggregateNoElements, SR.AggregateNoElements);
         }
 
         public static TResult
-            AssocAggregate<TSource, TResult>(IEnumerable<AggregateValue<TSource>> source,
+            AssocAggregate<TSource, TResult>(IEnumerable<TSource> source,
                                              Func<TSource, TSource, TSource> combiner,
                                              Func<TSource, TResult> resultSelector)
         {
@@ -1937,7 +1972,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 if (elem.Count > 0) return elem.Value;
             }
-            throw new DryadLinqException(HpcLinqErrorCode.FirstNoElementsFirst, SR.FirstNoElementsFirst);
+            throw new DryadLinqException(DryadLinqErrorCode.FirstNoElementsFirst, SR.FirstNoElementsFirst);
         }
 
         // Operator: FirstOrDefault
@@ -1978,8 +2013,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                     return new AggregateValue<TSource>(val, 1);
                 }
             }
-            throw new DryadLinqException(HpcLinqErrorCode.SingleMoreThanOneElement,
-                                       SR.SingleMoreThanOneElement);
+            throw new DryadLinqException(DryadLinqErrorCode.SingleMoreThanOneElement,
+                                         SR.SingleMoreThanOneElement);
         }
 
         public static AggregateValue<TSource>
@@ -2005,8 +2040,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                 {
                     if (count > 0)
                     {
-                        new DryadLinqException(HpcLinqErrorCode.SingleMoreThanOneElement,
-                                             SR.SingleMoreThanOneElement);
+                        new DryadLinqException(DryadLinqErrorCode.SingleMoreThanOneElement,
+                                               SR.SingleMoreThanOneElement);
                     }
                     count = 1;
                     theValue = elem.Value;
@@ -2026,8 +2061,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                 {
                     if (count > 0)
                     {
-                        new DryadLinqException(HpcLinqErrorCode.SingleMoreThanOneElement,
-                                             SR.SingleMoreThanOneElement);
+                        new DryadLinqException(DryadLinqErrorCode.SingleMoreThanOneElement,
+                                               SR.SingleMoreThanOneElement);
                     }
                     count = 1;
                     theValue = elem;
@@ -2045,15 +2080,15 @@ namespace Microsoft.Research.DryadLinq.Internal
                 {
                     if (result.Count > 0)
                     {
-                        throw new DryadLinqException(HpcLinqErrorCode.SingleMoreThanOneElement,
-                                                   SR.SingleMoreThanOneElement);
+                        throw new DryadLinqException(DryadLinqErrorCode.SingleMoreThanOneElement,
+                                                     SR.SingleMoreThanOneElement);
                     }
                     result = elem;
                 }
             }
             if (result.Count == 0)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.SingleNoElements, SR.SingleNoElements);
+                throw new DryadLinqException(DryadLinqErrorCode.SingleNoElements, SR.SingleNoElements);
             }
             return result.Value;
         }
@@ -2081,8 +2116,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                 {
                     if (result.Count > 0)
                     {
-                        throw new DryadLinqException(HpcLinqErrorCode.SingleMoreThanOneElement,
-                                                   SR.SingleMoreThanOneElement);
+                        throw new DryadLinqException(DryadLinqErrorCode.SingleMoreThanOneElement,
+                                                     SR.SingleMoreThanOneElement);
                     }
                     result = elem;
                 }
@@ -2163,7 +2198,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
             if (result.Count == 0)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.LastNoElements, SR.LastNoElements);
+                throw new DryadLinqException(DryadLinqErrorCode.LastNoElements, SR.LastNoElements);
             }
             return result.Value;
         }
@@ -2442,7 +2477,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         }
 
         public static int Sum<TSource>(IEnumerable<TSource> source,
-                                            Func<TSource, int> selector)
+                                       Func<TSource, int> selector)
         {
             if (s_multiThreading)
             {
@@ -2461,7 +2496,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         }
 
         public static int? Sum<TSource>(IEnumerable<TSource> source,
-                                             Func<TSource, int?> selector)
+                                        Func<TSource, int?> selector)
         {
             if (s_multiThreading)
             {
@@ -2483,7 +2518,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         }
 
         public static long Sum<TSource>(IEnumerable<TSource> source,
-                                             Func<TSource, long> selector)
+                                        Func<TSource, long> selector)
         {
             if (s_multiThreading)
             {
@@ -2502,7 +2537,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         }
 
         public static long? Sum<TSource>(IEnumerable<TSource> source,
-                                              Func<TSource, long?> selector)
+                                         Func<TSource, long?> selector)
         {
             if (s_multiThreading)
             {
@@ -2524,7 +2559,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         }
 
         public static float Sum<TSource>(IEnumerable<TSource> source,
-                                              Func<TSource, float> selector)
+                                         Func<TSource, float> selector)
         {
             if (s_multiThreading)
             {
@@ -2543,7 +2578,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         }
 
         public static float? Sum<TSource>(IEnumerable<TSource> source,
-                                               Func<TSource, float?> selector)
+                                          Func<TSource, float?> selector)
         {
             if (s_multiThreading)
             {
@@ -2565,7 +2600,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         }
 
         public static double Sum<TSource>(IEnumerable<TSource> source,
-                                               Func<TSource, double> selector)
+                                          Func<TSource, double> selector)
         {
             if (s_multiThreading)
             {
@@ -2584,7 +2619,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         }
 
         public static double? Sum<TSource>(IEnumerable<TSource> source,
-                                                Func<TSource, double?> selector)
+                                           Func<TSource, double?> selector)
         {
             if (s_multiThreading)
             {
@@ -2606,7 +2641,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         }
 
         public static decimal Sum<TSource>(IEnumerable<TSource> source,
-                                                Func<TSource, decimal> selector)
+                                           Func<TSource, decimal> selector)
         {
             if (s_multiThreading)
             {
@@ -2625,7 +2660,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         }
 
         public static decimal? Sum<TSource>(IEnumerable<TSource> source,
-                                                 Func<TSource, decimal?> selector)
+                                            Func<TSource, decimal?> selector)
         {
             if (s_multiThreading)
             {
@@ -2728,7 +2763,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
             if (!hasValue)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.MinNoElements, SR.MinNoElements);
+                throw new DryadLinqException(DryadLinqErrorCode.MinNoElements, SR.MinNoElements);
             }
             return value;
         }
@@ -2819,7 +2854,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
             if (!hasElem)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.MinNoElements, SR.MinNoElements);
+                throw new DryadLinqException(DryadLinqErrorCode.MinNoElements, SR.MinNoElements);
             }
             return value;
         }
@@ -2910,7 +2945,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
             if (!hasElem)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.MinNoElements, SR.MinNoElements);
+                throw new DryadLinqException(DryadLinqErrorCode.MinNoElements, SR.MinNoElements);
             }
             return value;
         }
@@ -3001,7 +3036,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
             if (!hasElem)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.MinNoElements, SR.MinNoElements);
+                throw new DryadLinqException(DryadLinqErrorCode.MinNoElements, SR.MinNoElements);
             }
             return value;
         }
@@ -3092,7 +3127,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
             if (!hasElem)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.MinNoElements, SR.MinNoElements);
+                throw new DryadLinqException(DryadLinqErrorCode.MinNoElements, SR.MinNoElements);
             }
             return value;
         }
@@ -3200,7 +3235,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
             if (!hasElem)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.MinNoElements, SR.MinNoElements);
+                throw new DryadLinqException(DryadLinqErrorCode.MinNoElements, SR.MinNoElements);
             }
             return value;
         }
@@ -3380,7 +3415,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
             if (!hasElem)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.MaxNoElements, SR.MaxNoElements);
+                throw new DryadLinqException(DryadLinqErrorCode.MaxNoElements, SR.MaxNoElements);
             }
             return value;
         }
@@ -3465,7 +3500,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
             if (!hasElem)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.MaxNoElements, SR.MaxNoElements);
+                throw new DryadLinqException(DryadLinqErrorCode.MaxNoElements, SR.MaxNoElements);
             }
             return value;
         }
@@ -3553,7 +3588,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
             if (!hasElem)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.MaxNoElements, SR.MaxNoElements);
+                throw new DryadLinqException(DryadLinqErrorCode.MaxNoElements, SR.MaxNoElements);
             }
             return value;
         }
@@ -3641,7 +3676,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
             if (!hasElem)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.MaxNoElements, SR.MaxNoElements);
+                throw new DryadLinqException(DryadLinqErrorCode.MaxNoElements, SR.MaxNoElements);
             }
             return value;
         }
@@ -3726,7 +3761,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
             if (!hasElem)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.MaxNoElements, SR.MaxNoElements);
+                throw new DryadLinqException(DryadLinqErrorCode.MaxNoElements, SR.MaxNoElements);
             }
             return value;
         }
@@ -3834,7 +3869,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
             if (!hasElem)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.MaxNoElements, SR.MaxNoElements);
+                throw new DryadLinqException(DryadLinqErrorCode.MaxNoElements, SR.MaxNoElements);
             }
             return value;
         }
@@ -4017,7 +4052,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
             if (count == 0)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.AverageNoElements, SR.AverageNoElements);
+                throw new DryadLinqException(DryadLinqErrorCode.AverageNoElements, SR.AverageNoElements);
             }
             return (double)sum / count;
         }
@@ -4302,7 +4337,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
             if (count == 0)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.AverageNoElements, SR.AverageNoElements);
+                throw new DryadLinqException(DryadLinqErrorCode.AverageNoElements, SR.AverageNoElements);
             }
             return sum / count;
         }
@@ -4412,7 +4447,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
             if (count == 0)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.AverageNoElements, SR.AverageNoElements);
+                throw new DryadLinqException(DryadLinqErrorCode.AverageNoElements, SR.AverageNoElements);
             }
             return sum / count;
         }
@@ -4473,61 +4508,61 @@ namespace Microsoft.Research.DryadLinq.Internal
         }
         
         public static AggregateValue<long> Average<TSource>(IEnumerable<TSource> source,
-                                                                 Func<TSource, int> selector)
+                                                            Func<TSource, int> selector)
         {
             return Average(Select(source, selector, false));
         }
 
         public static AggregateValue<long?> Average<TSource>(IEnumerable<TSource> source,
-                                                                  Func<TSource, int?> selector)
+                                                             Func<TSource, int?> selector)
         {
             return Average(Select(source, selector, false));
         }
 
         public static AggregateValue<long> Average<TSource>(IEnumerable<TSource> source,
-                                                                 Func<TSource, long> selector)
+                                                            Func<TSource, long> selector)
         {
             return Average(Select(source, selector, false));
         }
 
         public static AggregateValue<long?> Average<TSource>(IEnumerable<TSource> source,
-                                                                  Func<TSource, long?> selector)
+                                                             Func<TSource, long?> selector)
         {
             return Average(Select(source, selector, false));
         }
 
         public static AggregateValue<double> Average<TSource>(IEnumerable<TSource> source,
-                                                                   Func<TSource, float> selector)
+                                                              Func<TSource, float> selector)
         {
             return Average(Select(source, selector, false));
         }
 
         public static AggregateValue<double?> Average<TSource>(IEnumerable<TSource> source,
-                                                                    Func<TSource, float?> selector)
+                                                               Func<TSource, float?> selector)
         {
             return Average(Select(source, selector, false));
         }
 
         public static AggregateValue<double> Average<TSource>(IEnumerable<TSource> source,
-                                                                   Func<TSource, double> selector)
+                                                              Func<TSource, double> selector)
         {
             return Average(Select(source, selector, false));
         }
 
         public static AggregateValue<double?> Average<TSource>(IEnumerable<TSource> source,
-                                                                    Func<TSource, double?> selector)
+                                                               Func<TSource, double?> selector)
         {
             return Average(Select(source, selector, false));
         }
 
         public static AggregateValue<decimal> Average<TSource>(IEnumerable<TSource> source,
-                                                                    Func<TSource, decimal> selector)
+                                                               Func<TSource, decimal> selector)
         {
             return Average(Select(source, selector, false));
         }
 
         public static AggregateValue<decimal?> Average<TSource>(IEnumerable<TSource> source,
-                                                                     Func<TSource, decimal?> selector)
+                                                                Func<TSource, decimal?> selector)
         {
             return Average(Select(source, selector, false));
         }
@@ -4672,24 +4707,32 @@ namespace Microsoft.Research.DryadLinq.Internal
         // Operator: Apply
         public static IEnumerable<TResult>
             Apply<TSource, TResult>(IEnumerable<TSource> source,
-                                         Func<IEnumerable<TSource>, IEnumerable<TResult>> procFunc)
+                                    Func<IEnumerable<TSource>, IEnumerable<TResult>> procFunc)
         {
             return procFunc(source);
         }
 
         public static IEnumerable<TResult>
             Apply<TSource1, TSource2, TResult>(IEnumerable<TSource1> source1,
-                                                    IEnumerable<TSource2> source2,
-                                                    Func<IEnumerable<TSource1>, IEnumerable<TSource2>, IEnumerable<TResult>> procFunc)
+                                               IEnumerable<TSource2> source2,
+                                               Func<IEnumerable<TSource1>, IEnumerable<TSource2>, IEnumerable<TResult>> procFunc)
         {
             return procFunc(source1, source2);
         }
 
         public static IEnumerable<TSource>
             Apply<TSource>(IEnumerable<TSource>[] sources, 
-                                Func<IEnumerable<TSource>[], IEnumerable<TSource>> procFunc)
+                           Func<IEnumerable<TSource>[], IEnumerable<TSource>> procFunc)
         {
             return procFunc(sources);
+        }
+
+        public static IEnumerable<TResult>
+            Apply<TSource, TResult>(IEnumerable<TSource> source,
+                                    IEnumerable[] otherSources,
+                                    Func<IEnumerable<TSource>, IEnumerable[], IEnumerable<TResult>> procFunc)
+        {
+            return procFunc(source, otherSources);
         }
 
         public static IEnumerable<TResult>
@@ -4703,8 +4746,8 @@ namespace Microsoft.Research.DryadLinq.Internal
         // Operator: HashPartition
         public static void
             HashPartition<TSource>(IEnumerable<TSource> source,
-                                        IEqualityComparer<TSource> comparer,
-                                        HpcVertexWriter<TSource> sink)
+                                   IEqualityComparer<TSource> comparer,
+                                   DryadLinqVertexWriter<TSource> sink)
         {
             if (comparer == null)
             {
@@ -4723,9 +4766,9 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static void
             HashPartition<TSource, TResult>(IEnumerable<TSource> source,
-                                                 IEqualityComparer<TSource> comparer,
-                                                 Func<TSource, TResult> resultSelector,
-                                                 HpcVertexWriter<TResult> sink)
+                                            IEqualityComparer<TSource> comparer,
+                                            Func<TSource, TResult> resultSelector,
+                                            DryadLinqVertexWriter<TResult> sink)
         {
             if (comparer == null)
             {
@@ -4744,10 +4787,10 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static void
             HashPartition<TSource, TKey>(IEnumerable<TSource> source,
-                                              Func<TSource, TKey> keySelector,
-                                              bool isExpensive,
-                                              IEqualityComparer<TKey> comparer,
-                                              HpcVertexWriter<TSource> sink)
+                                         Func<TSource, TKey> keySelector,
+                                         bool isExpensive,
+                                         IEqualityComparer<TKey> comparer,
+                                         DryadLinqVertexWriter<TSource> sink)
         {
             if (s_multiThreading && isExpensive)
             {
@@ -4762,9 +4805,9 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         private static void
             HashPartition<TSource, TKey>(IEnumerable<TSource> source,
-                                              Func<TSource, TKey> keySelector,
-                                              IEqualityComparer<TKey> comparer,
-                                              HpcVertexWriter<TSource> sink)
+                                         Func<TSource, TKey> keySelector,
+                                         IEqualityComparer<TKey> comparer,
+                                         DryadLinqVertexWriter<TSource> sink)
         {
             if (comparer == null)
             {
@@ -4783,11 +4826,11 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static void
             HashPartition<TSource, TKey, TResult>(IEnumerable<TSource> source,
-                                                       Func<TSource, TKey> keySelector,
-                                                       bool isExpensive,
-                                                       IEqualityComparer<TKey> comparer,
-                                                       Func<TSource, TResult> resultSelector,
-                                                       HpcVertexWriter<TResult> sink)
+                                                  Func<TSource, TKey> keySelector,
+                                                  bool isExpensive,
+                                                  IEqualityComparer<TKey> comparer,
+                                                  Func<TSource, TResult> resultSelector,
+                                                  DryadLinqVertexWriter<TResult> sink)
         {
             if (s_multiThreading && isExpensive)
             {
@@ -4802,10 +4845,10 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         private static void
             HashPartition<TSource, TKey, TResult>(IEnumerable<TSource> source,
-                                                       Func<TSource, TKey> keySelector,
-                                                       IEqualityComparer<TKey> comparer,
-                                                       Func<TSource, TResult> resultSelector,
-                                                       HpcVertexWriter<TResult> sink)
+                                                  Func<TSource, TKey> keySelector,
+                                                  IEqualityComparer<TKey> comparer,
+                                                  Func<TSource, TResult> resultSelector,
+                                                  DryadLinqVertexWriter<TResult> sink)
         {
             if (comparer == null)
             {
@@ -4823,19 +4866,18 @@ namespace Microsoft.Research.DryadLinq.Internal
         }
         
         // Operator: RangePartition
-        
         // special case for keySelector=identityFunction
         public static void
             RangePartition<TSource>(IEnumerable<TSource> source,
-                                         IEnumerable<TSource> partitionKeys,
-                                         IComparer<TSource> comparer,
-                                         bool isDescending,
-                                         HpcVertexWriter<TSource> sink)
+                                    IEnumerable<TSource> partitionKeys,
+                                    IComparer<TSource> comparer,
+                                    bool isDescending,
+                                    DryadLinqVertexWriter<TSource> sink)
         {
             if (partitionKeys == null)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.RangePartitionKeysMissing,
-                                           SR.RangePartitionKeysMissing);
+                throw new DryadLinqException(DryadLinqErrorCode.RangePartitionKeysMissing,
+                                             SR.RangePartitionKeysMissing);
             }
             comparer = TypeSystem.GetComparer<TSource>(comparer);
             Int32 numOfPorts = (Int32)sink.NumberOfOutputs;
@@ -4851,9 +4893,9 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
             if (idx > keys.Length)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.RangePartitionInputOutputMismatch,
-                                           String.Format(SR.RangePartitionInputOutputMismatch,
-                                                         idx, numOfPorts));
+                throw new DryadLinqException(DryadLinqErrorCode.RangePartitionInputOutputMismatch,
+                                             String.Format(SR.RangePartitionInputOutputMismatch,
+                                                           idx, numOfPorts));
             }
             if (idx < keys.Length)
             {
@@ -4861,10 +4903,22 @@ namespace Microsoft.Research.DryadLinq.Internal
                 Array.Copy(keys, keys1, idx);
                 keys = keys1;
             }
-            foreach (TSource item in source)
+            if (s_multiThreading)
             {
-                int portNum = HpcLinqUtil.BinarySearch(keys, item, comparer, isDescending);
-                sink.WriteItem(item, portNum);
+                var source1 = source.ExtendParallelPipeline(
+                                    s => s.Select(x => new Pair<int, TSource>(DryadLinqUtil.BinarySearch(keys, x, comparer, isDescending), x)), false);
+                foreach (var item in source1)
+                {
+                    sink.WriteItem(item.Value, item.Key);
+                }
+            }
+            else
+            {
+                foreach (TSource item in source)
+                {
+                    int portNum = DryadLinqUtil.BinarySearch(keys, item, comparer, isDescending);
+                    sink.WriteItem(item, portNum);
+                }
             }
             sink.CloseWriters();
         }
@@ -4872,16 +4926,16 @@ namespace Microsoft.Research.DryadLinq.Internal
         // special case for keySelector=identityFunction and resultSelector
         public static void
             RangePartition<TSource, TResult>(IEnumerable<TSource> source,
-                                                  IEnumerable<TSource> partitionKeys,
-                                                  IComparer<TSource> comparer,
-                                                  bool isDescending,
-                                                  Func<TSource, TResult> resultSelector,
-                                                  HpcVertexWriter<TResult> sink)
+                                             IEnumerable<TSource> partitionKeys,
+                                             IComparer<TSource> comparer,
+                                             bool isDescending,
+                                             Func<TSource, TResult> resultSelector,
+                                             DryadLinqVertexWriter<TResult> sink)
         {
             if (partitionKeys == null)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.RangePartitionKeysMissing,
-                                           SR.RangePartitionKeysMissing);
+                throw new DryadLinqException(DryadLinqErrorCode.RangePartitionKeysMissing,
+                                             SR.RangePartitionKeysMissing);
             }
             comparer = TypeSystem.GetComparer<TSource>(comparer);
             Int32 numOfPorts = (Int32)sink.NumberOfOutputs;
@@ -4897,9 +4951,9 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
             if (idx > keys.Length)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.RangePartitionInputOutputMismatch,
-                                           String.Format(SR.RangePartitionInputOutputMismatch,
-                                                         idx, numOfPorts));
+                throw new DryadLinqException(DryadLinqErrorCode.RangePartitionInputOutputMismatch,
+                                             String.Format(SR.RangePartitionInputOutputMismatch,
+                                                           idx, numOfPorts));
             }
             if (idx < keys.Length)
             {
@@ -4907,10 +4961,25 @@ namespace Microsoft.Research.DryadLinq.Internal
                 Array.Copy(keys, keys1, idx);
                 keys = keys1;
             }
-            foreach (TSource item in source)
+            if (s_multiThreading)
             {
-                int portNum = HpcLinqUtil.BinarySearch(keys, item, comparer, isDescending);
-                sink.WriteItem(resultSelector(item), portNum);
+                var source1 = source.ExtendParallelPipeline(
+                                    s => s.Select(x => new Pair<int, TResult>(
+                                                         DryadLinqUtil.BinarySearch(keys, x, comparer, isDescending),
+                                                         resultSelector(x))), 
+                                    false);
+                foreach (var item in source1)
+                {
+                    sink.WriteItem(item.Value, item.Key);
+                }
+            }
+            else
+            {
+                foreach (TSource item in source)
+                {
+                    int portNum = DryadLinqUtil.BinarySearch(keys, item, comparer, isDescending);
+                    sink.WriteItem(resultSelector(item), portNum);
+                }
             }
             sink.CloseWriters();
         }
@@ -4918,36 +4987,16 @@ namespace Microsoft.Research.DryadLinq.Internal
         // general case
         public static void
             RangePartition<TSource, TKey>(IEnumerable<TSource> source,
-                                               Func<TSource, TKey> keySelector,
-                                               bool isExpensive,
-                                               IEnumerable<TKey> partitionKeys,
-                                               IComparer<TKey> comparer,
-                                               bool isDescending,
-                                               HpcVertexWriter<TSource> sink)
-        {
-            if (s_multiThreading && isExpensive)
-            {
-                var source1 = source.ExtendParallelPipeline(s => s.Select(x => new Pair<TKey, TSource>(keySelector(x), x)), true);
-                RangePartition(source1, x => x.Key, partitionKeys, comparer, isDescending, x => x.Value, sink);
-            }
-            else
-            {
-                RangePartition(source, keySelector, partitionKeys, comparer, isDescending, sink);
-            }
-        }
-
-        private static void
-            RangePartition<TSource, TKey>(IEnumerable<TSource> source,
-                                               Func<TSource, TKey> keySelector,
-                                               IEnumerable<TKey> partitionKeys,
-                                               IComparer<TKey> comparer,
-                                               bool isDescending,
-                                               HpcVertexWriter<TSource> sink)
+                                          Func<TSource, TKey> keySelector,
+                                          IEnumerable<TKey> partitionKeys,
+                                          IComparer<TKey> comparer,
+                                          bool isDescending,
+                                          DryadLinqVertexWriter<TSource> sink)
         {
             if (partitionKeys == null)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.RangePartitionKeysMissing,
-                                           SR.RangePartitionKeysMissing);
+                throw new DryadLinqException(DryadLinqErrorCode.RangePartitionKeysMissing,
+                                             SR.RangePartitionKeysMissing);
             }
             comparer = TypeSystem.GetComparer<TKey>(comparer);
 
@@ -4964,9 +5013,9 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
             if (idx > keys.Length)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.RangePartitionInputOutputMismatch,
-                                           String.Format(SR.RangePartitionInputOutputMismatch,
-                                                         idx, numOfPorts));
+                throw new DryadLinqException(DryadLinqErrorCode.RangePartitionInputOutputMismatch,
+                                             String.Format(SR.RangePartitionInputOutputMismatch,
+                                                           idx, numOfPorts));
             }
             if (idx < keys.Length)
             {
@@ -4974,10 +5023,25 @@ namespace Microsoft.Research.DryadLinq.Internal
                 Array.Copy(keys, keys1, idx);
                 keys = keys1;
             }
-            foreach (TSource item in source)
+            if (s_multiThreading)
             {
-                int portNum = HpcLinqUtil.BinarySearch(keys, keySelector(item), comparer, isDescending);
-                sink.WriteItem(item, portNum);
+                var source1 = source.ExtendParallelPipeline(
+                                    s => s.Select(x => new Pair<int, TSource>(
+                                                         DryadLinqUtil.BinarySearch(keys, keySelector(x), comparer, isDescending),
+                                                         x)),
+                                    false);
+                foreach (var item in source1)
+                {
+                    sink.WriteItem(item.Value, item.Key);
+                }
+            }
+            else
+            {
+                foreach (TSource item in source)
+                {
+                    int portNum = DryadLinqUtil.BinarySearch(keys, keySelector(item), comparer, isDescending);
+                    sink.WriteItem(item, portNum);
+                }
             }
             sink.CloseWriters();
         }
@@ -4985,38 +5049,17 @@ namespace Microsoft.Research.DryadLinq.Internal
         // general case with result-selector
         public static void
             RangePartition<TSource, TKey, TResult>(IEnumerable<TSource> source,
-                                                        Func<TSource, TKey> keySelector,
-                                                        bool isExpensive,
-                                                        IEnumerable<TKey> partitionKeys,
-                                                        IComparer<TKey> comparer,
-                                                        bool isDescending,
-                                                        Func<TSource, TResult> resultSelector,
-                                                        HpcVertexWriter<TResult> sink)
-        {
-            if (s_multiThreading && isExpensive)
-            {
-                var source1 = source.ExtendParallelPipeline(s => s.Select(x => new Pair<TKey, TResult>(keySelector(x), resultSelector(x))), true);
-                RangePartition(source1, x => x.Key, partitionKeys, comparer, isDescending, x => x.Value, sink);
-            }
-            else
-            {
-                RangePartition(source, keySelector, partitionKeys, comparer, isDescending, resultSelector, sink);
-            }
-        }
-
-        private static void
-            RangePartition<TSource, TKey, TResult>(IEnumerable<TSource> source,
-                                                        Func<TSource, TKey> keySelector,
-                                                        IEnumerable<TKey> partitionKeys,
-                                                        IComparer<TKey> comparer,
-                                                        bool isDescending,
-                                                        Func<TSource, TResult> resultSelector,
-                                                        HpcVertexWriter<TResult> sink)
+                                                   Func<TSource, TKey> keySelector,
+                                                   IEnumerable<TKey> partitionKeys,
+                                                   IComparer<TKey> comparer,
+                                                   bool isDescending,
+                                                   Func<TSource, TResult> resultSelector,
+                                                   DryadLinqVertexWriter<TResult> sink)
         {
             if (partitionKeys == null)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.RangePartitionKeysMissing,
-                                           SR.RangePartitionKeysMissing);
+                throw new DryadLinqException(DryadLinqErrorCode.RangePartitionKeysMissing,
+                                             SR.RangePartitionKeysMissing);
             }
             comparer = TypeSystem.GetComparer<TKey>(comparer);
 
@@ -5033,9 +5076,9 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
             if (idx > keys.Length)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.RangePartitionInputOutputMismatch,
-                                           String.Format(SR.RangePartitionInputOutputMismatch,
-                                                         idx, numOfPorts));
+                throw new DryadLinqException(DryadLinqErrorCode.RangePartitionInputOutputMismatch,
+                                             String.Format(SR.RangePartitionInputOutputMismatch,
+                                                           idx, numOfPorts));
             }
             if (idx < keys.Length)
             {
@@ -5043,23 +5086,38 @@ namespace Microsoft.Research.DryadLinq.Internal
                 Array.Copy(keys, keys1, idx);
                 keys = keys1;
             }
-            foreach (TSource item in source)
+            if (s_multiThreading)
             {
-                int portNum = HpcLinqUtil.BinarySearch(keys, keySelector(item), comparer, isDescending);
-                sink.WriteItem(resultSelector(item), portNum);
+                var source1 = source.ExtendParallelPipeline(
+                                    s => s.Select(x => new Pair<int, TResult>(
+                                                         DryadLinqUtil.BinarySearch(keys, keySelector(x), comparer, isDescending), 
+                                                         resultSelector(x))),
+                                    false);
+                foreach (var item in source1)
+                {
+                    sink.WriteItem(item.Value, item.Key);
+                }
+            }
+            else
+            {
+                foreach (TSource item in source)
+                {
+                    int portNum = DryadLinqUtil.BinarySearch(keys, keySelector(item), comparer, isDescending);
+                    sink.WriteItem(resultSelector(item), portNum);
+                }
             }
             sink.CloseWriters();
         }
 
         // Operator: Fork
         public static void Fork<T, R1, R2>(IEnumerable<T> source,
-                                                Func<IEnumerable<T>, IEnumerable<ForkTuple<R1, R2>>> mapper,
-                                                bool orderPreserving,
-                                                HpcVertexWriter<R1> sink1,
-                                                HpcVertexWriter<R2> sink2)
+                                           Func<IEnumerable<T>, IEnumerable<ForkTuple<R1, R2>>> mapper,
+                                           bool orderPreserving,
+                                           DryadLinqVertexWriter<R1> sink1,
+                                           DryadLinqVertexWriter<R2> sink2)
         {
-            HpcRecordWriter<R1> writer1 = sink1.GetWriter(0);
-            HpcRecordWriter<R2> writer2 = sink2.GetWriter(0);
+            DryadLinqRecordWriter<R1> writer1 = sink1.GetWriter(0);
+            DryadLinqRecordWriter<R2> writer2 = sink2.GetWriter(0);
         
             IEnumerable<ForkTuple<R1, R2>> result = mapper(source);
             foreach (ForkTuple<R1, R2> val in result)
@@ -5078,15 +5136,15 @@ namespace Microsoft.Research.DryadLinq.Internal
         }
         
         public static void Fork<T, R1, R2, R3>(IEnumerable<T> source,
-                                                    Func<IEnumerable<T>, IEnumerable<ForkTuple<R1, R2, R3>>> mapper,
-                                                    bool orderPreserving,
-                                                    HpcVertexWriter<R1> sink1,
-                                                    HpcVertexWriter<R2> sink2,
-                                                    HpcVertexWriter<R3> sink3)
+                                               Func<IEnumerable<T>, IEnumerable<ForkTuple<R1, R2, R3>>> mapper,
+                                               bool orderPreserving,
+                                               DryadLinqVertexWriter<R1> sink1,
+                                               DryadLinqVertexWriter<R2> sink2,
+                                               DryadLinqVertexWriter<R3> sink3)
         {
-            HpcRecordWriter<R1> writer1 = sink1.GetWriter(0);
-            HpcRecordWriter<R2> writer2 = sink2.GetWriter(0);
-            HpcRecordWriter<R3> writer3 = sink3.GetWriter(0);
+            DryadLinqRecordWriter<R1> writer1 = sink1.GetWriter(0);
+            DryadLinqRecordWriter<R2> writer2 = sink2.GetWriter(0);
+            DryadLinqRecordWriter<R3> writer3 = sink3.GetWriter(0);
         
             IEnumerable<ForkTuple<R1, R2, R3>> result = mapper(source);
             foreach (ForkTuple<R1, R2, R3> val in result)
@@ -5110,13 +5168,13 @@ namespace Microsoft.Research.DryadLinq.Internal
         }
         
         public static void Fork<T, R1, R2>(IEnumerable<T> source,
-                                                Func<T, ForkTuple<R1, R2>> mapper,
-                                                bool orderPreserving,
-                                                HpcVertexWriter<R1> sink1,
-                                                HpcVertexWriter<R2> sink2)
+                                           Func<T, ForkTuple<R1, R2>> mapper,
+                                           bool orderPreserving,
+                                           DryadLinqVertexWriter<R1> sink1,
+                                           DryadLinqVertexWriter<R2> sink2)
         {
-            HpcRecordWriter<R1> writer1 = sink1.GetWriter(0);
-            HpcRecordWriter<R2> writer2 = sink2.GetWriter(0);
+            DryadLinqRecordWriter<R1> writer1 = sink1.GetWriter(0);
+            DryadLinqRecordWriter<R2> writer2 = sink2.GetWriter(0);
         
             IEnumerable<ForkTuple<R1, R2>>
                 result = source.ExtendParallelPipeline(s => s.Select(mapper), orderPreserving);
@@ -5137,15 +5195,15 @@ namespace Microsoft.Research.DryadLinq.Internal
         }
         
         public static void Fork<T, R1, R2, R3>(IEnumerable<T> source,
-                                                    Func<T, ForkTuple<R1, R2, R3>> mapper,
-                                                    bool orderPreserving,
-                                                    HpcVertexWriter<R1> sink1,
-                                                    HpcVertexWriter<R2> sink2,
-                                                    HpcVertexWriter<R3> sink3)
+                                               Func<T, ForkTuple<R1, R2, R3>> mapper,
+                                               bool orderPreserving,
+                                               DryadLinqVertexWriter<R1> sink1,
+                                               DryadLinqVertexWriter<R2> sink2,
+                                               DryadLinqVertexWriter<R3> sink3)
         {
-            HpcRecordWriter<R1> writer1 = sink1.GetWriter(0);
-            HpcRecordWriter<R2> writer2 = sink2.GetWriter(0);
-            HpcRecordWriter<R3> writer3 = sink3.GetWriter(0);
+            DryadLinqRecordWriter<R1> writer1 = sink1.GetWriter(0);
+            DryadLinqRecordWriter<R2> writer2 = sink2.GetWriter(0);
+            DryadLinqRecordWriter<R3> writer3 = sink3.GetWriter(0);
         
             IEnumerable<ForkTuple<R1, R2, R3>>
                 result = source.ExtendParallelPipeline(s => s.Select(mapper), orderPreserving);
@@ -5171,10 +5229,10 @@ namespace Microsoft.Research.DryadLinq.Internal
         }
         
         public static void Fork<T, K>(IEnumerable<T> source,
-                                           Func<T, K> keySelector,
-                                           K[] keys,
-                                           bool orderPreserving,
-                                           params HpcVertexWriter<T>[] sinks)
+                                      Func<T, K> keySelector,
+                                      K[] keys,
+                                      bool orderPreserving,
+                                      params DryadLinqVertexWriter<T>[] sinks)
         {
             if (keys.Length != sinks.Length)
             {
@@ -5185,7 +5243,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 keyMap.Add(keys[i], i);
             }
-            HpcRecordWriter<T>[] writers = new HpcRecordWriter<T>[keys.Length];
+            DryadLinqRecordWriter<T>[] writers = new DryadLinqRecordWriter<T>[keys.Length];
             for (int i = 0; i < writers.Length; i++)
             {
                 writers[i] = sinks[i].GetWriter(0);
@@ -5197,6 +5255,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                 {
                     writers[portNum].WriteRecordAsync(item);
                 }
+                // item is dropped silently if not present in the keyMap
             }
             foreach (var sink in sinks)
             {
@@ -5437,8 +5496,8 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 try
                 {
-                    DryadLinqLog.Add("Parallel GroupBy (Hash) started reading at {0}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel GroupBy (Hash) started reading at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                     // Read all the items
                     TSource[][] buffers = new TSource[this.m_workers.Length][];
@@ -5451,7 +5510,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                     foreach (TSource item in this.m_source)
                     {
                         Int32 hashCode = this.m_comparer.GetHashCode(m_keySelector(item));
-                        Int32 idx = HpcLinqUtil.GetTaskIndex(hashCode, counts.Length);
+                        Int32 idx = DryadLinqUtil.GetTaskIndex(hashCode, counts.Length);
                         if (counts[idx] == BufferSize)
                         {
                             if (this.m_isDone) break;
@@ -5476,8 +5535,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                         this.m_queues[i].CompleteAdding();
                     }
 
-                    DryadLinqLog.Add("Parallel GroupBy (Hash) ended reading at {0}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel GroupBy (Hash) ended reading at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                     // Wait for all the workers to complete
                     Task.WaitAll(this.m_workers);
@@ -5506,8 +5565,8 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 try
                 {
-                    DryadLinqLog.Add("Parallel GroupBy (Hash) worker {0} started at {1}",
-                                   idx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel GroupBy (Hash) worker {0} started at {1}",
+                                         idx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
                     
                     BlockingCollection<TSource[]> queue = this.m_queues[idx];
                     Int32 wlen = this.m_workers.Length;
@@ -5601,15 +5660,15 @@ namespace Microsoft.Research.DryadLinq.Internal
                 catch (Exception e)
                 {
                     this.m_isDone = true;
-                    this.m_workerException = new DryadLinqException(HpcLinqErrorCode.FailureInHashGroupBy,
-                                                                  SR.FailureInHashGroupBy, e);
+                    this.m_workerException = new DryadLinqException(DryadLinqErrorCode.FailureInHashGroupBy,
+                                                                    SR.FailureInHashGroupBy, e);
                     this.m_resultSet.Add(new TFinal[0]);
                     this.m_stealingQueue.CompleteAdding();
                 }
                 finally
                 {
-                    DryadLinqLog.Add("Parallel GroupBy (Hash) worker {0} ended at {1}",
-                                   idx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel GroupBy (Hash) worker {0} ended at {1}",
+                                         idx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
                 }
             }
         }
@@ -5797,8 +5856,8 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 try
                 {
-                    DryadLinqLog.Add("Parallel GroupBy (HashPartialAcc) started reading at {0}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel GroupBy (HashPartialAcc) started reading at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                     // Read all the items
                     TSource[] buffer = new TSource[BufferSize];
@@ -5830,8 +5889,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                         this.m_queues[i].CompleteAdding();
                     }
 
-                    DryadLinqLog.Add("Parallel GroupBy (HashPartialAcc) ended reading at {0}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel GroupBy (HashPartialAcc) ended reading at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                     // Wait for all the workers to complete
                     Task.WaitAll(this.m_workers);
@@ -5860,8 +5919,8 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 try
                 {
-                    DryadLinqLog.Add("Parallel GroupBy (HashPartialAcc) worker {0} started at {1}",
-                                   idx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel GroupBy (HashPartialAcc) worker {0} started at {1}",
+                                         idx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                     BlockingCollection<TSource[]> queue = this.m_queues[idx];
                     AccumulateDictionary<TKey, TElement, TResult>
@@ -5918,14 +5977,14 @@ namespace Microsoft.Research.DryadLinq.Internal
                 catch (Exception e)
                 {
                     this.m_isDone = true;
-                    this.m_workerException = new DryadLinqException(HpcLinqErrorCode.FailureInHashGroupBy,
-                                                                  SR.FailureInHashGroupBy, e);
+                    this.m_workerException = new DryadLinqException(DryadLinqErrorCode.FailureInHashGroupBy,
+                                                                    SR.FailureInHashGroupBy, e);
                     this.m_resultSet.Add(new Pair<TKey, TResult>[0]);
                 }
                 finally
                 {
-                    DryadLinqLog.Add("Parallel GroupBy (HashPartialAcc) worker {0} ended at {1}",
-                                   idx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel GroupBy (HashPartialAcc) worker {0} ended at {1}",
+                                         idx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
                 }
             }
         }
@@ -6135,8 +6194,8 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 try
                 {
-                    DryadLinqLog.Add("Parallel GroupBy (HashFullAcc) started reading at {0}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel GroupBy (HashFullAcc) started reading at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                     // Read all the items
                     TSource[][] buffers = new TSource[this.m_workers.Length][];
@@ -6149,7 +6208,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                     foreach (TSource item in this.m_source)
                     {
                         Int32 hashCode = this.m_comparer.GetHashCode(m_keySelector(item));
-                        Int32 idx = HpcLinqUtil.GetTaskIndex(hashCode, counts.Length);
+                        Int32 idx = DryadLinqUtil.GetTaskIndex(hashCode, counts.Length);
                         if (counts[idx] == BufferSize)
                         {
                             if (this.m_isDone) break;
@@ -6174,8 +6233,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                         this.m_queues[i].CompleteAdding();
                     }
 
-                    DryadLinqLog.Add("Parallel GroupBy (HashFullAcc) ended reading at {0}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel GroupBy (HashFullAcc) ended reading at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                     // Wait for all the workers to complete
                     Task.WaitAll(this.m_workers);
@@ -6204,8 +6263,8 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 try
                 {
-                    DryadLinqLog.Add("Parallel GroupBy (HashFullAcc) worker {0} started at {1}",
-                                   idx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel GroupBy (HashFullAcc) worker {0} started at {1}",
+                                         idx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                     BlockingCollection<TSource[]> queue = this.m_queues[idx];
                     AccumulateDictionary<TKey, TElement, TResult>
@@ -6300,15 +6359,15 @@ namespace Microsoft.Research.DryadLinq.Internal
                 catch (Exception e)
                 {
                     this.m_isDone = true;
-                    this.m_workerException = new DryadLinqException(HpcLinqErrorCode.FailureInHashGroupBy,
-                                                                  SR.FailureInHashGroupBy, e);
+                    this.m_workerException = new DryadLinqException(DryadLinqErrorCode.FailureInHashGroupBy,
+                                                                    SR.FailureInHashGroupBy, e);
                     this.m_resultSet.Add(new TFinal[0]);
                     this.m_stealingQueue.CompleteAdding();
                 }
                 finally
                 {
-                    DryadLinqLog.Add("Parallel GroupBy (HashFullAcc) worker {0} ended at {1}",
-                                   idx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel GroupBy (HashFullAcc) worker {0} ended at {1}",
+                                         idx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
                 }
             }
         }
@@ -6469,8 +6528,8 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 try
                 {
-                    DryadLinqLog.Add("Parallel GroupBy (PartialSort) started reading at {0}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel GroupBy (PartialSort) started reading at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                     TSource[] itemArray = new TSource[ChunkSize];
                     Int32 itemCnt = 0;
@@ -6492,8 +6551,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                         this.ProcessItemArray(itemArray, itemCnt);
                     }
 
-                    DryadLinqLog.Add("Parallel GroupBy (PartialSort) ended reading at {0}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel GroupBy (PartialSort) ended reading at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                     // Wait for all the workers to complete
                     foreach (Task task in this.m_workers)
@@ -6592,8 +6651,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                 catch (Exception e)
                 {
                     this.m_isDone = true;
-                    this.m_workerException = new DryadLinqException(HpcLinqErrorCode.FailureInSortGroupBy,
-                                                                  SR.FailureInSortGroupBy, e);
+                    this.m_workerException = new DryadLinqException(DryadLinqErrorCode.FailureInSortGroupBy,
+                                                                    SR.FailureInSortGroupBy, e);
                     throw this.m_workerException;
                 }
             }
@@ -6660,7 +6719,9 @@ namespace Microsoft.Research.DryadLinq.Internal
         
         private class InnerEnumerator : IEnumerator<TFinal>
         {
-            private const Int32 BufferSize = 1024;
+            private const Int32 BufferSize = 2048;
+            private const Int32 QueueMaxSize = 4;
+            private const Int32 ResultQueueMaxSize = 8;
             
             private IEnumerable<TOuter> m_outer;
             private IEnumerable<TInner> m_inner;
@@ -6673,8 +6734,6 @@ namespace Microsoft.Research.DryadLinq.Internal
 
             private Thread m_mainWorker;
             private Task[] m_workers;
-            private GroupingHashSet<TInner, TKey>[] m_innerGroupingArray;
-            private GroupingHashSet<TOuter, TKey>[] m_outerGroupingArray;            
             private BlockingCollection<TInner[]>[] m_innerQueues;
             private BlockingCollection<TOuter[]>[] m_outerQueues;            
             private BlockingCollection<TFinal[]> m_resultSet;
@@ -6699,16 +6758,16 @@ namespace Microsoft.Research.DryadLinq.Internal
                 this.m_comparer = parent.m_comparer;
 
                 this.m_hashInner = true;
-                if ((this.m_outer is HpcVertexReader<TOuter>) &&
-                    (this.m_inner is HpcVertexReader<TInner>))
+                if ((this.m_outer is DryadLinqVertexReader<TOuter>) &&
+                    (this.m_inner is DryadLinqVertexReader<TInner>))
                 {
-                    Int64 outerLen = ((HpcVertexReader<TOuter>)this.m_outer).GetTotalLength();
-                    Int64 innerLen = ((HpcVertexReader<TInner>)this.m_inner).GetTotalLength();
+                    Int64 outerLen = ((DryadLinqVertexReader<TOuter>)this.m_outer).GetTotalLength();
+                    Int64 innerLen = ((DryadLinqVertexReader<TInner>)this.m_inner).GetTotalLength();
                     if (innerLen >= 0 && outerLen >= 0)
                     {
                         this.m_hashInner = innerLen <= outerLen;
                     }
-                    DryadLinqLog.Add("Parallel HashJoin: outerLen={0}, innerLen={1}", outerLen, innerLen);                    
+                    DryadLinqLog.AddInfo("Parallel HashJoin: outerLen={0}, innerLen={1}", outerLen, innerLen);                    
                 }
 
                 this.m_isDone = false;
@@ -6717,27 +6776,15 @@ namespace Microsoft.Research.DryadLinq.Internal
                 this.m_workerException = null;
                 Int32 wlen = Environment.ProcessorCount;
                 this.m_workers = new Task[wlen];
-                if (this.m_hashInner)
+                this.m_outerQueues = new BlockingCollection<TOuter[]>[wlen];
+                this.m_innerQueues = new BlockingCollection<TInner[]>[wlen];
+                for (int i = 0; i < wlen; i++)
                 {
-                    this.m_innerGroupingArray = new GroupingHashSet<TInner, TKey>[wlen];
-                    this.m_outerQueues = new BlockingCollection<TOuter[]>[wlen];
-                    for (int i = 0; i < wlen; i++)
-                    {
-                        this.m_innerGroupingArray[i] = new GroupingHashSet<TInner, TKey>(this.m_comparer);
-                        this.m_outerQueues[i] = new BlockingCollection<TOuter[]>(2);
-                    }
+                    this.m_outerQueues[i] = new BlockingCollection<TOuter[]>(QueueMaxSize);
+                    this.m_innerQueues[i] = new BlockingCollection<TInner[]>(QueueMaxSize);
                 }
-                else
-                {
-                    this.m_outerGroupingArray = new GroupingHashSet<TOuter, TKey>[wlen];
-                    this.m_innerQueues = new BlockingCollection<TInner[]>[wlen];
-                    for (int i = 0; i < wlen; i++)
-                    {
-                        this.m_outerGroupingArray[i] = new GroupingHashSet<TOuter, TKey>(this.m_comparer);
-                        this.m_innerQueues[i] = new BlockingCollection<TInner[]>(2);
-                    }
-                }
-                this.m_resultSet = new BlockingCollection<TFinal[]>(4);
+
+                this.m_resultSet = new BlockingCollection<TFinal[]>(ResultQueueMaxSize);
                 for (int i = 0; i < this.m_workers.Length; i++)
                 {
                     this.m_workers[i] = this.CreateTask(i);
@@ -6811,24 +6858,18 @@ namespace Microsoft.Research.DryadLinq.Internal
                     this.m_disposed = true;
                     this.m_isDone = true;
 
-                    if (this.m_hashInner)
+                    // Always drain the outer queues
+                    foreach (var outerQueue in this.m_outerQueues)
                     {
-                        // Always drain the outer queues
-                        foreach (var outerQueue in this.m_outerQueues)
+                        foreach (var item in outerQueue.GetConsumingEnumerable())
                         {
-                            foreach (var item in outerQueue.GetConsumingEnumerable())
-                            {
-                            }
                         }
                     }
-                    else
+                    // Always drain the inner queues
+                    foreach (var innerQueue in this.m_innerQueues)
                     {
-                        // Always drain the inner queues
-                        foreach (var innerQueue in this.m_innerQueues)
+                        foreach (var item in innerQueue.GetConsumingEnumerable())
                         {
-                            foreach (var item in innerQueue.GetConsumingEnumerable())
-                            {
-                            }
                         }
                     }
 
@@ -6843,98 +6884,35 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 try
                 {
-                    DryadLinqLog.Add("Parallel HashJoin started reading at {0}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel HashJoin started reading at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                     Int32 wlen = this.m_workers.Length;
+                    Int32[] counts = new Int32[wlen];
                     if (this.m_hashInner)
                     {
-                        TOuter[][] buffers = new TOuter[wlen][];
-                        Int32[] counts = new Int32[wlen];
+                        // Send the inner to the workers
+                        TInner[][] innerBuffers = new TInner[wlen][];
                         for (int i = 0; i < wlen; i++)
                         {
-                            buffers[i] = new TOuter[BufferSize];
+                            innerBuffers[i] = new TInner[BufferSize];
                             counts[i] = 0;
                         }
-
-                        // Create a hash lookup table using inner
-                        foreach (TInner innerItem in this.m_inner)
-                        {
-                            TKey innerKey = this.m_innerKeySelector(innerItem);
-                            Int32 hashCode = this.m_comparer.GetHashCode(innerKey);
-                            Int32 idx = HpcLinqUtil.GetTaskIndex(hashCode, counts.Length);
-                            this.m_innerGroupingArray[idx].AddItem(innerKey, innerItem);
-                        }
-
-                        DryadLinqLog.Add("Parallel HashJoin: In-memory hashtable created at {0}",
-                                       DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
-
-                        foreach (TOuter outerItem in this.m_outer)
-                        {
-                            TKey outerKey = this.m_outerKeySelector(outerItem);
-                            Int32 hashCode = this.m_comparer.GetHashCode(outerKey);
-                            Int32 idx = HpcLinqUtil.GetTaskIndex(hashCode, counts.Length);
-                            if (counts[idx] == BufferSize)
-                            {
-                                if (this.m_isDone) break;
-
-                                this.m_outerQueues[idx].Add(buffers[idx]);
-                                buffers[idx] = new TOuter[BufferSize];
-                                counts[idx] = 0;
-                            }
-                            buffers[idx][counts[idx]] = outerItem;
-                            counts[idx]++;
-                        }
-
-                        // Add the final buffers to the queues and declare adding is complete
-                        for (int i = 0; i < wlen; i++)
-                        {
-                            if (!this.m_isDone && counts[i] > 0)
-                            {
-                                TOuter[] lastBuffer = new TOuter[counts[i]];
-                                Array.Copy(buffers[i], lastBuffer, counts[i]);
-                                buffers[i] = null;
-                                this.m_outerQueues[i].Add(lastBuffer);
-                            }
-                            this.m_outerQueues[i].CompleteAdding();
-                        }
-                    }
-                    else
-                    {
-                        TInner[][] buffers = new TInner[wlen][];
-                        Int32[] counts = new Int32[wlen];
-                        for (int i = 0; i < wlen; i++)
-                        {
-                            buffers[i] = new TInner[BufferSize];
-                            counts[i] = 0;
-                        }
-
-                        // Create a hash lookup table using outer
-                        foreach (TOuter outerItem in this.m_outer)
-                        {
-                            TKey outerKey = this.m_outerKeySelector(outerItem);
-                            Int32 hashCode = this.m_comparer.GetHashCode(outerKey);
-                            Int32 idx = HpcLinqUtil.GetTaskIndex(hashCode, wlen);
-                            this.m_outerGroupingArray[idx].AddItem(outerKey, outerItem);
-                        }
-
-                        DryadLinqLog.Add("Parallel HashJoin: In-memory hashtable created at {0}",
-                                       DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                         foreach (TInner innerItem in this.m_inner)
                         {
                             TKey innerKey = this.m_innerKeySelector(innerItem);
                             Int32 hashCode = this.m_comparer.GetHashCode(innerKey);
-                            Int32 idx = HpcLinqUtil.GetTaskIndex(hashCode, wlen);
+                            Int32 idx = DryadLinqUtil.GetTaskIndex(hashCode, counts.Length);
                             if (counts[idx] == BufferSize)
                             {
                                 if (this.m_isDone) break;
 
-                                this.m_innerQueues[idx].Add(buffers[idx]);
-                                buffers[idx] = new TInner[BufferSize];
+                                this.m_innerQueues[idx].Add(innerBuffers[idx]);
+                                innerBuffers[idx] = new TInner[BufferSize];
                                 counts[idx] = 0;
                             }
-                            buffers[idx][counts[idx]] = innerItem;
+                            innerBuffers[idx][counts[idx]] = innerItem;
                             counts[idx]++;
                         }
 
@@ -6944,16 +6922,130 @@ namespace Microsoft.Research.DryadLinq.Internal
                             if (!this.m_isDone && counts[i] > 0)
                             {
                                 TInner[] lastBuffer = new TInner[counts[i]];
-                                Array.Copy(buffers[i], lastBuffer, counts[i]);
-                                buffers[i] = null;
+                                Array.Copy(innerBuffers[i], lastBuffer, counts[i]);
                                 this.m_innerQueues[i].Add(lastBuffer);
                             }
                             this.m_innerQueues[i].CompleteAdding();
                         }
+                        innerBuffers = null;
+                        
+                        // Send the outer to the workers
+                        TOuter[][] outerBuffers = new TOuter[wlen][];
+                        for (int i = 0; i < wlen; i++)
+                        {
+                            outerBuffers[i] = new TOuter[BufferSize];
+                            counts[i] = 0;
+                        }
+                        foreach (TOuter outerItem in this.m_outer)
+                        {
+                            TKey outerKey = this.m_outerKeySelector(outerItem);
+                            Int32 hashCode = this.m_comparer.GetHashCode(outerKey);
+                            Int32 idx = DryadLinqUtil.GetTaskIndex(hashCode, counts.Length);
+                            if (counts[idx] == BufferSize)
+                            {
+                                if (this.m_isDone) break;
+
+                                this.m_outerQueues[idx].Add(outerBuffers[idx]);
+                                outerBuffers[idx] = new TOuter[BufferSize];
+                                counts[idx] = 0;
+                            }
+                            outerBuffers[idx][counts[idx]] = outerItem;
+                            counts[idx]++;
+                        }
+
+                        // Add the final buffers to the queues and declare adding is complete
+                        for (int i = 0; i < wlen; i++)
+                        {
+                            if (!this.m_isDone && counts[i] > 0)
+                            {
+                                TOuter[] lastBuffer = new TOuter[counts[i]];
+                                Array.Copy(outerBuffers[i], lastBuffer, counts[i]);
+                                this.m_outerQueues[i].Add(lastBuffer);
+                            }
+                            this.m_outerQueues[i].CompleteAdding();
+                        }
+                        outerBuffers = null;                        
+                    }
+                    else
+                    {
+                        // Send outer to the workers
+                        TOuter[][] outerBuffers = new TOuter[wlen][];
+                        for (int i = 0; i < wlen; i++)
+                        {
+                            outerBuffers[i] = new TOuter[BufferSize];
+                            counts[i] = 0;
+                        }
+                        foreach (TOuter outerItem in this.m_outer)
+                        {
+                            TKey outerKey = this.m_outerKeySelector(outerItem);
+                            Int32 hashCode = this.m_comparer.GetHashCode(outerKey);
+                            Int32 idx = DryadLinqUtil.GetTaskIndex(hashCode, counts.Length);
+                            if (counts[idx] == BufferSize)
+                            {
+                                if (this.m_isDone) break;
+
+                                this.m_outerQueues[idx].Add(outerBuffers[idx]);
+                                outerBuffers[idx] = new TOuter[BufferSize];
+                                counts[idx] = 0;
+                            }
+                            outerBuffers[idx][counts[idx]] = outerItem;
+                            counts[idx]++;
+                        }
+
+                        // Add the final buffers to the queues and declare adding is complete
+                        for (int i = 0; i < wlen; i++)
+                        {
+                            if (!this.m_isDone && counts[i] > 0)
+                            {
+                                TOuter[] lastBuffer = new TOuter[counts[i]];
+                                Array.Copy(outerBuffers[i], lastBuffer, counts[i]);
+                                this.m_outerQueues[i].Add(lastBuffer);
+                            }
+                            this.m_outerQueues[i].CompleteAdding();
+                        }
+                        outerBuffers = null;
+
+                        // Send the inner to the workers
+                        TInner[][] innerBuffers = new TInner[wlen][];
+                        for (int i = 0; i < wlen; i++)
+                        {
+                            innerBuffers[i] = new TInner[BufferSize];
+                            counts[i] = 0;
+                        }
+
+                        foreach (TInner innerItem in this.m_inner)
+                        {
+                            TKey innerKey = this.m_innerKeySelector(innerItem);
+                            Int32 hashCode = this.m_comparer.GetHashCode(innerKey);
+                            Int32 idx = DryadLinqUtil.GetTaskIndex(hashCode, counts.Length);
+                            if (counts[idx] == BufferSize)
+                            {
+                                if (this.m_isDone) break;
+
+                                this.m_innerQueues[idx].Add(innerBuffers[idx]);
+                                innerBuffers[idx] = new TInner[BufferSize];
+                                counts[idx] = 0;
+                            }
+                            innerBuffers[idx][counts[idx]] = innerItem;
+                            counts[idx]++;
+                        }
+
+                        // Add the final buffers to the queues and declare adding is complete
+                        for (int i = 0; i < wlen; i++)
+                        {
+                            if (!this.m_isDone && counts[i] > 0)
+                            {
+                                TInner[] lastBuffer = new TInner[counts[i]];
+                                Array.Copy(innerBuffers[i], lastBuffer, counts[i]);
+                                this.m_innerQueues[i].Add(lastBuffer);
+                            }
+                            this.m_innerQueues[i].CompleteAdding();
+                        }
+                        innerBuffers = null;
                     }
 
-                    DryadLinqLog.Add("Parallel HashJoin ended reading at {0}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel HashJoin ended reading at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                     // Wait for all the workers to complete
                     Task.WaitAll(this.m_workers);
@@ -6965,19 +7057,13 @@ namespace Microsoft.Research.DryadLinq.Internal
                 }
                 finally
                 {
-                    if (this.m_outerQueues != null)
+                    for (int i = 0; i < this.m_outerQueues.Length; i++)
                     {
-                        for (int i = 0; i < this.m_outerQueues.Length; i++)
-                        {
-                            this.m_outerQueues[i].CompleteAdding();
-                        }
+                        this.m_outerQueues[i].CompleteAdding();
                     }
-                    if (this.m_innerQueues != null)
+                    for (int i = 0; i < this.m_innerQueues.Length; i++)
                     {
-                        for (int i = 0; i < this.m_innerQueues.Length; i++)
-                        {
-                            this.m_innerQueues[i].CompleteAdding();
-                        }
+                        this.m_innerQueues[i].CompleteAdding();
                     }
                     this.m_resultSet.CompleteAdding();
                 }
@@ -6995,8 +7081,8 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 try
                 {
-                    DryadLinqLog.Add("Parallel HashJoin worker {0} started at {1}",
-                                   qidx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel HashJoin worker {0} started at {1}",
+                                         qidx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
                     
                     Int32 wlen = this.m_workers.Length;
                     TResult[] resultBuffer = new TResult[BufferSize];
@@ -7007,7 +7093,22 @@ namespace Microsoft.Research.DryadLinq.Internal
 
                     if (this.m_hashInner)
                     {
-                        GroupingHashSet<TInner, TKey> innerGroups = this.m_innerGroupingArray[qidx];
+                        GroupingHashSet<TInner, TKey> innerGroups = new GroupingHashSet<TInner, TKey>(this.m_comparer);
+                        foreach (var buffer in this.m_innerQueues[qidx].GetConsumingEnumerable())
+                        {
+                            if (this.m_isDone) return;
+
+                            for (int bidx = 0; bidx < buffer.Length; bidx++)
+                            {
+                                TInner innerItem = buffer[bidx];
+                                TKey innerKey = this.m_innerKeySelector(innerItem);
+                                innerGroups.AddItem(innerKey, innerItem);
+                            }
+                        }
+
+                        DryadLinqLog.AddInfo("Parallel HashJoin: In-memory hashtable using inner created at {0}",
+                                             DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                                
                         foreach (var buffer in this.m_outerQueues[qidx].GetConsumingEnumerable())
                         {
                             if (this.m_isDone) return;
@@ -7058,7 +7159,22 @@ namespace Microsoft.Research.DryadLinq.Internal
                     }
                     else
                     {
-                        GroupingHashSet<TOuter, TKey> outerGroups = this.m_outerGroupingArray[qidx];
+                        GroupingHashSet<TOuter, TKey> outerGroups = new GroupingHashSet<TOuter, TKey>(this.m_comparer);
+                        foreach (var buffer in this.m_outerQueues[qidx].GetConsumingEnumerable())
+                        {
+                            if (this.m_isDone) return;
+
+                            for (int bidx = 0; bidx < buffer.Length; bidx++)
+                            {
+                                TOuter outerItem = buffer[bidx];
+                                TKey outerKey = this.m_outerKeySelector(outerItem);
+                                outerGroups.AddItem(outerKey, outerItem);
+                            }
+                        }
+
+                        DryadLinqLog.AddInfo("Parallel HashJoin: In-memory hashtable using outer created at {0}",
+                                             DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                        
                         foreach (var buffer in this.m_innerQueues[qidx].GetConsumingEnumerable())
                         {
                             if (this.m_isDone) return;
@@ -7142,15 +7258,15 @@ namespace Microsoft.Research.DryadLinq.Internal
                 catch (Exception e)
                 {
                     this.m_isDone = true;
-                    this.m_workerException = new DryadLinqException(HpcLinqErrorCode.FailureInHashJoin,
-                                                                  SR.FailureInHashJoin, e);
+                    this.m_workerException = new DryadLinqException(DryadLinqErrorCode.FailureInHashJoin,
+                                                                    SR.FailureInHashJoin, e);
                     this.m_resultSet.Add(new TFinal[0]);
                     this.m_stealingQueue.CompleteAdding();
                 }
                 finally
                 {
-                    DryadLinqLog.Add("Parallel HashJoin worker {0} ended at {1}",
-                                   qidx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel HashJoin worker {0} ended at {1}",
+                                         qidx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
                 }
             }
         }
@@ -7216,7 +7332,9 @@ namespace Microsoft.Research.DryadLinq.Internal
         
         private class InnerEnumerator : IEnumerator<TFinal>
         {
-            private const Int32 BufferSize = 1024;
+            private const Int32 BufferSize = 2048;
+            private const Int32 QueueMaxSize = 4;
+            private const Int32 ResultQueueMaxSize = 8;
 
             private IEnumerable<TOuter> m_outer;
             private IEnumerable<TInner> m_inner;
@@ -7228,8 +7346,8 @@ namespace Microsoft.Research.DryadLinq.Internal
 
             private Thread m_mainWorker;
             private Task[] m_workers;
-            private GroupingHashSet<TInner, TKey>[] m_innerGroupingArray;
-            private BlockingCollection<TOuter[]>[] m_queues;
+            private BlockingCollection<TOuter[]>[] m_outerQueues;
+            private BlockingCollection<TInner[]>[] m_innerQueues;
             private BlockingCollection<TFinal[]> m_resultSet;
             private BlockingCollection<TResult[]> m_stealingQueue;
             private int m_stealingWorkerCnt;
@@ -7256,12 +7374,12 @@ namespace Microsoft.Research.DryadLinq.Internal
                 this.m_stealingQueue = new BlockingCollection<TResult[]>();
                 this.m_workerException = null;
                 this.m_workers = new Task[Environment.ProcessorCount];
-                this.m_innerGroupingArray = new GroupingHashSet<TInner, TKey>[this.m_workers.Length];
-                this.m_queues = new BlockingCollection<TOuter[]>[this.m_workers.Length];
-                for (int i = 0; i < this.m_queues.Length; i++)
+                this.m_outerQueues = new BlockingCollection<TOuter[]>[this.m_workers.Length];
+                this.m_innerQueues = new BlockingCollection<TInner[]>[this.m_workers.Length];
+                for (int i = 0; i < this.m_outerQueues.Length; i++)
                 {
-                    this.m_innerGroupingArray[i] = new GroupingHashSet<TInner, TKey>(this.m_comparer);
-                    this.m_queues[i] = new BlockingCollection<TOuter[]>(2);
+                    this.m_outerQueues[i] = new BlockingCollection<TOuter[]>(QueueMaxSize);
+                    this.m_innerQueues[i] = new BlockingCollection<TInner[]>(QueueMaxSize);
                 }
                 this.m_resultSet = new BlockingCollection<TFinal[]>(4);
                 for (int i = 0; i < this.m_workers.Length; i++)
@@ -7336,10 +7454,17 @@ namespace Microsoft.Research.DryadLinq.Internal
                     this.m_disposed = true;
                     this.m_isDone = true;
 
-                    // Always drain the queues
-                    foreach (var queue in this.m_queues)
+                    // Always drain the outer queues
+                    foreach (var outerQueue in this.m_outerQueues)
                     {
-                        foreach (var item in queue.GetConsumingEnumerable())
+                        foreach (var item in outerQueue.GetConsumingEnumerable())
+                        {
+                        }
+                    }
+                    // Always drain the inner queues
+                    foreach (var innerQueue in this.m_innerQueues)
+                    {
+                        foreach (var item in innerQueue.GetConsumingEnumerable())
                         {
                         }
                     }
@@ -7355,58 +7480,88 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 try
                 {
-                    DryadLinqLog.Add("Parallel HashGroupJoin started reading at {0}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel HashGroupJoin started reading at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
-                    Int32 wlen = this.m_workers.Length;
-                    // Create a hash lookup table using inner. It is hard to do the same
-                    // optimization as Join, because resultSelector is not symemtric.
+                                        Int32 wlen = this.m_workers.Length;
+                    Int32[] counts = new Int32[wlen];
+
+                    // Send the inner to the workers
+                    TInner[][] innerBuffers = new TInner[wlen][];
+                    for (int i = 0; i < wlen; i++)
+                    {
+                        innerBuffers[i] = new TInner[BufferSize];
+                        counts[i] = 0;
+                    }
+
                     foreach (TInner innerItem in this.m_inner)
                     {
                         TKey innerKey = this.m_innerKeySelector(innerItem);
                         Int32 hashCode = this.m_comparer.GetHashCode(innerKey);
-                        Int32 idx = HpcLinqUtil.GetTaskIndex(hashCode, wlen);
-                        this.m_innerGroupingArray[idx].AddItem(innerKey, innerItem);
+                        Int32 idx = DryadLinqUtil.GetTaskIndex(hashCode, counts.Length);
+                        if (counts[idx] == BufferSize)
+                        {
+                            if (this.m_isDone) break;
+                            
+                            this.m_innerQueues[idx].Add(innerBuffers[idx]);
+                            innerBuffers[idx] = new TInner[BufferSize];
+                            counts[idx] = 0;
+                        }
+                        innerBuffers[idx][counts[idx]] = innerItem;
+                        counts[idx]++;
                     }
 
-                    TOuter[][] buffers = new TOuter[wlen][];
-                    Int32[] counts = new Int32[wlen];
-                    for (int i = 0; i < buffers.Length; i++)
+                    // Add the final buffers to the queues and declare adding is complete
+                    for (int i = 0; i < wlen; i++)
                     {
-                        buffers[i] = new TOuter[BufferSize];
+                        if (!this.m_isDone && counts[i] > 0)
+                        {
+                            TInner[] lastBuffer = new TInner[counts[i]];
+                            Array.Copy(innerBuffers[i], lastBuffer, counts[i]);
+                            this.m_innerQueues[i].Add(lastBuffer);
+                        }
+                        this.m_innerQueues[i].CompleteAdding();
+                    }
+                    innerBuffers = null;
+                        
+                    // Send outer to the workers
+                    TOuter[][] outerBuffers = new TOuter[wlen][];
+                    for (int i = 0; i < outerBuffers.Length; i++)
+                    {
+                        outerBuffers[i] = new TOuter[BufferSize];
                         counts[i] = 0;
                     }
                     foreach (TOuter outerItem in this.m_outer)
                     {
                         TKey outerKey = this.m_outerKeySelector(outerItem);
                         Int32 hashCode = this.m_comparer.GetHashCode(outerKey);
-                        Int32 idx = HpcLinqUtil.GetTaskIndex(hashCode, wlen);
+                        Int32 idx = DryadLinqUtil.GetTaskIndex(hashCode, wlen);
                         if (counts[idx] == BufferSize)
                         {
                             if (this.m_isDone) break;
 
-                            this.m_queues[idx].Add(buffers[idx]);
-                            buffers[idx] = new TOuter[BufferSize];
+                            this.m_outerQueues[idx].Add(outerBuffers[idx]);
+                            outerBuffers[idx] = new TOuter[BufferSize];
                             counts[idx] = 0;
                         }
-                        buffers[idx][counts[idx]] = outerItem;
+                        outerBuffers[idx][counts[idx]] = outerItem;
                         counts[idx]++;
                     }
                     // Add the final buffers to the queues and declare adding is complete
-                    for (int i = 0; i < counts.Length; i++)
+                    for (int i = 0; i < wlen; i++)
                     {
                         if (!this.m_isDone && counts[i] > 0)
                         {
                             TOuter[] lastBuffer = new TOuter[counts[i]];
-                            Array.Copy(buffers[i], lastBuffer, counts[i]);
-                            buffers[i] = null;
-                            this.m_queues[i].Add(lastBuffer);
+                            Array.Copy(outerBuffers[i], lastBuffer, counts[i]);
+                            this.m_outerQueues[i].Add(lastBuffer);
                         }
-                        this.m_queues[i].CompleteAdding();
+                        this.m_outerQueues[i].CompleteAdding();
                     }
-
-                    DryadLinqLog.Add("Parallel HashGroupJoin ended reading at {0}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    outerBuffers = null;
+                    
+                    DryadLinqLog.AddInfo("Parallel HashGroupJoin ended reading at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                     // Wait for all the workers to complete
                     Task.WaitAll(this.m_workers);
@@ -7418,10 +7573,14 @@ namespace Microsoft.Research.DryadLinq.Internal
                 }
                 finally
                 {
-                    for (int i = 0; i < this.m_queues.Length; i++)
+                    for (int i = 0; i < this.m_outerQueues.Length; i++)
                     {
-                        this.m_queues[i].CompleteAdding();
+                        this.m_outerQueues[i].CompleteAdding();
                     }
+                    for (int i = 0; i < this.m_innerQueues.Length; i++)
+                    {
+                        this.m_innerQueues[i].CompleteAdding();
+                    }                    
                     this.m_resultSet.CompleteAdding();
                 }
             }
@@ -7438,20 +7597,34 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 try
                 {
-                    DryadLinqLog.Add("Parallel HashGroupJoin worker {0} started at {1}",
-                                   qidx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel HashGroupJoin worker {0} started at {1}",
+                                         qidx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
-                    GroupingHashSet<TInner, TKey> innerGroups = this.m_innerGroupingArray[qidx];
                     Int32 wlen = this.m_workers.Length;
-                    BlockingCollection<TOuter[]> queue = this.m_queues[qidx];
                     TResult[] resultBuffer = new TResult[BufferSize];
                     Int32 count = 0;
                     Int32 myWorkCnt = 0;
                     Int32 otherWorkCnt = 0;
                     Int32 stealingWorkerCnt = this.m_stealingWorkerCnt;
 
+                    GroupingHashSet<TInner, TKey> innerGroups = new GroupingHashSet<TInner, TKey>(this.m_comparer);
+                    foreach (var buffer in this.m_innerQueues[qidx].GetConsumingEnumerable())
+                    {
+                        if (this.m_isDone) return;
+                        
+                        for (int bidx = 0; bidx < buffer.Length; bidx++)
+                        {
+                            TInner innerItem = buffer[bidx];
+                            TKey innerKey = this.m_innerKeySelector(innerItem);
+                            innerGroups.AddItem(innerKey, innerItem);
+                        }
+                    }
+
+                    DryadLinqLog.AddInfo("Parallel HashGroupJoin: In-memory hashtable using inner created at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+
                     TInner[] emptyGroup = new TInner[0];
-                    foreach (var buffer in queue.GetConsumingEnumerable())
+                    foreach (var buffer in this.m_outerQueues[qidx].GetConsumingEnumerable())
                     {
                         if (this.m_isDone) return;
 
@@ -7531,15 +7704,15 @@ namespace Microsoft.Research.DryadLinq.Internal
                 catch (Exception e)
                 {
                     this.m_isDone = true;
-                    this.m_workerException = new DryadLinqException(HpcLinqErrorCode.FailureInHashGroupJoin,
-                                                                  SR.FailureInHashGroupJoin, e);
+                    this.m_workerException = new DryadLinqException(DryadLinqErrorCode.FailureInHashGroupJoin,
+                                                                    SR.FailureInHashGroupJoin, e);
                     this.m_resultSet.Add(new TFinal[0]);
                     this.m_stealingQueue.CompleteAdding();
                 }
                 finally
                 {
-                    DryadLinqLog.Add("Parallel HashGroupJoin worker {0} ended at {1}",
-                                   qidx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel HashGroupJoin worker {0} ended at {1}",
+                                         qidx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
                 }
             }
         }
@@ -7605,6 +7778,8 @@ namespace Microsoft.Research.DryadLinq.Internal
         {
             private const Int32 SetSize = (1 << 23);  // 8388608
             private const Int32 BufferSize = 2048;
+            private const Int32 QueueMaxSize = 4;
+            private const Int32 ResultQueueMaxSize = 8;
         
             private string m_opName;
             private IEnumerable<TSource> m_source;
@@ -7640,17 +7815,17 @@ namespace Microsoft.Research.DryadLinq.Internal
                 }
                 else if (this.m_opName == "Intersect")
                 {
-                    if ((parent.m_source is HpcVertexReader<TSource>) &&
-                        (parent.m_otherSource is HpcVertexReader<TSource>))
+                    if ((parent.m_source is DryadLinqVertexReader<TSource>) &&
+                        (parent.m_otherSource is DryadLinqVertexReader<TSource>))
                     {
-                        Int64 len1 = ((HpcVertexReader<TSource>)parent.m_source).GetTotalLength();
-                        Int64 len2 = ((HpcVertexReader<TSource>)parent.m_otherSource).GetTotalLength();
+                        Int64 len1 = ((DryadLinqVertexReader<TSource>)parent.m_source).GetTotalLength();
+                        Int64 len2 = ((DryadLinqVertexReader<TSource>)parent.m_otherSource).GetTotalLength();
                         if (len2 >= 0 && len1 > len2)
                         {
                             this.m_source = parent.m_otherSource;
                             this.m_otherSource = parent.m_source;
                         }
-                        DryadLinqLog.Add("Parallel " + this.m_opName + ": len1={0}, len2={1}", len1, len2);
+                        DryadLinqLog.AddInfo("Parallel " + this.m_opName + ": len1={0}, len2={1}", len1, len2);
                     }
                 }
 
@@ -7665,9 +7840,9 @@ namespace Microsoft.Research.DryadLinq.Internal
                 this.m_queues = new BlockingCollection<TSource[]>[this.m_workers.Length];
                 for (int i = 0; i < this.m_queues.Length; i++)
                 {
-                    this.m_queues[i] = new BlockingCollection<TSource[]>(2);
+                    this.m_queues[i] = new BlockingCollection<TSource[]>(QueueMaxSize);
                 }
-                this.m_resultSet = new BlockingCollection<TResult[]>(4);
+                this.m_resultSet = new BlockingCollection<TResult[]>(ResultQueueMaxSize);
                 for (int i = 0; i < this.m_workers.Length; i++)
                 {
                     this.m_workers[i] = this.CreateTask(i); 
@@ -7759,8 +7934,8 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 try
                 {
-                    DryadLinqLog.Add("Parallel " + this.m_opName + " started reading at {0}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel " + this.m_opName + " started reading at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                     Int32 wlen = this.m_workers.Length;
                     TSource[][] buffers = new TSource[wlen][];
@@ -7773,7 +7948,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                     foreach (TSource item in this.m_source)
                     {
                         Int32 hashCode = this.m_comparer.GetHashCode(item);
-                        Int32 idx = HpcLinqUtil.GetTaskIndex(hashCode, wlen);
+                        Int32 idx = DryadLinqUtil.GetTaskIndex(hashCode, wlen);
                         if (counts[idx] == BufferSize)
                         {
                             if (this.m_isDone) break;
@@ -7807,7 +7982,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                         foreach (TSource item in this.m_otherSource)
                         {
                             Int32 hashCode = this.m_comparer.GetHashCode(item);
-                            Int32 idx = HpcLinqUtil.GetTaskIndex(hashCode, wlen);
+                            Int32 idx = DryadLinqUtil.GetTaskIndex(hashCode, wlen);
                             if (counts[idx] == BufferSize)
                             {
                                 if (this.m_isDone) break;
@@ -7833,8 +8008,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                         this.m_queues[i].CompleteAdding();
                     }
 
-                    DryadLinqLog.Add("Parallel " + this.m_opName + " ended reading at {0}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel " + this.m_opName + " ended reading at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                     // Wait for all the workers to complete
                     Task.WaitAll(this.m_workers);
@@ -7893,8 +8068,8 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 try
                 {
-                    DryadLinqLog.Add("Parallel Distinct (partial) worker {0} started at {1}",
-                                   qidx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel Distinct (partial) worker {0} started at {1}",
+                                         qidx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                     BlockingCollection<TSource[]> queue = this.m_queues[qidx];
                     Int32 wlen = this.m_workers.Length;
@@ -8039,15 +8214,15 @@ namespace Microsoft.Research.DryadLinq.Internal
                 catch (Exception e)
                 {
                     this.m_isDone = true;
-                    this.m_workerException = new DryadLinqException(HpcLinqErrorCode.FailureInDistinct,
-                                                                  SR.FailureInDistinct, e);
+                    this.m_workerException = new DryadLinqException(DryadLinqErrorCode.FailureInDistinct,
+                                                                    SR.FailureInDistinct, e);
                     this.m_resultSet.Add(new TResult[0]);
                     this.m_stealingQueue.CompleteAdding();
                 }
                 finally
                 {
-                    DryadLinqLog.Add("Parallel Distinct (partial) worker {0} ended at {1}",
-                                   qidx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel Distinct (partial) worker {0} ended at {1}",
+                                         qidx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
                 }
             }
 
@@ -8055,8 +8230,8 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 try
                 {
-                    DryadLinqLog.Add("Parallel " + this.m_opName + " worker {0} started at {1}",
-                                   qidx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel " + this.m_opName + " worker {0} started at {1}",
+                                         qidx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
                     
                     BlockingCollection<TSource[]> queue = this.m_queues[qidx];
                     BigHashSet<TSource> seenSet = new BigHashSet<TSource>(this.m_comparer);
@@ -8147,15 +8322,15 @@ namespace Microsoft.Research.DryadLinq.Internal
                 catch (Exception e)
                 {
                     this.m_isDone = true;
-                    this.m_workerException = new DryadLinqException(HpcLinqErrorCode.FailureInOperator,
-                                                                  String.Format(SR.FailureInOperator, this.m_opName), e);
+                    this.m_workerException = new DryadLinqException(DryadLinqErrorCode.FailureInOperator,
+                                                                    String.Format(SR.FailureInOperator, this.m_opName), e);
                     this.m_resultSet.Add(new TResult[0]);
                     this.m_stealingQueue.CompleteAdding();
                 }
                 finally
                 {
-                    DryadLinqLog.Add("Parallel " + this.m_opName + " worker {0} ended at {1}",
-                                   qidx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel " + this.m_opName + " worker {0} ended at {1}",
+                                         qidx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
                 }
             }
 
@@ -8163,8 +8338,8 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 try
                 {
-                    DryadLinqLog.Add("Parallel Except worker {0} started at {1}",
-                                   qidx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel Except worker {0} started at {1}",
+                                         qidx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
                     
                     BlockingCollection<TSource[]> queue = this.m_queues[qidx];
                     BigHashSet<TSource> seenSet = new BigHashSet<TSource>(this.m_comparer);
@@ -8267,13 +8442,13 @@ namespace Microsoft.Research.DryadLinq.Internal
                 {
                     this.m_isDone = true;
                     this.m_stealingQueue.CompleteAdding();
-                    throw new DryadLinqException(HpcLinqErrorCode.FailureInExcept,
-                                               String.Format(SR.FailureInExcept), e);
+                    throw new DryadLinqException(DryadLinqErrorCode.FailureInExcept,
+                                                 String.Format(SR.FailureInExcept), e);
                 }
                 finally
                 {
-                    DryadLinqLog.Add("Parallel Except worker {0} ended at {1}",
-                                   qidx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel Except worker {0} ended at {1}",
+                                         qidx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
                 }
             }
 
@@ -8281,8 +8456,8 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 try
                 {
-                    DryadLinqLog.Add("Parallel Intersect worker {0} started at {1}",
-                                   qidx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel Intersect worker {0} started at {1}",
+                                         qidx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                     BlockingCollection<TSource[]> queue = this.m_queues[qidx];
                     BigHashSet<TSource> leftSet = new BigHashSet<TSource>(this.m_comparer);
@@ -8385,13 +8560,13 @@ namespace Microsoft.Research.DryadLinq.Internal
                 {
                     this.m_isDone = true;
                     this.m_stealingQueue.CompleteAdding();
-                    throw new DryadLinqException(HpcLinqErrorCode.FailureInIntersect,
-                                               String.Format(SR.FailureInIntersect), e);
+                    throw new DryadLinqException(DryadLinqErrorCode.FailureInIntersect,
+                                                 String.Format(SR.FailureInIntersect), e);
                 }
                 finally
                 {
-                    DryadLinqLog.Add("Parallel Intersect worker {0} ended at {1}",
-                                   qidx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel Intersect worker {0} ended at {1}",
+                                         qidx, DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                 }
             }
@@ -8582,8 +8757,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                 try
                 {
                     // Read all the items
-                    DryadLinqLog.Add("Parallel OrderedGroupBy started reading at {0}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel OrderedGroupBy started reading at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
                     Int32 wlen = this.m_workers.Length;
                     TSource[] elemBuffer = new TSource[BufferSize];
                     Int32 taskIdx = 0;
@@ -8637,8 +8812,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                         this.CreateTask(taskIdx, elemBuffer, elemCnt);
                         taskIdx = (taskIdx + 1) % wlen;
                     }
-                    DryadLinqLog.Add("Parallel OrderedGroupBy ended reading at {0}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel OrderedGroupBy ended reading at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                     // Wait for all the workers to complete
                     for (int i = 0; i < this.m_workers.Length; i++)
@@ -8677,9 +8852,11 @@ namespace Microsoft.Research.DryadLinq.Internal
                 }
                 this.m_events[taskIdx].Reset();
 
-                // NOT using the TCO.LongRunning option for this task, because it's spawned an arbitrary # of times for potentially shorter work
-                // which means it's best to leave this to the TP load balancing algorithm
-                this.m_workers[taskIdx] = Task.Factory.StartNew(delegate { this.OrderedGroupBy(taskIdx, elems, cnt); });
+                // NOT using the TCO.LongRunning option for this task, because it's spawned
+                // an arbitrary # of times for potentially shorter work which means it's best
+                // to leave this to the TP load balancing algorithm
+                this.m_workers[taskIdx] = Task.Factory.StartNew(
+                                             delegate { this.OrderedGroupBy(taskIdx, elems, cnt); });
             }
 
             private void OrderedGroupBy(Int32 taskIdx, TSource[] elems, Int32 cnt)
@@ -8722,8 +8899,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                 catch (Exception e)
                 {
                     this.m_isDone = true;
-                    this.m_workerException = new DryadLinqException(HpcLinqErrorCode.FailureInOrderedGroupBy,
-                                                                  SR.FailureInOrderedGroupBy, e);
+                    this.m_workerException = new DryadLinqException(DryadLinqErrorCode.FailureInOrderedGroupBy,
+                                                                    SR.FailureInOrderedGroupBy, e);
                     throw this.m_workerException;
                 }
                 finally
@@ -8925,8 +9102,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                 try
                 {
                     // Read all the items
-                    DryadLinqLog.Add("Parallel OrderedGroupBy (Acc) started reading at {0}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel OrderedGroupBy (Acc) started reading at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                     Int32 wlen = this.m_workers.Length;
                     TSource[] elemBuffer = new TSource[BufferSize];
@@ -8990,8 +9167,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                         taskIdx = (taskIdx + 1) % wlen;
                     }
 
-                    DryadLinqLog.Add("Parallel OrderedGroupBy (Acc) ended reading at {0}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel OrderedGroupBy (Acc) ended reading at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                     // Wait for all the workers to complete
                     for (int i = 0; i < this.m_workers.Length; i++)
@@ -9034,7 +9211,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                 // an arbitrary # of times for potentially shorter work which means it's best
                 // to leave this to the TP load balancing algorithm
                 this.m_workers[taskIdx] = Task.Factory.StartNew(
-                                                 delegate { this.OrderedGroupBy(taskIdx, elems, cnt, moreLast, last); });
+                                             delegate { this.OrderedGroupBy(taskIdx, elems, cnt, moreLast, last); });
             }
 
             private void OrderedGroupBy(Int32 taskIdx, TSource[] elems, Int32 cnt, bool moreLast, Pair<TKey, TResult> last)
@@ -9088,8 +9265,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                 catch (Exception e)
                 {
                     this.m_isDone = true;
-                    this.m_workerException = new DryadLinqException(HpcLinqErrorCode.FailureInOrderedGroupBy,
-                                                                  SR.FailureInOrderedGroupBy, e);
+                    this.m_workerException = new DryadLinqException(DryadLinqErrorCode.FailureInOrderedGroupBy,
+                                                                    SR.FailureInOrderedGroupBy, e);
                     throw this.m_workerException;
                 }
                 finally
@@ -9107,14 +9284,14 @@ namespace Microsoft.Research.DryadLinq.Internal
         private IComparer<TKey> m_comparer;
         private bool m_isDescending;
         private bool m_isIdKeySelector;
-        private HpcLinqFactory<TElement> m_elemFactory;
+        private DryadLinqFactory<TElement> m_elemFactory;
 
         public ParallelSort(IEnumerable<TElement> source,
                             Func<TElement, TKey> keySelector,
                             IComparer<TKey> comparer,
                             bool isDescending,
                             bool isIdKeySelector,
-                            HpcLinqFactory<TElement> elemFactory)                                     
+                            DryadLinqFactory<TElement> elemFactory)                                     
         {
             this.m_source = source;
             this.m_keySelector = keySelector;
@@ -9153,7 +9330,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             private IComparer<TKey> m_comparer;
             private bool m_isDescending;
             private bool m_isIdKeySelector;
-            private HpcLinqFactory<TElement> m_elemFactory;
+            private DryadLinqFactory<TElement> m_elemFactory;
 
             private BlockingCollection<TElement[]> m_sourceQueue;
             private Thread m_mainWorker;
@@ -9204,8 +9381,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                 this.m_mainWorker.Start();
                 this.m_mainWorker.Join();
 
-                DryadLinqLog.Add("Parallel mergesort workers all started at {0}, number of workers is {1}",
-                               DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"), this.m_mergeList.Count);
+                DryadLinqLog.AddInfo("Parallel mergesort workers all started at {0}, number of workers is {1}",
+                                     DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"), this.m_mergeList.Count);
 
                 this.m_enumArray = new IEnumerator<TElement[]>[this.m_mergeList.Count];
                 for (int i = 0; i < this.m_enumArray.Length; i++)
@@ -9270,8 +9447,8 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 try
                 {
-                    DryadLinqLog.Add("Parallel sort started reading at {0}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel sort started reading at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                     TElement[] itemArray = new TElement[ChunkSize];
                     Int32 itemCnt = 0;
@@ -9304,8 +9481,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                     }
                     this.m_sourceQueue.CompleteAdding();
 
-                    DryadLinqLog.Add("Parallel sort ended reading at {0}, number of sorters is {1}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"), chunkCnt);
+                    DryadLinqLog.AddInfo("Parallel sort ended reading at {0}, number of sorters is {1}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"), chunkCnt);
                     
                     // Wait for all the sort workers to complete
                     Task.WaitAll(this.m_sortWorkers);
@@ -9338,8 +9515,8 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 try
                 {
-                    DryadLinqLog.Add("Parallel sort worker started at {0}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel sort worker started at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                     foreach (var itemArray in this.m_sourceQueue.GetConsumingEnumerable())
                     {
@@ -9367,9 +9544,9 @@ namespace Microsoft.Research.DryadLinq.Internal
                         IEnumerable<TElement> sortedChunk = itemArray;
                         MEMORYSTATUSEX memStatus = new MEMORYSTATUSEX();
                         memStatus.dwLength = (UInt32)sizeof(MEMORYSTATUSEX);
-                        HpcLinqNative.GlobalMemoryStatusEx(ref memStatus);
+                        DryadLinqNative.GlobalMemoryStatusEx(ref memStatus);
                         if (this.m_elemFactory != null &&
-                            HpcLinqNative.GlobalMemoryStatusEx(ref memStatus) &&
+                            DryadLinqNative.GlobalMemoryStatusEx(ref memStatus) &&
                             memStatus.ullAvailPhys < 1 * 1024 * 1024 * 1024UL)
                         {
                             sortedChunk = new FileEnumerable<TElement>(itemArray, this.m_elemFactory);
@@ -9400,13 +9577,13 @@ namespace Microsoft.Research.DryadLinq.Internal
                 catch (Exception e)
                 {
                     this.m_isDone = true;
-                    throw new DryadLinqException(HpcLinqErrorCode.FailureInSort,
-                                               String.Format(SR.FailureInSort), e);
+                    throw new DryadLinqException(DryadLinqErrorCode.FailureInSort,
+                                                 String.Format(SR.FailureInSort), e);
                 }
                 finally
                 {
-                    DryadLinqLog.Add("Parallel sort worker ended at {0}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel sort worker ended at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
                 }
             }
 
@@ -9479,8 +9656,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                                 IEnumerator<TElement> itemArrayEnum = this.m_itemArrays[i].GetEnumerator();
                                 if (!itemArrayEnum.MoveNext())
                                 {
-                                    throw new DryadLinqException(HpcLinqErrorCode.Internal,
-                                                               SR.SortedChunkCannotBeEmpty);
+                                    throw new DryadLinqException(DryadLinqErrorCode.Internal,
+                                                                 SR.SortedChunkCannotBeEmpty);
                                 }
                                 enumArray[i] = itemArrayEnum;
                                 keys[i] = this.m_keySelector(itemArrayEnum.Current);
@@ -9644,7 +9821,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             private Func<TSource, TKey> m_keySelector;
             private IComparer<TKey> m_comparer;
             private bool m_isDescending;
-            private HpcRecordReader<TSource>[] m_readers;
+            private DryadLinqRecordReader<TSource>[] m_readers;
             private List<Task> m_mergeSortWorkers;
             private List<SubrangeReader> m_mergeList;
 
@@ -9660,10 +9837,10 @@ namespace Microsoft.Research.DryadLinq.Internal
                 this.m_comparer = parent.m_comparer;
                 this.m_isDescending = parent.m_isDescending;
 
-                this.m_readers = new HpcRecordReader<TSource>[this.m_source.NumberOfInputs];
+                this.m_readers = new DryadLinqRecordReader<TSource>[this.m_source.NumberOfInputs];
                 for (int i = 0; i < this.m_readers.Length; i++)
                 {
-                    this.m_readers[i] = (HpcRecordReader<TSource>)this.m_source[i];
+                    this.m_readers[i] = (DryadLinqRecordReader<TSource>)this.m_source[i];
                 }
                 this.m_mergeSortWorkers = new List<Task>();
                 this.m_mergeList = new List<SubrangeReader>();
@@ -9677,9 +9854,6 @@ namespace Microsoft.Research.DryadLinq.Internal
                     SubrangeReader subReaders = new SubrangeReader(this, startIdx, size);
                     this.m_mergeList.Add(subReaders);
                     this.StartMergeSortWorker(subReaders);
-#if NET35
-                    System.Threading.Thread.Sleep(10);  // YY: Hack for 3.5
-#endif
                     startIdx += size;
                 }
 
@@ -9784,9 +9958,9 @@ namespace Microsoft.Research.DryadLinq.Internal
                 {
                     try
                     {
-                        DryadLinqLog.Add("ParallelMergeSort.SubrangeReader({0}) started at {1}",
-                                       this.m_startIdx,
-                                       DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                        DryadLinqLog.AddInfo("ParallelMergeSort.SubrangeReader({0}) started at {1}",
+                                             this.m_startIdx,
+                                             DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                         TSource[] elems = new TSource[this.m_enumerators.Length];
                         TKey[] keys = new TKey[this.m_enumerators.Length];
@@ -9898,9 +10072,9 @@ namespace Microsoft.Research.DryadLinq.Internal
                     }
                     finally
                     {
-                        DryadLinqLog.Add("ParallelMergeSort.SubrangeReader({0}) ended at {1}",
-                                       this.m_startIdx,
-                                       DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                        DryadLinqLog.AddInfo("ParallelMergeSort.SubrangeReader({0}) ended at {1}",
+                                             this.m_startIdx,
+                                             DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
                         
                         // Always declare the adding is complete.
                         this.m_resultQueue.CompleteAdding();
@@ -10131,8 +10305,8 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 try
                 {
-                    DryadLinqLog.Add("ParallelApply started reading at {0}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("ParallelApply started reading at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                     // Read all the items
                     Int32 wlen = this.m_workers.Length;
@@ -10205,8 +10379,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                     // Now, the adding is complete.            
                     this.m_sourceQueue.CompleteAdding();
 
-                    DryadLinqLog.Add("ParallelApply ended reading at {0}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("ParallelApply ended reading at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                     // Wait for all the workers to complete
                     Task.WaitAll(this.m_workers);
@@ -10228,8 +10402,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                 Wrapper<TResult[]> wrapperItem = null;
                 try
                 {
-                    DryadLinqLog.Add("Parallel Apply worker started at {0}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel Apply worker started at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
 
                     foreach (var item in this.m_sourceQueue.GetConsumingEnumerable())
                     {
@@ -10287,8 +10461,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                 catch (Exception e)
                 {
                     this.m_isDone = true;
-                    this.m_workerException = new DryadLinqException(HpcLinqErrorCode.FailureInUserApplyFunction,
-                                                                  SR.FailureInUserApplyFunction, e);
+                    this.m_workerException = new DryadLinqException(DryadLinqErrorCode.FailureInUserApplyFunction,
+                                                                    SR.FailureInUserApplyFunction, e);
                     if (this.m_orderPreserving)
                     {
                         if (wrapperItem.item == null)
@@ -10307,8 +10481,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                 }
                 finally
                 {
-                    DryadLinqLog.Add("Parallel Apply worker ended at {0}",
-                                   DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
+                    DryadLinqLog.AddInfo("Parallel Apply worker ended at {0}",
+                                         DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff"));
                 }
             }
         }
@@ -10383,7 +10557,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 readers[i] = source[i];
             }
-            return HpcLinqUtil.MergeSort(readers, keySelector, comparer, isDescending);
+            return DryadLinqUtil.MergeSort(readers, keySelector, comparer, isDescending);
         }
 
         internal static IEnumerator<TElement>
@@ -10517,20 +10691,19 @@ namespace Microsoft.Research.DryadLinq.Internal
 
     public class FileEnumerable<T> : IEnumerable<T>
     {
-        private HpcLinqFactory<T> m_factory;
+        private DryadLinqFactory<T> m_factory;
         private string m_fileName;
-        private HpcRecordReader<T> m_reader;
+        private DryadLinqRecordReader<T> m_reader;
             
-        internal FileEnumerable(T[] elems, HpcLinqFactory<T> factory)
+        internal FileEnumerable(T[] elems, DryadLinqFactory<T> factory)
         {
             this.m_factory = factory;
-            this.m_fileName = HpcLinqUtil.MakeUniqueName();
+            this.m_fileName = DryadLinqUtil.MakeUniqueName();
             this.m_reader = null;
 
-            //@@TODO[p3]: could potentially use compression to reduce I/O
-            //note: only sequential is used for writing.
-            NativeBlockStream ns = new HpcLinqFileStream(this.m_fileName, FileAccess.Write);
-            HpcRecordWriter<T> writer = this.m_factory.MakeWriter(ns);
+            //YY: could potentially use compression to reduce I/O
+            NativeBlockStream ns = new DryadLinqFileBlockStream(this.m_fileName, FileAccess.Write);
+            DryadLinqRecordWriter<T> writer = this.m_factory.MakeWriter(ns);
             try
             {
                 for (int i = 0; i < elems.Length; i++)
@@ -10576,13 +10749,13 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         private IEnumerator<T> GetEnumerator()
         {
-            NativeBlockStream ns = new HpcLinqFileStream(this.m_fileName, FileAccess.Read);
+            NativeBlockStream ns = new DryadLinqFileBlockStream(this.m_fileName, FileAccess.Read);
             this.m_reader = this.m_factory.MakeReader(ns);
 
             T rec = default(T);
             try
             {
-                if (HpcLinqVertex.s_multiThreading)
+                if (DryadLinqVertex.s_multiThreading)
                 {
                     this.m_reader.StartWorker();
                     while (this.m_reader.ReadRecordAsync(ref rec))

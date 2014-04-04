@@ -38,6 +38,12 @@ public:
     DrMetaDataPtr GetChannelMetaData();
     void SetChannelMetaData(DrMetaDataPtr metaData);
 
+    HRESULT GetChannelErrorCode();
+    void SetChannelErrorCode(HRESULT errorCode);
+
+    DrString GetChannelErrorString();
+    void SetChannelErrorString(DrString errorString);
+
     UINT64 GetChannelTotalLength();
     void SetChannelTotalLength(UINT64 totalLength);
 
@@ -53,6 +59,8 @@ private:
     HRESULT               m_state;
     DrString              m_URI;
     DrMetaDataRef         m_metaData;
+    HRESULT               m_errorCode;
+    DrString              m_errorString;
     UINT64                m_totalLength;
     UINT64                m_processedLength;
     bool                  m_isInputChannel;
@@ -95,6 +103,12 @@ public:
     DrMetaDataPtr GetVertexMetaData();
     void SetVertexMetaData(DrMetaDataPtr metaData);
 
+    HRESULT GetVertexErrorCode();
+    void SetVertexErrorCode(HRESULT errorCode);
+
+    DrString GetVertexErrorString();
+    void SetVertexErrorString(DrString errorString);
+
     void SetInputChannelCount(int channelCount);
     DrInputChannelArrayRef GetInputChannels();
 
@@ -119,6 +133,8 @@ private:
     int                               m_id;
     int                               m_version;
     DrMetaDataRef                     m_metaData;
+    HRESULT                           m_errorCode;
+    DrString                          m_errorString;
     int                               m_maxInputChannels;
     DrInputChannelArrayRef            m_inputChannel;
     int                               m_maxOutputChannels;

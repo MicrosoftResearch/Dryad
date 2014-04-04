@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -39,13 +36,13 @@ namespace Microsoft.Research.DryadLinq
 {
     internal class NodeInfoEdge
     {
-        public QueryNodeInfo parent;
-        public QueryNodeInfo child;
+        public QueryNodeInfo Parent;
+        public QueryNodeInfo Child;
 
         public NodeInfoEdge(QueryNodeInfo parent, QueryNodeInfo child)
         {
-            this.parent = parent;
-            this.child = child;
+            this.Parent = parent;
+            this.Child = child;
         }
 
         // Replace all occurences of oldEdge in edges by newEdge.
@@ -65,106 +62,149 @@ namespace Microsoft.Research.DryadLinq
         // Insert a node info on this edge.
         public void Insert(QueryNodeInfo nextInfo)
         {
-            Debug.Assert(nextInfo.children.Count == 0 && nextInfo.parents.Count == 0);
-            NodeInfoEdge edge1 = new NodeInfoEdge(this.parent, nextInfo);
-            NodeInfoEdge edge2 = new NodeInfoEdge(nextInfo, this.child);
-            UpdateEdge(this.parent.children, this, edge1);
-            nextInfo.parents.Add(edge1);
-            UpdateEdge(this.child.parents, this, edge2);
-            nextInfo.children.Add(edge2);
+            Debug.Assert(nextInfo.Children.Count == 0 && nextInfo.Parents.Count == 0);
+            NodeInfoEdge edge1 = new NodeInfoEdge(this.Parent, nextInfo);
+            NodeInfoEdge edge2 = new NodeInfoEdge(nextInfo, this.Child);
+            UpdateEdge(this.Parent.Children, this, edge1);
+            nextInfo.Parents.Add(edge1);
+            UpdateEdge(this.Child.Parents, this, edge2);
+            nextInfo.Children.Add(edge2);
         }
     }
     
     internal class QueryNodeInfo
     {
-        public Expression queryExpression;
-        public List<NodeInfoEdge> children;
-        public List<NodeInfoEdge> parents;
-        public bool isQueryOperator;
-        public DryadQueryNode queryNode;
+        public Expression QueryExpression;
+        public List<NodeInfoEdge> Children;
+        public List<NodeInfoEdge> Parents;
+        public bool IsQueryOperator;
+        public DLinqQueryNode QueryNode;
 
         public QueryNodeInfo(Expression queryExpression,
                              bool isQueryOperator,
                              params QueryNodeInfo[] children)
         {
-            this.queryExpression = queryExpression;
-            this.isQueryOperator = isQueryOperator;
-            this.children = new List<NodeInfoEdge>(children.Length);
+            this.QueryExpression = queryExpression;
+            this.IsQueryOperator = isQueryOperator;
+            this.Children = new List<NodeInfoEdge>(children.Length);
             foreach (QueryNodeInfo childInfo in children)
             {
                 NodeInfoEdge edge = new NodeInfoEdge(this, childInfo);
-                this.children.Add(edge);
-                childInfo.parents.Add(edge);
+                this.Children.Add(edge);
+                childInfo.Parents.Add(edge);
             }
-            this.parents = new List<NodeInfoEdge>();
-            this.queryNode = null;
+            this.Parents = new List<NodeInfoEdge>();
+            this.QueryNode = null;
         }
 
         public string OperatorName
         {
             get {
-                if (!this.isQueryOperator) return null;
-                return ((MethodCallExpression)this.queryExpression).Method.Name;
+                if (!this.IsQueryOperator) return null;
+                return ((MethodCallExpression)this.QueryExpression).Method.Name;
             }
         }
 
         public Type Type
         {
-            get { return this.queryExpression.Type; }
+            get { return this.QueryExpression.Type; }
         }
 
         public bool IsForked
         {
-            get { return this.parents.Count > 1; }
+            get { return this.Parents.Count > 1; }
         }
 
-        public QueryNodeInfo Clone()
+        public virtual QueryNodeInfo Clone()
         {
-            return new QueryNodeInfo(this.queryExpression, this.isQueryOperator);
+            return new QueryNodeInfo(this.QueryExpression, this.IsQueryOperator);
         }
         
         // Delete this NodeInfo.
         // Precondition: this.children.Count < 2
         public void Delete()
         {
-            Debug.Assert(this.children.Count < 2);
-            if (this.children.Count == 0)
+            Debug.Assert(this.Children.Count < 2);
+            if (this.Children.Count == 0)
             {
-                foreach (NodeInfoEdge edge in this.parents)
+                foreach (NodeInfoEdge edge in this.Parents)
                 {
-                    edge.parent.children.Remove(edge);
+                    edge.Parent.Children.Remove(edge);
                 }
             }
             else
             {
-                QueryNodeInfo child = this.children[0].child;
-                child.parents.Remove(this.children[0]);
-                foreach (NodeInfoEdge edge in this.parents)
+                QueryNodeInfo child = this.Children[0].Child;
+                child.Parents.Remove(this.Children[0]);
+                foreach (NodeInfoEdge edge in this.Parents)
                 {
-                    NodeInfoEdge newEdge = new NodeInfoEdge(edge.parent, child);
-                    NodeInfoEdge.UpdateEdge(edge.parent.children, edge, newEdge);
-                    child.parents.Add(newEdge);
+                    NodeInfoEdge newEdge = new NodeInfoEdge(edge.Parent, child);
+                    NodeInfoEdge.UpdateEdge(edge.Parent.Children, edge, newEdge);
+                    child.Parents.Add(newEdge);
                 }
             }
             
-            this.parents.Clear();
-            this.children.Clear();
+            this.Parents.Clear();
+            this.Children.Clear();
         }
 
         // Return true if this is not in the NodeInfo graph.
         public bool IsOrphaned
         {
-            get { return (this.children.Count == 0 && this.parents.Count == 0); }
+            get { return (this.Children.Count == 0 && this.Parents.Count == 0); }
         }
 
         public void Swap(QueryNodeInfo other)
         {
-            Debug.Assert(this.isQueryOperator && other.isQueryOperator);
-            Debug.Assert(this.queryNode == null && other.queryNode == null);
+            Debug.Assert(this.IsQueryOperator && other.IsQueryOperator);
+            Debug.Assert(this.QueryNode == null && other.QueryNode == null);
 
-            Expression queryExpr = this.queryExpression;
-            this.queryExpression = other.queryExpression;
-            other.queryExpression = queryExpr;
+            Expression queryExpr = this.QueryExpression;
+            this.QueryExpression = other.QueryExpression;
+            other.QueryExpression = queryExpr;
+        }
+    }
+
+    internal class DummyQueryNodeInfo : QueryNodeInfo
+    {
+        public bool NeedsMerge;
+
+        public DummyQueryNodeInfo(Expression queryExpression,
+                                  bool needsMerge,
+                                  params QueryNodeInfo[] children)
+            : base(queryExpression, false, children)
+        {
+            NeedsMerge = needsMerge;
+        }
+
+        public override QueryNodeInfo Clone()
+        {
+            throw new InvalidOperationException("Internal error.");
+        }
+    }
+
+    internal class DoWhileQueryNodeInfo : QueryNodeInfo
+    {
+        public QueryNodeInfo Body;
+        public QueryNodeInfo Cond;
+        public QueryNodeInfo BodySource;
+        public QueryNodeInfo CondSource1;
+        public QueryNodeInfo CondSource2;
+
+        public DoWhileQueryNodeInfo(Expression queryExpression,
+                                    QueryNodeInfo body,
+                                    QueryNodeInfo cond,
+                                    QueryNodeInfo bodySource,
+                                    QueryNodeInfo condSource1,
+                                    QueryNodeInfo condSource2,
+                                    params QueryNodeInfo[] children)
+            : base(queryExpression, false, children)
+        {
+            this.Body = body;
+            this.Cond = cond;
+            this.BodySource = bodySource;
+            this.CondSource1 = condSource1;
+            this.CondSource2 = condSource2;
         }
     }
 
@@ -205,12 +245,12 @@ namespace Microsoft.Research.DryadLinq
         public bool RewriteOne(int idx)
         {
             QueryNodeInfo curNode = this.m_nodeInfos[idx];
-            if (curNode.OperatorName == "Where" && !curNode.children[0].child.IsForked)
+            if (curNode.OperatorName == "Where" && !curNode.Children[0].Child.IsForked)
             {
-                LambdaExpression lambda = HpcLinqExpression.GetLambda(((MethodCallExpression)curNode.queryExpression).Arguments[1]);
+                LambdaExpression lambda = DryadLinqExpression.GetLambda(((MethodCallExpression)curNode.QueryExpression).Arguments[1]);
                 if (lambda.Type.GetGenericArguments().Length == 2)
                 {
-                    QueryNodeInfo child = curNode.children[0].child;
+                    QueryNodeInfo child = curNode.Children[0].Child;
                     string[] names = new string[] { "OrderBy", "Distinct", "RangePartition", "HashPartition" };
                     if (names.Contains(child.OperatorName))
                     {
@@ -220,9 +260,9 @@ namespace Microsoft.Research.DryadLinq
                     if (child.OperatorName == "Concat")
                     {
                         curNode.Delete();
-                        for (int i = 0; i < child.children.Count; i++)
+                        for (int i = 0; i < child.Children.Count; i++)
                         {
-                            NodeInfoEdge edge = child.children[i];
+                            NodeInfoEdge edge = child.Children[i];
                             QueryNodeInfo node = curNode.Clone();
                             this.m_nodeInfos.Add(node);
                             edge.Insert(node);
@@ -232,18 +272,18 @@ namespace Microsoft.Research.DryadLinq
                 }
             }
             else if ((curNode.OperatorName == "Select" || curNode.OperatorName == "SelectMany") &&
-                     !curNode.children[0].child.IsForked)
+                     !curNode.Children[0].Child.IsForked)
             {
-                LambdaExpression lambda = HpcLinqExpression.GetLambda(((MethodCallExpression)curNode.queryExpression).Arguments[1]);
+                LambdaExpression lambda = DryadLinqExpression.GetLambda(((MethodCallExpression)curNode.QueryExpression).Arguments[1]);
                 if (lambda.Type.GetGenericArguments().Length == 2)
                 {
-                    QueryNodeInfo child = curNode.children[0].child;
+                    QueryNodeInfo child = curNode.Children[0].Child;
                     if (child.OperatorName == "Concat")
                     {
                         curNode.Delete();
-                        for (int i = 0; i < child.children.Count; i++)
+                        for (int i = 0; i < child.Children.Count; i++)
                         {
-                            NodeInfoEdge edge = child.children[i];
+                            NodeInfoEdge edge = child.Children[i];
                             QueryNodeInfo node = curNode.Clone();
                             this.m_nodeInfos.Add(node);
                             edge.Insert(node);
@@ -252,12 +292,12 @@ namespace Microsoft.Research.DryadLinq
                     }
                 }
             }
-            else if (curNode.OperatorName == "Take" && !curNode.children[0].child.IsForked)
+            else if (curNode.OperatorName == "Take" && !curNode.Children[0].Child.IsForked)
             {
-                QueryNodeInfo child = curNode.children[0].child;
+                QueryNodeInfo child = curNode.Children[0].Child;
                 if (child.OperatorName == "Select")
                 {
-                    QueryNodeInfo cchild = child.children[0].child;
+                    QueryNodeInfo cchild = child.Children[0].Child;
                     if (cchild.OperatorName != "GroupBy")
                     {
                         curNode.Swap(child);
@@ -271,9 +311,9 @@ namespace Microsoft.Research.DryadLinq
                       curNode.OperatorName == "AllAsQuery" ||
                       curNode.OperatorName == "Any" ||
                       curNode.OperatorName == "AnyAsQuery") &&
-                     !curNode.children[0].child.IsForked)
+                     !curNode.Children[0].Child.IsForked)
             {
-                QueryNodeInfo child = curNode.children[0].child;
+                QueryNodeInfo child = curNode.Children[0].Child;
                 string[] names = new string[] { "OrderBy", "Distinct", "RangePartition", "HashPartition" };
                 if (names.Contains(child.OperatorName))
                 {

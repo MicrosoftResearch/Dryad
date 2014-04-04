@@ -33,6 +33,7 @@ int DrVertexIdSource::GetNextId()
 DrVertex::DrVertex(DrStageManagerPtr stage) : DrSharedCritSec(stage)
 {
     m_stage = stage;
+    m_partitionId = -1;
 
     m_id = DrVertexIdSource::GetNextId();
     m_name = stage->GetStageName();
@@ -48,6 +49,7 @@ void DrVertex::InitializeFromOther(DrVertexPtr other, int suffix)
     if (suffix >= 0 && other->m_name.GetString() != DrNull)
     {
         m_name.SetF("%s[%d]", other->m_name.GetChars(), suffix);
+        m_partitionId = suffix;
     }
     else
     {
@@ -83,6 +85,11 @@ DrStageManagerPtr DrVertex::GetStageManager()
 int DrVertex::GetId()
 {
     return m_id;
+}
+
+int DrVertex::GetPartitionId()
+{
+    return m_partitionId;
 }
 
 void DrVertex::SetName(DrString name)
@@ -346,8 +353,8 @@ DrString DrActiveVertex::GetURIForWrite(int port,
     return DrString();
 }
 
-DrVertexCommandBlockRef DrActiveVertex::MakeVertexStartCommand(DrVertexVersionGeneratorPtr generators,
-                                                               DrResourcePtr runningResource)
+DrVertexCommandBlockRef DrActiveVertex::MakeVertexStartCommand(DrVertexVersionGeneratorPtr inputGenerators,
+                                                               DrActiveVertexOutputGeneratorPtr selfGenerator)
 {
     DrVertexCommandBlockRef cmd = DrNew DrVertexCommandBlock();
     cmd->SetVertexCommand(DrVC_Start);
@@ -362,19 +369,19 @@ DrVertexCommandBlockRef DrActiveVertex::MakeVertexStartCommand(DrVertexVersionGe
     DrVertexProcessStatusPtr ps = cmd->GetProcessStatus();
 
     ps->SetVertexId(m_id);
-    ps->SetVertexInstanceVersion(generators->GetVersion());
+    ps->SetVertexInstanceVersion(inputGenerators->GetVersion());
 
-    DrAssert(m_inputEdges->GetNumberOfEdges() == generators->GetNumberOfInputs());
+    DrAssert(m_inputEdges->GetNumberOfEdges() == inputGenerators->GetNumberOfInputs());
 
     ps->SetInputChannelCount(m_inputEdges->GetNumberOfEdges());
     ps->SetMaxOpenInputChannelCount(m_maxOpenInputChannelCount);
     for (i=0; i<m_inputEdges->GetNumberOfEdges(); ++i)
     {
-        DrVertexOutputGeneratorPtr g = generators->GetGenerator(i);
+        DrVertexOutputGeneratorPtr g = inputGenerators->GetGenerator(i);
         DrEdge e = m_inputEdges->GetEdge(i);
         DrChannelDescriptionPtr c = ps->GetInputChannels()[i];
 
-        DrString uri = g->GetURIForRead(e.m_remotePort, e.m_type, runningResource);
+        DrString uri = g->GetURIForRead(e.m_remotePort, e.m_type, selfGenerator->GetResource());
         DrAffinityRef affinity = g->GetOutputAffinity(e.m_remotePort);
 
         c->SetChannelState(S_OK);
@@ -410,9 +417,7 @@ DrVertexCommandBlockRef DrActiveVertex::MakeVertexStartCommand(DrVertexVersionGe
 
         DrConnectorType t = m_outputEdges->GetEdge(i).m_type;
 
-        DrString uri =
-            DrActiveVertexOutputGenerator::GetURIForWrite(m_outputEdges, runningResource,
-                                                          m_id, generators->GetVersion(), i, t, metaData);
+        DrString uri = selfGenerator->GetURIForWrite(m_outputEdges, i, t, metaData);
 
         DrChannelDescriptionPtr c = ps->GetOutputChannels()[i];
         c->SetChannelState(S_OK);
@@ -609,7 +614,7 @@ void DrActiveVertex::StartProcess(int version)
 	m_pendingVersion = DrNull;
 	DrAssert(generator != DrNull && generator->GetVersion() == version);
 
-    DrVertexRecordRef execution = DrNew DrVertexRecord(m_stage->GetGraph()->GetXCompute(), this,
+    DrVertexRecordRef execution = DrNew DrVertexRecord(m_stage->GetGraph()->GetCluster(), this,
                                                        cohortProcess, generator, m_vertexTemplate);
 
     m_runningVertex->Add(execution);
@@ -789,7 +794,7 @@ void DrActiveVertex::ReactToCompletedVertex(DrVertexRecordPtr record, DrVertexEx
 
     DrString message;
     message.SetF("completed vertex %s", (PCSTR)m_name.GetChars());
-    m_stage->GetGraph()->GetXCompute()->IncrementProgress(message.GetChars());
+    m_stage->GetGraph()->GetCluster()->IncrementProgress(message.GetChars());
     
     //
     // go down output edges and actually prod the vertices to start running if
@@ -1143,6 +1148,12 @@ void DrActiveVertex::ReactToFailedVertex(DrVertexOutputGeneratorPtr failedGenera
             DrErrorRef error = DrNew DrError(DrError_BadOutputReported, "DrActiveVertex", reason);
             error->AddProvenance(originalReason);
 
+            DrErrorRef channelError = DrNew DrError(status->GetInputChannels()[inputToKill]->GetChannelErrorCode(),
+                                                    "RemoteVertex",
+                                                    status->GetInputChannels()[inputToKill]->GetChannelErrorString());
+            error->AddProvenance(channelError);
+
+            DrLogI("Vertex %d.%d: original %s", this->m_id, version, originalReason->ToShortText().GetChars());
             DrLogI("Vertex %d.%d: %s calling ReactToFailedVertex", this->m_id, version, reason.GetChars());
             vertex->ReactToFailedVertex(g, DrNull, DrNull, DrNull, error);
         }
@@ -1198,12 +1209,14 @@ DrStorageVertex::DrStorageVertex(DrStageManagerPtr stage, int partitionIndex,
 {
     m_generator = DrNew DrStorageVertexOutputGenerator(partitionIndex, reader);
     m_registeredInputReady = false;
+    m_partitionId = partitionIndex;
 }
 
 DrStorageVertex::DrStorageVertex(DrStageManagerPtr stage, DrStorageVertexOutputGeneratorPtr generator)
     : DrVertex(stage)
 {
     m_generator = generator;
+    m_partitionId = generator->GetPartitionIndex();
     m_registeredInputReady = false;
 }
 
@@ -1315,6 +1328,7 @@ void DrStorageVertex::ReactToFailedVertex(DrVertexOutputGeneratorPtr /* unused f
                                           DrVertexProcessStatusPtr /* unused status */,
                                           DrErrorPtr originalReason)
 {
+    DrLogI("Failed vertex %s", originalReason->m_explanation.GetChars());
     m_stage->GetGraph()->ReportStorageFailure(this, originalReason);
 }
 
@@ -1376,18 +1390,19 @@ DrVertexRef DrOutputVertex::MakeCopy(int suffix, DrStageManagerPtr stage)
     return vo;
 }
 
-DrOutputPartition DrOutputVertex::FinalizeVersions()
+DrOutputPartition DrOutputVertex::FinalizeVersions(bool jobSuccess)
 {
-    int i;
+    /* abandon all but one successful version if the job succeeded, all versions otherwise */
+    int i = (jobSuccess) ? 1 : 0;
 
-    /* abandon all but one successful version */
     for (i=1; i<m_successfulVersion->Size(); ++i)
     {
         m_generator->AbandonVersion(m_partitionIndex,
                                     m_successfulVersion[i].m_id,
                                     m_successfulVersion[i].m_version,
                                     m_successfulVersion[i].m_outputPort,
-                                    m_successfulVersion[i].m_resource);
+                                    m_successfulVersion[i].m_resource,
+                                    jobSuccess);
     }
 
     /* abandon all versions that are 'still running' */
@@ -1397,10 +1412,19 @@ DrOutputPartition DrOutputVertex::FinalizeVersions()
                                     m_runningVersion[i].m_id,
                                     m_runningVersion[i].m_version,
                                     m_runningVersion[i].m_outputPort,
-                                    m_runningVersion[i].m_resource);
+                                    m_runningVersion[i].m_resource,
+                                    jobSuccess);
     }
 
-    return m_successfulVersion[0];
+    if (jobSuccess)
+    {
+        return m_successfulVersion[0];
+    }
+    else
+    {
+        // it doesn't matter what we return here; it isn't used
+        return DrOutputPartition();
+    }
 }
 
 DrVertexOutputGeneratorPtr DrOutputVertex::GetOutputGenerator(int edgeIndex,
@@ -1518,7 +1542,17 @@ void DrOutputVertex::ReactToUpStreamFailure(int /* unused port */,
     {
         if (m_runningVersion[i].m_version == generator->GetVersion())
         {
+            /* discard the partition. jobSuccess=true here, because we don't
+               know that the job has failed */
+            m_generator->AbandonVersion(m_partitionIndex,
+                                        m_runningVersion[i].m_id,
+                                        m_runningVersion[i].m_version,
+                                        m_runningVersion[i].m_outputPort,
+                                        m_runningVersion[i].m_resource,
+                                        true);
+
             m_runningVersion->RemoveAt(i);
+
             return;
         }
     }

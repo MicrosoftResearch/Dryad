@@ -20,7 +20,6 @@ limitations under the License.
 
 #include "dvertexpncontrol.h"
 #include <dryadvertex.h>
-#include <dvertexenvironment.h>
 #include <dryadpropertiesdef.h>
 #include <dryaderrordef.h>
 #include <process.h>
@@ -74,7 +73,7 @@ void DVertexPnController::SendStatus(UInt32 exitOnCompletion,
     // Enter critical section
     //
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         //
         // If waiting for termination, don't send more status updates. 
@@ -116,7 +115,7 @@ void DVertexPnController::SendAssertStatus(const char* assertString)
 {
     DrRef<DryadPnProcessPropertyRequest> request;
 
-    if (m_baseDR.TryEnter())
+    if (m_baseCS.TryEnter())
     {
         /* we got the lock, so we can keep the current status and
            just add info that there's an assert failure. */
@@ -129,13 +128,16 @@ void DVertexPnController::SendAssertStatus(const char* assertString)
         if (metaData.Ptr() == NULL)
         {
             DryadMetaData::Create(&metaData);
-            pStatus->SetVertexMetaData(metaData);
+            pStatus->SetVertexMetaData(metaData, true);
         }
 
         metaData->AppendString(Prop_Dryad_AssertFailure,
                                assertString, true);
 
         m_currentStatus->SetVertexState(DryadError_AssertFailure);
+
+        pStatus->SetVertexErrorCode(DryadError_AssertFailure);
+        pStatus->SetVertexErrorString(assertString);
 
         request.Attach(MakeSetStatusRequest(DrExitCode_StillActive,
                                             true, true));
@@ -155,7 +157,7 @@ void DVertexPnController::SendAssertStatus(const char* assertString)
 
         DryadMetaDataRef metaData;
         DryadMetaData::Create(&metaData);
-        pStatus->SetVertexMetaData(metaData);
+        pStatus->SetVertexMetaData(metaData, true);
 
         metaData->AppendString(Prop_Dryad_AssertFailure,
                                assertString, true);
@@ -185,7 +187,9 @@ void DVertexPnController::
                             DryadChannelDescription* src)
 {
     dst->SetChannelState(src->GetChannelState());
-    dst->SetChannelMetaData(src->GetChannelMetaData());
+    dst->SetChannelMetaData(src->GetChannelMetaData(), false);
+    dst->SetChannelErrorCode(src->GetChannelErrorCode());
+    dst->SetChannelErrorString(src->GetChannelErrorString());
     dst->SetChannelProcessedLength(src->GetChannelProcessedLength());
     dst->SetChannelTotalLength(src->GetChannelTotalLength());
 }
@@ -195,7 +199,7 @@ void DVertexPnController::AssimilateNewStatus(DVertexProcessStatus* status,
                                               bool notifyWaiters)
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         UInt32 i;
 
@@ -208,7 +212,9 @@ void DVertexPnController::AssimilateNewStatus(DVertexProcessStatus* status,
         LogAssert(status->GetVertexInstanceVersion() ==
                   currentPStatus->GetVertexInstanceVersion());
 
-        currentPStatus->SetVertexMetaData(status->GetVertexMetaData());
+        currentPStatus->SetVertexMetaData(status->GetVertexMetaData(), false);
+        currentPStatus->SetVertexErrorCode(status->GetVertexErrorCode());
+        currentPStatus->SetVertexErrorString(status->GetVertexErrorString());
 
         LogAssert(status->GetInputChannelCount() ==
                   currentPStatus->GetInputChannelCount());
@@ -250,7 +256,7 @@ void DVertexPnController::Terminate(DrError vertexState,
     // take Critical section to update vertex state
     //
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         m_currentStatus->SetVertexState(vertexState);
     }
@@ -321,7 +327,7 @@ unsigned DVertexPnController::ThreadFunc(void* arg)
     // Enter critical section to turn off active vertex
     //
     {
-        AutoCriticalSection acs(&(self->m_baseDR));
+        AutoCriticalSection acs(&(self->m_baseCS));
         LogAssert(self->m_activeVertex == true);
         self->m_activeVertex = false;
     }
@@ -565,7 +571,7 @@ void DVertexPnController::DumpRestartCommand(DVertexCommandBlock* commandBlock)
     // Write original restart command
     //
     fprintf(fOriginalRestart,
-            "%s --vertex --cmd -dump %s -overridetext %s\n",
+            "%s --cmd -dump %s -overridetext %s\n",
             m_parent->GetRunningExePathName(),
             restartBlockName.GetString(),
             originalInfoName.GetString());
@@ -748,7 +754,7 @@ void DVertexPnController::Start(DVertexCommandBlock* commandBlock)
     // Enter critical section for updating vertex status and getting channels' state
     //
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         //
         // Update vertex state to "running" after verifying vertex ok
@@ -829,7 +835,7 @@ void DVertexPnController::ReOpenChannels(DVertexCommandBlock* reOpenCommand)
     DVertexProcessStatus* newStatus = reOpenCommand->GetProcessStatus();
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         DVertexProcessStatus* currentPStatus =
             m_currentStatus->GetProcessStatus();
@@ -868,7 +874,7 @@ DrError DVertexPnController::ActOnCommand(DVertexCommandBlock* commandBlock)
     // Critical section to issue commands
      //
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         switch (command)
         {
@@ -936,9 +942,9 @@ DrError DVertexPnController::ActOnCommand(DVertexCommandBlock* commandBlock)
             }
 
             //
-            // if waiting for termination, we can just fall through to the command loop again
-            // here: the process will exit as soon as the sendstatus completes 
+            // if waiting for termination, stop asking for new commands
             //
+            err = DryadError_VertexReceivedTermination;
             break;
 
         default:
@@ -1005,17 +1011,13 @@ unsigned DVertexPnController::CommandLoopStatic(void* arg)
 DVertexPnControllerOuter::DVertexPnControllerOuter()
 {
     m_controllerArray = NULL;
-    m_environment = NULL;
 }
 
 void DVertexPnControllerOuter::AssertCallback(void* cookie, const char* assertString)
 {
     DVertexPnControllerOuter* self = (DVertexPnControllerOuter *) cookie;
 
-    if (assertString[0] == 'a' || assertString[0] == 'A')
-    {
-        self->SendAssertStatus(assertString);
-    }
+    self->SendAssertStatus(assertString);
 }
 
 void DVertexPnControllerOuter::SendAssertStatus(const char* assertString)
@@ -1056,7 +1058,7 @@ void DVertexPnControllerOuter::VertexExiting(int exitCode)
     // and exit the process if all verticies are complete or a failure occurred
     //
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_activeVertexCount > 0);
         --m_activeVertexCount;
@@ -1076,29 +1078,10 @@ const char* DVertexPnControllerOuter::GetRunningExePathName()
 }
 
 //
-// Return current environment
-//
-DVertexEnvironment* DVertexPnControllerOuter::GetEnvironment()
-{
-    return m_environment;
-}
-
-//
 // called from dvertexmain.cpp
 //
 UInt32 DVertexPnControllerOuter::Run(int argc, char* argv[])
 {
-    //
-    // Create virtex environment and initialize it from current environment
-    //
-    m_environment = MakeEnvironment();
-    DrError cse = m_environment->InitializeFromEnvironment();
-    if (cse != DrError_OK)
-    {
-        DrLogE("Couldn't initialise environment");
-        return 1;
-    }
-
     //
     // Make sure there are at least two arguments
     //
@@ -1146,7 +1129,7 @@ UInt32 DVertexPnControllerOuter::Run(int argc, char* argv[])
     // Critical section to update the number of active verticies
     //
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
         m_assertCounter = 0;
         m_activeVertexCount = m_numberOfVertices;
     }
@@ -1169,10 +1152,7 @@ UInt32 DVertexPnControllerOuter::Run(int argc, char* argv[])
         m_controllerArray[i] = MakePnController(vertexId, vertexVersion);
     }
 
-    // todo: not sure if this matters for us
-    /* disable assertion notification for now until logging deadlock
-       is fixed */
-//     Logger::AddApplicationLogCallback(AssertCallback, this);
+    DrLogging::SetAssertCallback(AssertCallback, this);
 
     //
     // foreach vertex, launch the command loop

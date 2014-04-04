@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-// 
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -30,26 +27,23 @@ using System.Linq;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
-using Microsoft.Research.Dryad.Hdfs;
-using Microsoft.Research.DryadLinq.Internal;
 using System.Globalization;
+using Microsoft.Research.DryadLinq.Internal;
 
 namespace Microsoft.Research.DryadLinq
 {
     // The base provider for all DryadLinq queries.
-    // Any IQueryable that we are handling should satisfy ((queryable.Provider is DryadLinqProviderBase) == true)
-    //
-    // For example:
-    //    - all IQueryable extension methods ask for (queryable.Provider) and then call provider.CreateQuery(expr)
+    // All IQueryable extension methods ask for (queryable.Provider) and then call provider.CreateQuery(expr)
     internal abstract class DryadLinqProviderBase : IQueryProvider
     {
-        private HpcLinqContext m_context;
-        internal HpcLinqContext Context { get { return m_context; } }
+        private DryadLinqContext m_context;
 
-        internal DryadLinqProviderBase(HpcLinqContext context)
+        internal DryadLinqProviderBase(DryadLinqContext context)
         {
-            m_context = context;
+            this.m_context = context;
         }
+
+        internal DryadLinqContext Context { get { return this.m_context; } }
 
         public abstract IQueryable<TElement> CreateQuery<TElement>(Expression expression);
         public abstract IQueryable CreateQuery(Expression expression);
@@ -61,8 +55,8 @@ namespace Microsoft.Research.DryadLinq
     internal sealed class DryadLinqLocalProvider : DryadLinqProviderBase
     {
         private IQueryProvider m_linqToObjectsProvider;
-        
-        public DryadLinqLocalProvider(IQueryProvider linqToObjectsProvider, HpcLinqContext context)
+
+        public DryadLinqLocalProvider(IQueryProvider linqToObjectsProvider, DryadLinqContext context)
             : base(context)
         {
             this.m_linqToObjectsProvider = linqToObjectsProvider;
@@ -74,11 +68,12 @@ namespace Microsoft.Research.DryadLinq
             MethodCallExpression callExpr = expression as MethodCallExpression;
             if (callExpr == null)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.ExpressionMustBeMethodCall, SR.ExpressionMustBeMethodCall);
+                throw new DryadLinqException(DryadLinqErrorCode.ExpressionMustBeMethodCall,
+                                             SR.ExpressionMustBeMethodCall);
             }
             string methodName = callExpr.Method.Name;
-            throw new DryadLinqException(HpcLinqErrorCode.UntypedProviderMethodsNotSupported,
-                                       String.Format(SR.UntypedProviderMethodsNotSupported, methodName));
+            throw new DryadLinqException(DryadLinqErrorCode.UntypedProviderMethodsNotSupported,
+                                         String.Format(SR.UntypedProviderMethodsNotSupported, methodName));
         }
 
         //Always throw for untyped call.
@@ -89,27 +84,13 @@ namespace Microsoft.Research.DryadLinq
 
         public override IQueryable<TElement> CreateQuery<TElement>(Expression expression)
         {
-            ThrowIfUnsupported(expression);
             var localQuery = this.m_linqToObjectsProvider.CreateQuery<TElement>(expression);
             return new DryadLinqLocalQuery<TElement>(this, localQuery);
         }
 
         public override TResult Execute<TResult>(Expression expression)
         {
-            ThrowIfUnsupported(expression);
             return this.m_linqToObjectsProvider.Execute<TResult>(expression);
-        }
-
-        internal void ThrowIfUnsupported(Expression expression)
-        {
-            var mcexpr = expression as MethodCallExpression;
-            if (mcexpr != null)
-            {
-                // if (mcexpr.Method.Name == "SequenceEqual")
-                // {
-                //     throw new NotSupportedException(SR.SequenceEqualNotSupported);
-                // }
-            }
         }
     }
 
@@ -141,40 +122,36 @@ namespace Microsoft.Research.DryadLinq
             get { return this.m_queryProvider; }
         }
         
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return this.GetEnumerator();
-        }
-
         public IEnumerator<T> GetEnumerator()
         {
             return this.m_localQuery.GetEnumerator();
         }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return this.GetEnumerator();
+        }
     }
 
-
     // The provider for DryadLinq queries that will be executed by the cluster infrastructure.
-    internal sealed class DryadLinqProvider : DryadLinqProviderBase
+    internal class DryadLinqProvider : DryadLinqProviderBase
     {
-        internal DryadLinqProvider(HpcLinqContext context)
+        internal DryadLinqProvider(DryadLinqContext context)
             : base(context)
         {
         }
 
-        //It is exercised by unit test "Bug11782_LowLevelQueryableManipulation"
-        // which ccn now expect to receive an exception
-        // Always throw for the untyped calls.
         public override IQueryable CreateQuery(Expression expression)
         {
             MethodCallExpression callExpr = expression as MethodCallExpression;
             if (callExpr == null)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.ExpressionMustBeMethodCall,
-                                           SR.ExpressionMustBeMethodCall);
+                throw new DryadLinqException(DryadLinqErrorCode.ExpressionMustBeMethodCall,
+                                             SR.ExpressionMustBeMethodCall);
             }
             string methodName = callExpr.Method.Name;
-            throw new DryadLinqException(HpcLinqErrorCode.UntypedProviderMethodsNotSupported,
-                                       String.Format(SR.UntypedProviderMethodsNotSupported, methodName));
+            throw new DryadLinqException(DryadLinqErrorCode.UntypedProviderMethodsNotSupported,
+                                         String.Format(SR.UntypedProviderMethodsNotSupported, methodName));
         }
 
         public override IQueryable<TElement> CreateQuery<TElement>(Expression expression)
@@ -182,64 +159,65 @@ namespace Microsoft.Research.DryadLinq
             return new DryadLinqQuery<TElement>(this, expression);
         }
 
-        //This is the IQueryProvider.Execute() method used for execution when a single value is produced (rather than an enumerable)
-        //This non-generic method simply delegates to the generic method
-        //Always throw for the untyped calls
+        // This is the IQueryProvider.Execute() method used for execution
+        // when a single value is produced (rather than an enumerable)
         public override object Execute(Expression expression)
         {
             return this.CreateQuery(expression); // which will throw.
         }
 
-        //This is the IQueryProvider.Execute() method used for execution when a single value is produced (rather than an enumerable)
+        // This is the IQueryProvider.Execute() method used for execution
+        // when a single value is produced (rather than an enumerable)
         public override TResult Execute<TResult>(Expression expression)
         {
             MethodCallExpression callExpr = expression as MethodCallExpression;
             if (callExpr == null)
             {
                 throw new ArgumentException(String.Format(SR.ExpressionMustBeMethodCall,
-                                                          HpcLinqExpression.Summarize(expression)), "expression");
+                                                          DryadLinqExpression.Summarize(expression)),
+                                            "expression");
             }
             string methodName = callExpr.Method.Name;
             if (methodName == "FirstOrDefault" ||
                 methodName == "SingleOrDefault" ||
                 methodName == "LastOrDefault")
             {
-                Type qType = typeof(DryadLinqQuery<>).MakeGenericType(typeof(AggregateValue<>).MakeGenericType(expression.Type));
+                Type elemType = typeof(AggregateValue<>).MakeGenericType(expression.Type);
+                Type qType = typeof(DryadLinqQuery<>).MakeGenericType(elemType);
                 AggregateValue<TResult> res = ((IEnumerable<AggregateValue<TResult>>)
                                                 Activator.CreateInstance(
                                                     qType,
                                                     BindingFlags.NonPublic | BindingFlags.Instance,
                                                     null,
-                                                    new object[] { this, expression},
+                                                    new object[] { this, expression },
                                                     CultureInfo.CurrentCulture
-                                               )).Single();
+                                                    )).Single();
                 if (res.Count == 0) return default(TResult);
                 return res.Value;
             }
             else
             {
                 Type qType = typeof(DryadLinqQuery<>).MakeGenericType(expression.Type);
-                return ((IEnumerable<TResult>) Activator.CreateInstance(
+                return ((IEnumerable<TResult>)Activator.CreateInstance(
                                                     qType,
                                                     BindingFlags.NonPublic | BindingFlags.Instance,
                                                     null,
                                                     new object[] { this, expression },
                                                     CultureInfo.CurrentCulture
-                                                )).Single();
+                                                    )).Single();
             }
         }
     }
 
-
-    //Note: cannot be sub-classed by users as they cannot provide overrides for the internal abstract properties.
-    internal abstract class DryadLinqQuery
+    internal abstract class DryadLinqQuery : IQueryable
     {
         protected DryadLinqProviderBase m_queryProvider;
         private DataProvider m_dataProvider;
         private bool m_isTemp;
-        private JobExecutor m_queryExecutor;
+        private DryadLinqJobExecutor m_queryExecutor;
 
-        internal DryadLinqQuery(DryadLinqProviderBase queryProvider, DataProvider dataProvider)
+        internal DryadLinqQuery(DryadLinqProviderBase queryProvider,
+                                DataProvider dataProvider)
         {
             this.m_queryProvider = queryProvider;
             this.m_dataProvider = dataProvider;
@@ -247,20 +225,31 @@ namespace Microsoft.Research.DryadLinq
         }
 
         //if non-null, this provided a data-backed DLQ that should be used in place of (this).
-        //query-execution causes a _backingData field to be set for the DLQ nodes that were specifically "executed".
-        //(used to be called _table/Table)
-        internal abstract DryadLinqQuery BackingDataDLQ { set; }
-        internal abstract bool IsDataBacked { get; } 
+        //query-execution causes a _backingData field to be set for the DLQ nodes that were "executed".
+        internal abstract DryadLinqQuery BackingData { get; set; }
+        internal bool IsDataBacked
+        {
+            get { return this.BackingData != null; }
+        }
         
-        internal abstract Type Type { get; }
-        internal abstract string DataSourceUri { get; }
+        public abstract Type ElementType { get; }
+        public abstract Expression Expression { get; }
+        internal abstract bool IsPlainData { get; }
+        internal abstract Uri DataSourceUri { get; }
         internal abstract bool IsDynamic { get; }
         internal abstract int PartitionCount { get; }
         internal abstract DataSetInfo DataSetInfo { get; }
 
-        internal DryadLinqProviderBase QueryProvider
+        protected abstract IEnumerator IEnumGetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return this.IEnumGetEnumerator();
+        }
+
+        public IQueryProvider Provider
         {
             get { return this.m_queryProvider; }
+            set { this.m_queryProvider = (DryadLinqProviderBase)value; }
         }
 
         internal DataProvider DataProvider
@@ -268,49 +257,56 @@ namespace Microsoft.Research.DryadLinq
             get { return this.m_dataProvider; }
         }
 
+        public DryadLinqContext Context
+        {
+            get { return m_queryProvider.Context; }
+        }
+
         internal bool IsTemp
         {
             set { this.m_isTemp = value; }
         }
 
-        internal JobExecutor QueryExecutor
+        internal DryadLinqJobExecutor QueryExecutor
         {
             get { return this.m_queryExecutor; }
             set { this.m_queryExecutor = value; }
         }
 
-        protected void CopyToInternal(DryadLinqQuery otherQuery)
+        protected void CloneBase(DryadLinqQuery otherQuery)
         {
+            if (otherQuery.m_queryProvider == null)
+            {
             otherQuery.m_queryProvider = this.m_queryProvider;
+            }
+            if (otherQuery.m_dataProvider == null)
+            {
             otherQuery.m_dataProvider = this.m_dataProvider;
+            }
             otherQuery.m_isTemp = this.m_isTemp;
             otherQuery.m_queryExecutor = this.m_queryExecutor;
         }
 
         internal virtual VertexCodeGen GetVertexCodeGen()
         {
-            return new VertexCodeGen();
+            return new VertexCodeGen(this.m_queryProvider.Context);
         }
     }
 
     // The IQueryable<T> that is used for cluster-execution queries.
-    internal class DryadLinqQuery<T> : DryadLinqQuery, IOrderedQueryable<T>, IEnumerable<T>, IOrderedQueryable
+    internal class DryadLinqQuery<T>
+        : DryadLinqQuery, IOrderedQueryable<T>, IEnumerable<T>, IOrderedQueryable
     {
-        // If _backingDataDLQ is set, this is a normal query node that was executed and now has a 
+        // If BackingData is set, this is a normal query node that was executed and now has a 
         // "PlainData" DLQ available with the results.  
-        private DryadLinqQuery<T> m_backingDataDLQ; 
+        private DryadLinqQuery<T> m_backingData; 
         private Expression m_queryExpression;
-        private string m_dataSourceUri;
+        private Uri m_dataSourceUri;
         private DataSetInfo m_dataSetInfo;
         private bool m_isDynamic;
         private DryadLinqQueryEnumerable<T> m_tableEnumerable;
 
-        //ctor: 
-        // 1. used by IQueryProvider. eg IQueryable<>.Select() 
-        // 2. used by lazy queries which come in through here via 
-        //      DryadLinqIQueryable.ToPartitionedTableLazy()
-        //      -> DryadLinqProvider.CreateQuery()
-        //        
+        // Used by IQueryProvider. e.g., IQueryable<>.Select() and IQueryable<>.ToStore()
         internal DryadLinqQuery(DryadLinqProviderBase provider, Expression expression)
             : base(provider, null)
         {
@@ -319,31 +315,29 @@ namespace Microsoft.Research.DryadLinq
             this.m_tableEnumerable = null;
         }
 
-        //ctor:
-        //[ML]: combined from MSR-DL ctors for PartitionedTable<> and DryadLinqQuery<>
-        //      This ctor is used by DryadLinqQuery.Get(uri)
+        // Used by DryadLinqContext.LoadFrom(uri)
         internal DryadLinqQuery(Expression queryExpression,
                                 DryadLinqProvider queryProvider,
                                 DataProvider dataProvider,
-                                string dataUri)
+                                Uri dataSetUri)
             : base(queryProvider, dataProvider)
         {
-            if(!DataPath.IsDsc(dataUri) && !DataPath.IsHdfs(dataUri))
+            if (!DataPath.IsValidDataPath(dataSetUri))
             {
-                throw new DryadLinqException(HpcLinqErrorCode.UnrecognizedDataSource,
-                                           String.Format(SR.UnrecognizedDataSource, dataUri));
+                throw new DryadLinqException(DryadLinqErrorCode.UnrecognizedDataSource,
+                                             String.Format(SR.UnrecognizedDataSource, dataSetUri.AbsoluteUri));
             }
 
             this.m_queryExpression = queryExpression;
-            this.m_dataSourceUri = DataPath.GetDataPath(dataUri);
+            this.m_dataSourceUri = dataSetUri;
             this.m_isDynamic = false;
             this.m_tableEnumerable = null;
         }
 
-        internal void CopyTo(DryadLinqQuery<T> otherQuery)
+        internal void Clone(DryadLinqQuery<T> otherQuery)
         {
-            this.CopyToInternal(otherQuery);
-            otherQuery.m_backingDataDLQ = this.m_backingDataDLQ;
+            this.CloneBase(otherQuery);
+            otherQuery.m_backingData = this.m_backingData;
             otherQuery.m_queryExpression = this.m_queryExpression;
             otherQuery.m_dataSourceUri = this.m_dataSourceUri;
             otherQuery.m_dataSetInfo = this.m_dataSetInfo;
@@ -352,301 +346,62 @@ namespace Microsoft.Research.DryadLinq
         }
 
         // returns true for DLQ that are pointing directly at plain data.
-        // Note: plain-data DLQ might also have an executor associated with it.. the data wont be 
-        // available unless the executor completes sucessfully.
-        internal bool IsPlainData
+        // Note: plain-data DLQ might also have an executor associated with it.. the data 
+        // wont be available unless the executor completes sucessfully.
+        internal override bool IsPlainData
         {
             get { return (this.m_dataSourceUri != null); }
         }
 
-        // returns true for DLQ that are not themselves pointing directly at plain data, eg query-operators.
-        internal bool IsNormalQuery
+        internal override DryadLinqQuery BackingData
         {
-            get { return (this.m_dataSourceUri == null); }
+            get { return this.m_backingData; }
+            set { this.m_backingData = (DryadLinqQuery<T>)value; }
         }
 
-        internal override DryadLinqQuery BackingDataDLQ
-        {
-            set { m_backingDataDLQ = (DryadLinqQuery<T>)value; }
-        }
-
-        // returns true for a normal query that was executed and now has a backing data DLQ available.
-        internal override bool IsDataBacked
-        {
-            get { return (this.m_backingDataDLQ != null); }
-        }
-
-        // returns true if an executor is associated with the DLQ.
-        internal bool HasExecutor
-        {
-            get { 
-                bool hasExec = (this.QueryExecutor != null);
-                if (hasExec && !IsPlainData)
-                {
-                    throw new DryadLinqException("An executor should only be associated with a DLQ that is plain data");
-                }
-                return hasExec; 
-            }
-        }
-
-        public HpcLinqContext Context
-        {
-            get { return m_queryProvider.Context; }
-        }
-
-        #region IQueryable members
-        Type IQueryable.ElementType
-        {
-            get { return typeof(T); }
-        }
-
-        //@@Comment-required: (bit unclear what the intended behavior is for localDebug)
-        //ML: combined from PT<T> and DLQ<T>.. 
-        IQueryProvider IQueryable.Provider
-        {
-            get
-            {
-                this.CheckAndInitialize();
-                return this.m_queryProvider;
-            }
-        }
-        #endregion
-
-        // Executes a query to a named Dsc URI.  The query should _not_ be terminated with ToDsc().
-        internal DryadLinqQuery<T> ToTemporaryTable(HpcLinqContext context, string targetUri)
-        {
-            if ((!DataPath.IsDsc(targetUri)) && (!DataPath.IsHdfs(targetUri)))
-            {
-                throw new ArgumentException(String.Format(SR.UnrecognizedDataSource, targetUri));
-            }
-            
-            HpcLinqQueryGen dryadGen = null;
-            string realTableUri = targetUri;
-#if REMOVE_FOR_YARN
-            if (IsPlainData) // was if (this.m_queryExpression is ConstantExpression)
-            {
-                //@@TODO: I think this is dead code. See if it can be exercised.
-
-                // the input is a Plain-data DLQ.
-                // the output-target has been set
-                // We expect both to be DSC -- so we just use the DSC API to perform a copy rather than invoke dryad.
-                string inputUri = DataSourceUri;
-
-                Debug.Assert(DataPath.IsDsc(inputUri) && DataPath.IsDsc(targetUri), "both uris should be to Dsc");
-
-                using (DscInstance inputService = new DscInstance(new Uri(inputUri)))
-                using (DscInstance outputService = new DscInstance(new Uri(targetUri)))
-                {
-                    DscStream inputStream = inputService.GetStream(new Uri(inputUri));
-                    try
-                    {
-                        DscStream outputStream = outputService.GetStream(new Uri(targetUri));
-                        outputStream.Delete();
-                    }
-                    catch (DscException)
-                    { }
-                    inputStream.Copy(new Uri(targetUri));
-                    ////this.m_table = DryadLinqQuery.Get<T>(tableUri);  
-                    ////return this.m_table;
-                    //// [ML] part of deleting this.m_table.  We just return (this) rather than (this.m_table)
-
-                    DryadLinqQuery<T> databackedDLQ = DataProvider.GetPartitionedTable<T>(Context, targetUri);
-                    this.m_backingDataDLQ = databackedDLQ;  //ML: we set the new table as backing data for the source. (not sure what this gains)
-                    return databackedDLQ;
-                }
-                
-            }
-            else if (IsDataBacked)
-            {
-                // @@TODO: I think this is dead code. See if it can be exercised.
-                // if taken, we should be able to just recurse with the backing data (after doing _backingDataDLQ.CheckAndInitialize())
-                throw new NotImplementedException();
-            }
-#endif
-            // Invoke Dryad
-            Debug.Assert(IsNormalQuery, "execution should only occur for a normal query");
-            if (dryadGen == null)
-            {
-                dryadGen = new HpcLinqQueryGen(context, this.GetVertexCodeGen(),  this.Expression, realTableUri, true);
-            }
-            DryadLinqQuery[] resultTables = dryadGen.InvokeDryad();
-            this.m_backingDataDLQ = (DryadLinqQuery<T>) resultTables[0];
-
-            return this;
-        }
-
-        // Generate the query plan as an XML file and return the file name.
-        // provided for test-support. Access via reflection.
-        // returns the queryPlan xml path.
-        internal string ToDryadLinqProgram()
-        {
-            string tableUri = DataPath.DSC_URI_PREFIX + @"dummy/dummy";
-            HpcLinqQueryGen dryadGen = new HpcLinqQueryGen(Context, this.GetVertexCodeGen(), this.m_queryExpression, tableUri, true);
-            return dryadGen.GenerateDryadProgram(); 
-        }
-
-        // ML: complex ToString is problematic for the debugger -- eg Expression.ToString() leads to infinite recursion 
-        //     for PlainData which has Expression=ConstantExpression(this) and ConstantExpression(x).ToString() ==> x.ToString()
-        //     Also, a rich ToString risks leaking internal details.
-        // @@TODO[P2]:  this override should not be necessary.. however the debugger was acting up without it..
-        //              eg timing out when inspecting DryadLinqQuery objects in watch window etc.  
-        public override string ToString()
-        {
-            return base.ToString();
-        }
-
-        internal void Initialize()
-        {
-            //Detailed initialize behavior is only for plain-old-data.
-            //This was previously implicit (as only defined on the PartitionedData<> type)
-            if (this.IsPlainData)
-            {
-                // short-circuit if already initialized
-                if (this.m_tableEnumerable != null)
-                {
-                    return;
-                }
-
-                Int32 parCount = 0;
-                Int64 estSize = -1;
-                this.m_isDynamic = false;
-
-                try
-                {
-                    // YY: TODO: This could just be set to -1 if the xmlexechost will create the correct number of partitions
-                    // YY: We need the partition count here: it is used in plan optimization.
-                    if (DataPath.IsHdfs((this.m_dataSourceUri)))
-                    {
-                        //hdfs
-                        /*
-                        using (HdfsInstance hdfs = new HdfsInstance(this.m_dataSourceUri))
-                        {
-                            string path = hdfs.FromInternalUri(this.m_dataSourceUri);
-                            HdfsFileInfo dataStream = hdfs.GetFileInfo(path, true);
-                            estSize = (long)dataStream.totalSize;
-                            parCount = (Int32)dataStream.blockArray.Length;
-                        }
-                         */
-                        WebHdfsClient.GetContentSummary(this.m_dataSourceUri, ref estSize, ref parCount);
-
-                    }
-                    else
-                    {
-                        //dsc
-                        using (DscInstance dataService = new DscInstance(new Uri(this.m_dataSourceUri)))
-                        {
-                            DscStream dataStream = dataService.GetStream(new Uri(this.m_dataSourceUri));
-                            estSize = (long)dataStream.Length;
-                            parCount = (Int32)dataStream.PartitionCount;
-
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    throw new DryadLinqException(HpcLinqErrorCode.FailedToGetStreamProps,
-                                               String.Format(SR.FailedToGetStreamProps, this.m_dataSourceUri), e);
-                }
-
-                // --- start metadata processing --- //
-                // Finally load any stored metadata to check settings, extract compression-setting and initialize the DataInfo for this Query.
-                string streamName = DataPath.GetFilesetNameFromUri(this.m_dataSourceUri); // we converted to uri.. now must go back to stream-name.
-                DryadLinqMetaData meta = null;
-                if (DataPath.IsDsc(this.m_dataSourceUri))
-                {
-                    meta = DryadLinqMetaData.FromDscStream(Context, streamName);
-                }
-                if (meta != null)
-                {
-                    //check the record-type matches meta-data. (disabled until final API is determined)
-                    //if (meta.ElemType != typeof(T))
-                    //{
-                    //    throw new HpcLinqException(HpcLinqErrorCode.MetadataRecordType,
-                    //                               String.Format(SR.MetadataRecordType, typeof(T), meta.ElemType));
-                    //}
-
-                    //check the serialization flags match meta-data. (disabled as serialization flags are fixed. re-consider when flags become user-settable again.)
-                    //if (StaticConfig.AllowNullFields != meta.AllowNullFields ||
-                    //    StaticConfig.AllowNullArrayElements != meta.AllowNullArrayElements ||
-                    //    StaticConfig.AllowNullRecords != meta.AllowNullRecords)
-                    //{
-                    //    HpcClientSideLog.Add("Warning: Table was generated with AllowNullFields=" + meta.AllowNullFields +
-                    //                      ", AllowNullRecords=" + meta.AllowNullRecords +
-                    //                      ", and AllowNullArrayElements=" + meta.AllowNullArrayElements);
-                    //}
-
-                }
-
-                // Initialize the DataInfo -- currently we always initialize to the "nothing" datainfo.
-                PartitionInfo pinfo = new RandomPartition(parCount);
-                OrderByInfo oinfo = DataSetInfo.NoOrderBy;
-                DistinctInfo dinfo = DataSetInfo.NoDistinct;
-                this.m_dataSetInfo = new DataSetInfo(pinfo, oinfo, dinfo);
-
-                // --- end metadata processing --- //
-
-                string fileSetName = DataPath.GetFilesetNameFromUri(this.m_dataSourceUri);
-                this.m_tableEnumerable = new DryadLinqQueryEnumerable<T>(this.Context, fileSetName);
-
-                //YY: query expression and provider are at least set consistently
-                if (Context.Configuration.LocalDebug)
-                {
-                    this.m_queryExpression = Expression.Constant(this.m_tableEnumerable.AsQueryable());
-                    IQueryProvider linqToObjectProvider = this.m_tableEnumerable.AsQueryable().Provider;  // this should be an instance of "EnumerableQuery<T>"
-                    this.m_queryProvider = new DryadLinqLocalProvider(linqToObjectProvider, Context);
-                }
-                else
-                {
-                    this.m_queryExpression = Expression.Constant(this);
-                    this.m_queryProvider = new DryadLinqProvider(Context);
-                }
-            }
-        }
-
-        internal override Type Type
+        public override Type ElementType
         {
             get { return typeof(T); }
         }
 
         // only legal/valid for plainData and data-backed DLQ. 
-        internal override string DataSourceUri
+        internal override Uri DataSourceUri
         {
-            get {
-
+            get
+            {
                 if (this.IsPlainData)
                 {
-                    // no need to CheckAndInitialize() as m_dataSourceUri should already be set.
-                    // also, performing checkAndInitialize causes infinite recursion due to it accessing DataSourceUri
+                    this.CheckAndInitialize();
                     return this.m_dataSourceUri;                    
                 }
                 else if (this.IsDataBacked)
                 {
                     // as above, regarding CheckAndInitialize()
-                    return (this.m_backingDataDLQ).m_dataSourceUri; 
+                    return this.m_backingData.DataSourceUri; 
                 }
-
-                throw new DryadLinqException(HpcLinqErrorCode.OnlyAvailableForPhysicalData,
-                                           SR.OnlyAvailableForPhysicalData);
+                throw new DryadLinqException(DryadLinqErrorCode.OnlyAvailableForPhysicalData,
+                                             SR.OnlyAvailableForPhysicalData);
             }
         }
 
-        //   combination of old approaches.  return either the full expression, or just an expression for the table, if available.
-        // * Fundamental part of IQueryable system.
-        //   Most IQueryable operators will access (source.Expression) and form a new IQueryable
-        //   which is a MethodCall('method',{src.Expression,params})
-        //
-        //   Plain data: we create an expression to represent plain-data
-        //   Data-backed query: we behave as if the IQueryable were just the backing data (ie a simple expression to plain-data)
-        //   Normal query: an normal query node will already have a m_queryExpression
-        public Expression Expression
+        // Plain data: we create an expression to represent plain-data
+        // Data-backed query: we behave as if the IQueryable were just the backing data.
+        public override Expression Expression
         {
-            get 
+            get
             {
-                if (this.IsDataBacked)
+                if (this.IsPlainData)
                 {
-                    // if this is a data-backed-query, (recursively) return the expression for the backingDLQ
-                    Debug.Assert(this.m_backingDataDLQ.IsPlainData, "backing data is expected to always be plain data");
-                    return (this.m_backingDataDLQ).Expression;
+                    this.CheckAndInitialize();
+                    return this.m_queryExpression;
+                }
+                else if (this.IsDataBacked)
+                {
+                    if (this.m_backingData.QueryExecutor != null)
+                    {
+                        this.CheckAndInitialize();
+                    }
+                    return this.m_backingData.Expression;
                 }
                 this.CheckAndInitialize();
                 return this.m_queryExpression;
@@ -657,125 +412,187 @@ namespace Microsoft.Research.DryadLinq
         {
             get 
             {
-                if (IsPlainData)
+                if (this.IsPlainData)
                 {
                     this.CheckAndInitialize();
                     return this.m_dataSetInfo.partitionInfo.Count;
                 }
-                
-                if (IsDataBacked)
+                else if (this.IsDataBacked)
                 {
-                    this.m_backingDataDLQ.CheckAndInitialize();
-                    return this.m_backingDataDLQ.PartitionCount;
+                    return this.m_backingData.PartitionCount;
                 }
-
-                throw new DryadLinqException(HpcLinqErrorCode.OnlyAvailableForPhysicalData,
-                                           SR.OnlyAvailableForPhysicalData);
+                throw new DryadLinqException(DryadLinqErrorCode.OnlyAvailableForPhysicalData,
+                                             SR.OnlyAvailableForPhysicalData);
             }
         }
-
-
 
         internal override bool IsDynamic
         {
-            get {
+            get
+            {
                 this.CheckAndInitialize();
-                return this.m_isDynamic;  // possible issue: if(IsDataBacked) then using the value from backing data may be more appropriate.
+                return this.m_isDynamic;
             }
         }
-
+                
         internal override DataSetInfo DataSetInfo
         {
             get
             {
-                //even if data-backed, the DataSetInfo for the normal-query is the best available.
-                //hence this._m_dataSetInfo is always best.
-
+                if (this.IsPlainData)
+                {
+                    this.CheckAndInitialize();
+                    return this.m_dataSetInfo;
+                }
+                else if (this.IsDataBacked)
+                {
+                    return this.m_backingData.DataSetInfo;
+                }
                 this.CheckAndInitialize();
                 return this.m_dataSetInfo;
-            }
+        }
         }
 
         internal void CheckAndInitialize()
         {
-            if (HasExecutor)
+            if (this.QueryExecutor != null)
             {
-                Debug.Assert(IsPlainData, "We expect a DLQ with an executor to be a plain-data DLQ");
-                
                 JobStatus status = this.QueryExecutor.WaitForCompletion();
                 if (status == JobStatus.Failure)
                 {
-                    throw new DryadLinqException(HpcLinqErrorCode.JobToCreateTableFailed,
-                                               String.Format(SR.JobToCreateTableFailed, this.QueryExecutor.ErrorMsg));
+                    throw new DryadLinqException(DryadLinqErrorCode.JobToCreateTableFailed,
+                                                 String.Format(SR.JobToCreateTableFailed,
+                                                               this.QueryExecutor.ErrorMsg));
                 }
                 if (status == JobStatus.Cancelled)
                 {
-                    throw new DryadLinqException(HpcLinqErrorCode.JobToCreateTableWasCanceled,
-                                               SR.JobToCreateTableWasCanceled);
+                    throw new DryadLinqException(DryadLinqErrorCode.JobToCreateTableWasCanceled,
+                                                 SR.JobToCreateTableWasCanceled);
                 }
                 if (status == JobStatus.Success)
                 {
-                    HpcClientSideLog.Add("Table " + this.DataSourceUri + " was created successfully.");
+                    DryadLinqClientLog.Add("Dataset " + this.m_dataSourceUri + " was created successfully.");
                 }
             }
             this.Initialize();
         }
 
-        
+        internal void Initialize()
+        {
+            if (this.IsPlainData && this.m_tableEnumerable == null)
+            {
+                DryadLinqStreamInfo streamInfo = this.DataProvider.GetStreamInfo(this.Context, this.m_dataSourceUri);
+                Int32 parCount = streamInfo.PartitionCount;
+                Int64 estSize = streamInfo.DataSize;
+                this.m_isDynamic = false;
 
-        #region IEnumerable and IEnumerable<T> members
-        IEnumerator IEnumerable.GetEnumerator()
+                // Finally load any stored metadata to check settings, extract compression-setting
+                // and initialize the DataInfo for this Query. It is uri.. have to convert to stream-name.
+                DryadLinqMetaData meta = null;
+                if (DataPath.IsDsc(this.m_dataSourceUri))
+                {
+                    meta = DryadLinqMetaData.Get(Context, this.m_dataSourceUri);
+                }
+                if (meta != null)
+                {
+                    //check the record-type matches meta-data. (disabled until final API is determined)
+                    //if (meta.ElemType != typeof(T))
+                    //{
+                    //    throw new DisributedLinqException(DryadLinqErrorCode.MetadataRecordType,
+                    //                                      String.Format(SR.MetadataRecordType,
+                    //                                                    typeof(T), meta.ElemType));
+                    //}
+
+                    //check the serialization flags match meta-data.
+                    //(disabled as serialization flags are fixed. re-consider if user-settable.)
+                    //if (StaticConfig.AllowNullFields != meta.AllowNullFields ||
+                    //    StaticConfig.AllowNullArrayElements != meta.AllowNullArrayElements ||
+                    //    StaticConfig.AllowNullRecords != meta.AllowNullRecords)
+                    //{
+                    //    DryadLinqClientLog.Add("Warning: Table was generated with AllowNullFields=" +
+                    //                                 meta.AllowNullFields +
+                    //                                 ", AllowNullRecords=" + meta.AllowNullRecords +
+                    //                                 ", and AllowNullArrayElements=" +
+                    //                                 meta.AllowNullArrayElements);
+                    //}
+                }
+
+                // Initialize the DataInfo -- currently we always initialize to the "nothing" datainfo.
+                PartitionInfo pinfo = new RandomPartition(parCount);
+                OrderByInfo oinfo = DataSetInfo.NoOrderBy;
+                DistinctInfo dinfo = DataSetInfo.NoDistinct;
+                this.m_dataSetInfo = new DataSetInfo(pinfo, oinfo, dinfo);
+
+                this.m_tableEnumerable = new DryadLinqQueryEnumerable<T>(this.DataProvider, this.Context, this.m_dataSourceUri);
+
+                // YY: query expression and provider are at least set consistently
+                if (Context.LocalDebug)
+                {
+                    this.m_queryExpression = Expression.Constant(this.m_tableEnumerable.AsQueryable());
+                    IQueryProvider linqToObjectProvider = this.m_tableEnumerable.AsQueryable().Provider;
+                    this.m_queryProvider = new DryadLinqLocalProvider(linqToObjectProvider, Context);
+                }
+                else
+                {
+                    this.m_queryExpression = Expression.Constant(this);
+                    if (this.m_queryProvider == null)
+                    {
+                        // Only set if not provided
+                        this.m_queryProvider = new DryadLinqProvider(this.Context);
+                    }
+                }
+            }
+        }
+
+        protected override IEnumerator IEnumGetEnumerator()
         {
             return this.GetEnumerator();
         }
 
-        // combined GetEnumerator from PT and DLQ... use table if present, else start query to generate anonymous output table.
+        // Use table if present, else start query to generate anonymous output table.
         public IEnumerator<T> GetEnumerator()
         {
             // Process:
-            // 1. if this is a data-backed-query, return an enumerator over the backing data
-            // 2. if this is plain-data, return an enumerator over the data.
-            // 2. otherwise, start an anonymous query execution (which will produce a data-backed-query), and call GetEnumerator() again to hit the first path.
-
-            if (this.IsPlainData){
+            // 1. if this is plain-data, return an enumerator over the data.
+            // 2. if this is a data-backed-query, return an enumerator over the backing data
+            // 3. otherwise, start an anonymous query execution (which will produce a data-backed-query),
+            //    and call GetEnumerator() again to hit the first path.
+            if (this.IsPlainData)
+            {
                 this.CheckAndInitialize();
                 return this.m_tableEnumerable.GetEnumerator();
             }
             else if (this.IsDataBacked)
             {
-                m_backingDataDLQ.CheckAndInitialize();
-                return m_backingDataDLQ.m_tableEnumerable.GetEnumerator();
+                return this.m_backingData.GetEnumerator();
             }
             else
             {
-                Debug.Assert(IsNormalQuery);
-                
-                // if terminated in ToDsc, eg query.ToDsc("path").GetEnumerator();
-                //    currently: treat this as an error.  We throw in both cluster and LocalDebug modes.
-                //    @@TODO[P2]: we could execute the query, producing data as specified by ToDsc().  (see DryadQueryGen ctors)
-                //
-                // otherwise, we create a temporary stream to hold the data and get an enumerator.
-                //    - cluster mode will run a dryad query.
-                //    - LocalDebug mode will write the data directly into DSC.
-
-                string hdfsPath = DataPath.MakeUniqueTemporaryHdfsFileSetUri(Context);
-                return this.ToTemporaryTable(Context, hdfsPath).GetEnumerator();
+                DryadLinqQueryable.SubmitAndWait(this);
+                return this.m_backingData.GetEnumerator();
             }
         }
-        #endregion
+
+        // Generate the query plan as an XML file and return the file name.
+        // returns the queryPlan xml path.
+        internal string ToDryadLinqProgram()
+        {
+            Uri tableUri = this.Context.MakeTemporaryStreamUri();
+            DryadLinqQueryGen dryadGen = new DryadLinqQueryGen(
+                        this.Context, this.GetVertexCodeGen(), this.m_queryExpression, tableUri, true);
+            return dryadGen.GenerateDryadProgram(); 
+        }
     }
 
-
-    //From PartitionedTableEnumerable
     internal class DryadLinqQueryEnumerable<T> : IEnumerable<T>, IEnumerable
     {
-        internal string m_fileSetName;
-        private HpcLinqContext m_context;
+        private DryadLinqContext m_context;
+        private Stream m_stream;
 
-        public DryadLinqQueryEnumerable(HpcLinqContext context, string fileSetName)
+        public DryadLinqQueryEnumerable(DataProvider dataProvider, DryadLinqContext context, Uri dataSetUri)
         {
-            m_context = context;
-            m_fileSetName = fileSetName;
+            this.m_context = context;
+            this.m_stream = dataProvider.Egress(context, dataSetUri);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -783,76 +600,30 @@ namespace Microsoft.Research.DryadLinq
             return this.GetEnumerator();
         }
 
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
-        {
-            return this.GetEnumerator();
-        }
-
         public IEnumerator<T> GetEnumerator()
         {
-            List<string[]> filePathList;    // a list of dsc files, each of which is represented by an array holding the replica paths
-            DscCompressionScheme compressionScheme;
-            try
-            {
-                DscFileSet fileSet = m_context.DscService.GetFileSet(m_fileSetName);
-                filePathList = fileSet.GetFiles().Select(file => file.ReadPaths).ToList();
-                DryadLinqMetaData metaData = DryadLinqMetaData.FromDscStream(m_context, m_fileSetName);
-                compressionScheme = metaData.CompressionScheme;
-                
-            }
-            catch (Exception e)
-            {
-                throw new DryadLinqException(HpcLinqErrorCode.FailedToGetReadPathsForStream,
-                                           String.Format(SR.FailedToGetReadPathsForStream, this.m_fileSetName), e);
-            }
-
-            return new TableEnumerator(m_context, filePathList, m_fileSetName,compressionScheme);
+            return new TableEnumerator(this.m_context, this.m_stream);
         }
-    
+
         // Internal enumerator class
         private class TableEnumerator : IEnumerator<T>
         {
-            private HpcLinqContext m_context;
             private T m_current;
-            private List<string[]> m_filePathList;  // a list of dsc files, each of which is represented by an array holding the replica paths
-            private string m_associatedDscStreamName; // stored here only to provide a better exception message in case of IO errors
-            private DscCompressionScheme m_compressionScheme;
-            private HpcLinqFactory<T> m_factory;
-            private HpcRecordReader<T> m_reader;
+            private DryadLinqFactory<T> m_factory;
+            private DryadLinqRecordReader<T> m_reader;
 
-            internal TableEnumerator(HpcLinqContext context,
-                                     List<string[]> filePathList,
-                                     string associatedDscStreamName,
-                                     DscCompressionScheme scheme)
+            internal TableEnumerator(DryadLinqContext context, Stream stream)
             {
-                this.m_context = context;
                 this.m_current = default(T);
-                this.m_filePathList = filePathList;
-                this.m_associatedDscStreamName = associatedDscStreamName;
-                this.m_compressionScheme = scheme;
-                this.m_factory = (HpcLinqFactory<T>)HpcLinqCodeGen.GetFactory(context, typeof(T));
-                bool appendNewLinesToFiles = (typeof(T) == typeof(LineRecord));
-                NativeBlockStream nativeStream = new MultiBlockStream(m_filePathList, m_associatedDscStreamName,
-                                                                      FileAccess.Read, m_compressionScheme,
-                                                                      appendNewLinesToFiles);
+                this.m_factory = (DryadLinqFactory<T>)DryadLinqCodeGen.GetFactory(context, typeof(T));
+                DryadLinqBlockStream nativeStream = new DryadLinqBlockStream(stream);
                 this.m_reader = this.m_factory.MakeReader(nativeStream);
-                
-                if (context.Configuration.AllowConcurrentUserDelegatesInSingleProcess)
-                {
-                    this.m_reader.StartWorker();
-                }
+                // this.m_reader.StartWorker();
             }
 
             public bool MoveNext()
             {
-                if (m_context.Configuration.AllowConcurrentUserDelegatesInSingleProcess)
-                {
-                    return this.m_reader.ReadRecordAsync(ref this.m_current);
-                }
-                else
-                {
-                    return this.m_reader.ReadRecordSync(ref this.m_current);
-                }
+                return this.m_reader.ReadRecordSync(ref this.m_current);
             }
 
             object IEnumerator.Current
@@ -867,22 +638,15 @@ namespace Microsoft.Research.DryadLinq
 
             public void Reset()
             {
-                this.m_current = default(T);
-                bool appendNewLineToFiles = (typeof(T) == typeof(LineRecord));
-                NativeBlockStream nativeStream = new MultiBlockStream(this.m_filePathList, m_associatedDscStreamName,
-                                                                      FileAccess.Read, this.m_compressionScheme,
-                                                                      appendNewLineToFiles);
-                this.m_reader = this.m_factory.MakeReader(nativeStream);
-
-                if (m_context.Configuration.AllowConcurrentUserDelegatesInSingleProcess)
-                {
-                    this.m_reader.StartWorker();
-                }
+                throw new DryadLinqException("The stream doesn't support Reset");
             }
 
             void IDisposable.Dispose()
             {
-                this.m_reader.Close();
+                if (this.m_reader != null)
+                {
+                    this.m_reader.Close();
+                }
             }
         }
     }

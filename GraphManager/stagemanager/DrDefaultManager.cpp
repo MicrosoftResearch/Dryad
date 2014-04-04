@@ -678,7 +678,7 @@ void DrManagerBase::CheckForDuplicates()
 		   GetStageName().GetChars(), (double) threshold / (double) DrTimeInterval_Second,
 		   m_runningTimeMap->GetSize());
 
-    DrDateTime now = m_graph->GetXCompute()->GetCurrentTimeStamp();
+    DrDateTime now = m_graph->GetCluster()->GetCurrentTimeStamp();
 
     while (m_runningTimeMap->GetSize() > 0)
     {

@@ -20,13 +20,11 @@ limitations under the License.
 
 #include "dvertexxcomputepncontrol.h"
 #include <dryadvertex.h>
-#include <dvertexenvironment.h>
 #include <dryadpropertiesdef.h>
 #include <dryaderrordef.h>
 #include <dryadnativeport.h>
 #include <dryadstandaloneini.h>
 #include <xcomputepropertyblock.h>
-#include <dvertexxcomputeenvironment.h>
 
 class DVertexXComputeSetStatus : public DryadXComputePnProcessPropertyRequest
 {
@@ -362,7 +360,7 @@ void DVertexXComputePnController::
     // Update process info
     //
     XCERROR err =
-        XcSetAndGetProcessInfo(GetProcessHandle(),
+        XcSetAndGetProcessInfo(NULL,//GetProcessHandle(),
                                request->MarshalProperty(),
                                request->GetResults(),
                                &asyncInfo);
@@ -435,7 +433,7 @@ unsigned DVertexXComputePnController::CommandLoop()
         // Send the request and check for errors
         //
         PXC_SETANDGETPROCESSINFO_REQRESULTS pResults = NULL;
-        err = XcSetAndGetProcessInfo(GetProcessHandle(),
+        err = XcSetAndGetProcessInfo(NULL,//GetProcessHandle(),
                                      &request,
                                      &pResults,
                                      NULL);
@@ -578,14 +576,6 @@ unsigned DVertexXComputePnController::CommandLoop()
     Sleep(INFINITE);
 
     return 0;
-}
-
-//
-// Create and return an XCompute environment
-//
-DVertexEnvironment* DVertexXComputePnControllerOuter::MakeEnvironment()
-{
-    return new DVertexXComputeEnvironment();
 }
 
 DVertexPnController* DVertexXComputePnControllerOuter::

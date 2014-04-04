@@ -176,8 +176,7 @@ void DrActiveVertexOutputGenerator::SetProcess(DrProcessHandlePtr process,
         /* Cache some state, because process gets closed in process termination, 
            before GetURIForRead is called by downstream vertices */
 
-        /* Base URI, used later in GetURIForRead */
-        m_uriBase = process->GetFileURIBase();
+        m_directory = process->GetDirectory();
 
         /* Assigned node */
         m_assignedNode = process->GetAssignedNode();
@@ -201,8 +200,6 @@ DrAffinityRef DrActiveVertexOutputGenerator::GetOutputAffinity(int output)
 }
 
 DrString DrActiveVertexOutputGenerator::GetURIForWrite(DrEdgeHolderPtr outputEdges,
-                                                       DrResourcePtr runningResource,
-                                                       int id, int version,
                                                        int output, DrConnectorType type,
                                                        DrMetaDataRef metaData)
 {
@@ -210,15 +207,25 @@ DrString DrActiveVertexOutputGenerator::GetURIForWrite(DrEdgeHolderPtr outputEdg
 
     DrEdge e;
 
+    if (m_assignedNode == DrNull)
+    {
+        /* This should never happen - but just in case it does, let's assert so we can debug */
+        DrLogA("Active vertex output generator was asked for a write URI when no assigned node is available vertex %d.%d", m_vertexId, m_version);
+    }
+
     switch (type)
     {
     case DCT_File:
-        uri.SetF("file://%d_%d_%d.tmp?c=%d", id, output, version, DrActiveVertexOutputGenerator::s_intermediateCompressionMode);
+        {
+            DrString leafName;
+            leafName.SetF("%d_%d_%d.tmp", m_vertexId, output, m_version, DrActiveVertexOutputGenerator::s_intermediateCompressionMode);
+            uri = m_assignedNode->GetCluster()->TranslateFileToURI(leafName, m_directory, m_assignedNode, m_assignedNode, DrActiveVertexOutputGenerator::s_intermediateCompressionMode);
+        }
         break;
 
     case DCT_Output:
         e = outputEdges->GetEdge(output);
-        uri = e.m_remoteVertex->GetURIForWrite(e.m_remotePort, id, version, output, runningResource, metaData);
+        uri = e.m_remoteVertex->GetURIForWrite(e.m_remotePort, m_vertexId, m_version, output, m_assignedNode, metaData);
         break;
 
     case DCT_Pipe:
@@ -227,11 +234,11 @@ DrString DrActiveVertexOutputGenerator::GetURIForWrite(DrEdgeHolderPtr outputEdg
         break;
 
     case DCT_Fifo:
-        uri.SetF("fifo://%u/%d_%d_%d", 32, id, output, version);
+        uri.SetF("fifo://%u/%d_%d_%d", 32, m_vertexId, output, m_version);
         break;
 
     case DCT_FifoNonBlocking:
-        uri.SetF("fifo://%u/%d_%d_%d", (UINT32) -1, id, output, version);
+        uri.SetF("fifo://%u/%d_%d_%d", (UINT32) -1, m_vertexId, output, m_version);
         break;
     }
 
@@ -239,21 +246,23 @@ DrString DrActiveVertexOutputGenerator::GetURIForWrite(DrEdgeHolderPtr outputEdg
 }
 
 DrString DrActiveVertexOutputGenerator::GetURIForRead(int output, DrConnectorType type,
-                                                      DrResourcePtr /* unused runningResource */)
+                                                      DrResourcePtr runningResource)
 {
     DrString uri;
 
     switch (type)
     {
     case DCT_File:
-        if (m_uriBase.GetCharsLength() > 0)
+        if (m_assignedNode != DrNull)
         {
-            uri.SetF("%s\\%d_%d_%d.tmp?c=%d", m_uriBase.GetChars(), m_vertexId, output, m_version, DrActiveVertexOutputGenerator::s_intermediateCompressionMode);
+            DrString leafName;
+            leafName.SetF("%d_%d_%d.tmp", m_vertexId, output, m_version, DrActiveVertexOutputGenerator::s_intermediateCompressionMode);
+            uri = runningResource->GetCluster()->TranslateFileToURI(leafName, m_directory, m_assignedNode, runningResource, DrActiveVertexOutputGenerator::s_intermediateCompressionMode);
         }
         else
         {
             /* This should never happen - but just in case it does, let's assert so we can debug */
-            DrLogA("Active vertex output generator was asked for a read URI when no base URI is available vertex %d.%d", m_vertexId, m_version);
+            DrLogA("Active vertex output generator was asked for a read URI when no assigned node is available vertex %d.%d", m_vertexId, m_version);
         }
         break;
 
@@ -300,6 +309,11 @@ DrResourcePtr DrStorageVertexOutputGenerator::GetResource()
 int DrStorageVertexOutputGenerator::GetVersion()
 {
     return 0;
+}
+
+int DrStorageVertexOutputGenerator::GetPartitionIndex()
+{
+    return m_partitionIndex;
 }
 
 DrAffinityRef DrStorageVertexOutputGenerator::GetOutputAffinity(int /* unused output */)

@@ -18,32 +18,30 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
 
 namespace Microsoft.Research.DryadLinq
 {
-    internal class HpcLinqMultiInputStream : Stream
+    internal class DryadLinqMultiReaderStream : Stream
     {
-        private HpcBinaryReader[] m_inputStreamArray;
-        private HpcBinaryReader m_curStream;
+        private DryadLinqBinaryReader[] m_inputStreamArray;
+        private DryadLinqBinaryReader m_curStream;
         private Int32 m_nextStreamIdx;
 
-        public HpcLinqMultiInputStream(HpcBinaryReader[] streamArray)
+        public DryadLinqMultiReaderStream(DryadLinqBinaryReader[] streamArray)
         {
             this.m_inputStreamArray = streamArray;
             this.m_curStream = streamArray[0];
             this.m_nextStreamIdx = 1;
         }
 
-        ~HpcLinqMultiInputStream()
+        ~DryadLinqMultiReaderStream()
         {
             this.Close();
         }
@@ -77,17 +75,17 @@ namespace Microsoft.Research.DryadLinq
 
         public override long Position
         {
-            get { throw new DryadLinqException(HpcLinqErrorCode.PositionNotSupported,
-                                             SR.PositionNotSupported); }
-            set { throw new DryadLinqException(HpcLinqErrorCode.PositionNotSupported,
-                                             SR.PositionNotSupported); }
+            get { throw new DryadLinqException(DryadLinqErrorCode.PositionNotSupported,
+                                               SR.PositionNotSupported); }
+            set { throw new DryadLinqException(DryadLinqErrorCode.PositionNotSupported,
+                                               SR.PositionNotSupported); }
         }
 
         protected override void Dispose(bool disposing)
         {
             try
             {
-                foreach (HpcBinaryReader s in this.m_inputStreamArray)
+                foreach (DryadLinqBinaryReader s in this.m_inputStreamArray)
                 {
                     s.Close();
                 }
@@ -126,26 +124,159 @@ namespace Microsoft.Research.DryadLinq
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            throw new DryadLinqException(HpcLinqErrorCode.SeekNotSupported,
-                                       SR.SeekNotSupported);
+            throw new DryadLinqException(DryadLinqErrorCode.SeekNotSupported,
+                                         SR.SeekNotSupported);
         }
 
         public override void SetLength(long value)
         {
-            throw new DryadLinqException(HpcLinqErrorCode.SetLengthNotSupported,
-                                       SR.SetLengthNotSupported);
+            throw new DryadLinqException(DryadLinqErrorCode.SetLengthNotSupported,
+                                         SR.SetLengthNotSupported);
         }
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            throw new DryadLinqException(HpcLinqErrorCode.WriteNotSupported,
-                                       SR.WriteNotSupported);
+            throw new DryadLinqException(DryadLinqErrorCode.WriteNotSupported,
+                                         SR.WriteNotSupported);
         }
 
         public override void WriteByte(byte value)
         {
-            throw new DryadLinqException(HpcLinqErrorCode.WriteByteNotSupported,
-                                       SR.WriteByteNotSupported);
+            throw new DryadLinqException(DryadLinqErrorCode.WriteByteNotSupported,
+                                         SR.WriteByteNotSupported);
+        }
+    }
+
+    internal class DryadLinqMultiFileStream : Stream
+    {
+        private const int DefaultBuffSize = 8192 * 128;
+
+        private string[] m_filePathArray;
+        private CompressionScheme m_compressionScheme;
+        private Stream m_curStream;
+        private int m_nextIndex;
+
+        internal DryadLinqMultiFileStream(string[] filePathArray, CompressionScheme scheme)
+        {
+            this.m_filePathArray = filePathArray;
+            this.m_compressionScheme = scheme;
+            this.m_nextIndex = 0;
+            this.InitNextStream();
+        }
+
+        private void InitNextStream()
+        {
+            this.m_curStream = null;
+            if (this.m_nextIndex < this.m_filePathArray.Length)
+            {
+                FileOptions options = FileOptions.SequentialScan;
+                this.m_curStream = new FileStream(this.m_filePathArray[this.m_nextIndex], 
+                                                  FileMode.Open, FileAccess.Read, FileShare.Read, 
+                                                  DefaultBuffSize, options);
+                if (this.m_compressionScheme != CompressionScheme.None)
+                {
+                    if (this.m_compressionScheme == CompressionScheme.Gzip)
+                    {
+                        this.m_curStream = new GZipStream(this.m_curStream, CompressionMode.Decompress);
+                    }
+                    else
+                    {
+                        throw new DryadLinqException(DryadLinqErrorCode.UnknownCompressionScheme,
+                                                     SR.UnknownCompressionScheme);
+                    }
+                }
+                this.m_nextIndex++;
+            }
+        }
+
+        public override bool CanRead
+        {
+            get { return true; }
+        }
+
+        public override bool CanWrite
+        {
+            get { return false; }
+        }
+
+        public override bool CanSeek
+        {
+            get { return false; }
+        }
+
+        public override long Length
+        {
+            get
+            {
+                long len = 0;
+                for (int i = 0; i < this.m_filePathArray.Length; i++)
+                {
+                    len += new FileInfo(this.m_filePathArray[i]).Length;
+                }
+                return len;
+            }
+        }
+
+        public override long Position
+        {
+            get {
+                throw new DryadLinqException(DryadLinqErrorCode.PositionNotSupported,
+                                             SR.PositionNotSupported);
+            }
+            set {
+                throw new DryadLinqException(DryadLinqErrorCode.PositionNotSupported,
+                                             SR.PositionNotSupported);
+            }
+        }
+
+        public override void Flush()
+        {
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            while (true)
+            {
+                int n = this.m_curStream.Read(buffer, offset, count);
+                if (n != 0) return n;
+                this.InitNextStream();
+                if (this.m_curStream == null) return 0;
+            }
+        }
+
+        public override int ReadByte()
+        {
+            while (true)
+            {
+                int b = this.m_curStream.ReadByte();
+                if (b != -1) return b;
+                this.InitNextStream();
+                if (this.m_curStream == null) return 0;
+            }
+        }
+
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            throw new DryadLinqException(DryadLinqErrorCode.SeekNotSupported,
+                                         SR.SeekNotSupported);
+        }
+
+        public override void SetLength(long value)
+        {
+            throw new DryadLinqException(DryadLinqErrorCode.SetLengthNotSupported,
+                                         SR.SetLengthNotSupported);
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            throw new DryadLinqException(DryadLinqErrorCode.WriteNotSupported,
+                                         SR.WriteNotSupported);
+        }
+
+        public override void WriteByte(byte value)
+        {
+            throw new DryadLinqException(DryadLinqErrorCode.WriteByteNotSupported,
+                                         SR.WriteByteNotSupported);
         }
     }
 }

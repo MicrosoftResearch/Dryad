@@ -189,7 +189,7 @@ void DryadNativePort::WriteFileThread()
                         wfr->m_request->ProcessIO(cse, 0);
 
                         {
-                            AutoCriticalSection acs (&m_baseDR);
+                            AutoCriticalSection acs (&m_baseCS);
 
                             LogAssert(m_outstandingRequests > 0);
                             --m_outstandingRequests;
@@ -328,7 +328,7 @@ unsigned __stdcall DryadNativePort::ThreadFunc(void* arg)
             // Enter critical section and decrement number of outstanding requests
             //
             {
-                AutoCriticalSection acs(&(self->m_baseDR));
+                AutoCriticalSection acs(&(self->m_baseCS));
                 LogAssert(self->m_outstandingRequests > 0);
                 --(self->m_outstandingRequests);
             }
@@ -345,7 +345,7 @@ unsigned __stdcall DryadNativePort::ThreadFunc(void* arg)
 void DryadNativePort::AssociateHandle(HANDLE fileHandle)
 {
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
         LogAssert(m_state == BPS_Running);
 
         HANDLE completionPort = ::CreateIoCompletionPort(fileHandle,
@@ -372,7 +372,7 @@ void DryadNativePort::Start()
     // Enter a critical section to create the completion port and start worker threads
     //
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         //
         // Ensure that port is in initialized, but stopped state
@@ -445,7 +445,7 @@ void DryadNativePort::Stop()
     DrLogI("DryadNativePort::Stop entered");
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         LogAssert(m_state == BPS_Running);
         LogAssert(m_outstandingRequests == 0);
@@ -496,7 +496,7 @@ void DryadNativePort::Stop()
     DrLogI("DryadNativePort::Stop all threads have terminated");
 
     {
-        AutoCriticalSection acs(&m_baseDR);
+        AutoCriticalSection acs(&m_baseCS);
 
         BOOL bRetval;
 
@@ -553,7 +553,7 @@ void DryadNativePort::QueueNativeRead(HANDLE fileHandle, Handler* request)
         //
         // Enter critical section and increment outstanding requests
         //
-        AutoCriticalSection acs (&m_baseDR);
+        AutoCriticalSection acs (&m_baseCS);
 
         LogAssert(m_state == BPS_Running);
         ++m_outstandingRequests;
@@ -596,7 +596,7 @@ void DryadNativePort::QueueNativeRead(HANDLE fileHandle, Handler* request)
             request->ProcessIO(cse, 0);
 
             {
-                AutoCriticalSection acs (&m_baseDR);
+                AutoCriticalSection acs (&m_baseCS);
 
                 LogAssert(m_outstandingRequests > 0);
                 --m_outstandingRequests;
@@ -604,117 +604,13 @@ void DryadNativePort::QueueNativeRead(HANDLE fileHandle, Handler* request)
         }
     }
 }
-
-void DryadNativePort::QueueNativeXComputeRead(XCPROCESSFILEHANDLE fileHandle,
-                                              Handler* request,
-                                              UInt64* readPosition,
-                                              DrError* operationStatePtr)
-{
-    LogAssert(request != NULL);
-
-    {
-        AutoCriticalSection acs (&m_baseDR);
-
-        LogAssert(m_state == BPS_Running);
-        ++m_outstandingRequests;
-    }
-        
-    XC_ASYNC_INFO asyncInfo;
-    memset(&asyncInfo, 0, sizeof(asyncInfo));
-    asyncInfo.cbSize = sizeof(asyncInfo);
-    asyncInfo.IOCP = m_completionPort;
-    asyncInfo.pOperationState = operationStatePtr;
-    asyncInfo.pOverlapped = request->GetOverlapped();
-    asyncInfo.CompletionKey = NULL;
-
-    XCERROR hr = XcReadProcessFile(fileHandle, request->GetData(), request->GetNumberOfBytesToTransferPtr(), readPosition, &asyncInfo);
-
-    if (hr != S_OK)
-    {
-        if (hr != HRESULT_FROM_WIN32(ERROR_IO_PENDING))
-        {
-            request->ProcessIO(hr, 0);
-            {
-                AutoCriticalSection acs (&m_baseDR);
-
-                LogAssert(m_outstandingRequests > 0);
-                --m_outstandingRequests;
-            }
-        }
-    }
-}
-
-/*JCvoid DryadNativePort::QueueDryadRead(DRHANDLE streamHandle,
-                                      DrError* pendingStatePtr,
-                                      UInt64 streamOffset,
-                                      Handler* request)
-{
-    LogAssert(request != NULL);
-
-    {
-        AutoCriticalSection acs (&m_baseDR);
-
-        LogAssert(m_state == BPS_Running);
-        ++m_outstandingRequests;
-    }
-
-    DR_ASYNC_INFO asyncInfo;
-    memset(&asyncInfo, 0, sizeof(asyncInfo));
-    asyncInfo.cbSize = sizeof(asyncInfo);
-    asyncInfo.IOCP = m_completionPort;
-    asyncInfo.pOperationState = pendingStatePtr;
-    asyncInfo.pOverlapped = request->GetOverlapped();
-    
-    DrLogI(
-        "Queuing cosmos read",
-        "streamhandle=%p, offset=%I64u, buffsize=%I64u",
-        streamHandle, streamOffset,
-        (UInt64) *(request->GetNumberOfBytesToTransferPtr()));
-    DR_STREAM_POSITION *pReadPosition;
-    pReadPosition = request->GetDryadPositionPtr();
-    pReadPosition->ExtentIndex = 0;
-    pReadPosition->Offset = streamOffset;
-    DrError err = ::DrReadStream(streamHandle,
-                                 request->GetData(),
-                                 request->GetNumberOfBytesToTransferPtr(),
-                                 0,
-                                 pReadPosition,
-                                 &asyncInfo);
-
-    LogAssert(err != DrError_OK);
-
-    if (err == DrErrorFromWin32( ERROR_IO_PENDING ) ) {
-        err = DrError_OK;
-    } else if (err == DrErrorFromWin32( ERROR_HANDLE_EOF ) ) {
-        err = DrError_EndOfStream;
-    }
-
-    if (err != DrError_OK)
-    {
-        DrLogI(
-            "Dryad read failed immediately",
-            "streamhandle=%p, offset=%I64u, err=%s",
-            streamHandle, streamOffset, DRERRORSTRING(err));
-
-        *pendingStatePtr = err;
-
-        request->ProcessIO(DrError_OK, 0);
-
-        {
-            AutoCriticalSection acs (&m_baseDR);
-
-            LogAssert(m_outstandingRequests > 0);
-            --m_outstandingRequests;
-        }
-    }
-}*/
 
 void DryadNativePort::QueueNativeWrite(HANDLE fileHandle, Handler* request)
 {
     LogAssert(request != NULL);
 
     {
-        AutoCriticalSection acs (&m_baseDR);
+        AutoCriticalSection acs (&m_baseCS);
 
         LogAssert(m_state == BPS_Running);
         ++m_outstandingRequests;
@@ -762,7 +658,7 @@ void DryadNativePort::QueueNativeWrite(HANDLE fileHandle, Handler* request)
             request->ProcessIO(cse, 0);
 
             {
-                AutoCriticalSection acs (&m_baseDR);
+                AutoCriticalSection acs (&m_baseCS);
 
                 LogAssert(m_outstandingRequests > 0);
                 --m_outstandingRequests;
@@ -780,7 +676,7 @@ void DryadNativePort::QueueNativeWrite(HANDLE fileHandle, Handler* request)
     LogAssert(request != NULL);
 
     {
-        AutoCriticalSection acs (&m_baseDR);
+        AutoCriticalSection acs (&m_baseCS);
 
         LogAssert(m_state == BPS_Running);
         ++m_outstandingRequests;
@@ -829,7 +725,7 @@ void DryadNativePort::QueueNativeWrite(HANDLE fileHandle, Handler* request)
         request->ProcessIO(DrError_OK, 0);
 
         {
-            AutoCriticalSection acs (&m_baseDR);
+            AutoCriticalSection acs (&m_baseCS);
 
             LogAssert(m_outstandingRequests > 0);
             --m_outstandingRequests;
@@ -844,7 +740,7 @@ void DryadNativePort::QueueDryadSetStreamProperties(const char* uri,
     LogAssert(request != NULL);
 
     {
-        AutoCriticalSection acs (&m_baseDR);
+        AutoCriticalSection acs (&m_baseCS);
 
         LogAssert(m_state == BPS_Running);
         ++m_outstandingRequests;
@@ -889,7 +785,7 @@ void DryadNativePort::QueueDryadSetStreamProperties(const char* uri,
         request->ProcessIO(DrError_OK, 0);
 
         {
-            AutoCriticalSection acs (&m_baseDR);
+            AutoCriticalSection acs (&m_baseCS);
 
             LogAssert(m_outstandingRequests > 0);
             --m_outstandingRequests;
@@ -900,7 +796,7 @@ void DryadNativePort::QueueDryadSetStreamProperties(const char* uri,
 void DryadNativePort::IncrementOutstandingRequests()
 {
     {
-        AutoCriticalSection acs (&m_baseDR);
+        AutoCriticalSection acs (&m_baseCS);
 
         LogAssert(m_state == BPS_Running);
         ++m_outstandingRequests;
@@ -910,7 +806,7 @@ void DryadNativePort::IncrementOutstandingRequests()
 void DryadNativePort::DecrementOutstandingRequests()
 {
     {
-        AutoCriticalSection acs (&m_baseDR);
+        AutoCriticalSection acs (&m_baseCS);
 
         LogAssert(m_outstandingRequests > 0);
         --m_outstandingRequests;

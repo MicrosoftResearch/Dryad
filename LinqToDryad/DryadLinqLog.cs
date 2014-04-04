@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -28,43 +25,33 @@ using System.IO;
 
 namespace Microsoft.Research.DryadLinq.Internal
 {
-    // The client-log is a file produced in the current working directly (next to generated .cs/.dll and queryPlan.xml)
-    // 
-    // Note: concurrent queries in one AppDomain will get interleaved logs
-    //       concurrent queries from different AppDomains will not all be able to write logs.
-    //
-    // Once the log file is opened, it generally will remain open for the duration of the AppDomain.
-    internal static class HpcClientSideLog
+    // The client-log is a file produced in the current working directly
+    // (next to generated .cs/.dll and queryPlan.xml)
+    internal static class DryadLinqClientLog
     {
-        private static bool _enabled = true; // whether to log or not.
+        internal const string CLIENT_LOG_FILENAME = "DryadLinqClient.log";
 
-        internal const string CLIENT_LOG_FILENAME  = "HpcLinq.log";
+        public static bool IsOn = true;  // whether to log or not.
         private static bool s_IOErrorOccurred = false;
-        private static StreamWriter s_writer;
+        private static TextWriter s_writer;
+
+        static DryadLinqClientLog()
+        {
+            string path = DryadLinqCodeGen.GetPathForGeneratedFile(CLIENT_LOG_FILENAME, null);
+            s_writer = new StreamWriter(path);
+        }
 
         public static void Add(string msg)
         {
-            if (!_enabled)
-                return;
-
             Add(msg, null);
         }
 
         public static void Add(string msg, params object[] args)
         {
-            if (!_enabled)
-                return;
+            if (!IsOn || s_IOErrorOccurred) return;
 
-            if(s_IOErrorOccurred)
-                return;
-
-            try{
-                if (s_writer == null)
+            try
                 {
-                    string path = HpcLinqCodeGen.GetPathForGeneratedFile(CLIENT_LOG_FILENAME, null);
-                    s_writer = new StreamWriter(path);
-                }
-
                 if (args == null)
                 {
                     s_writer.WriteLine(msg);
@@ -90,31 +77,83 @@ namespace Microsoft.Research.DryadLinq.Internal
                 }
                 return;
             }
+            catch (System.ObjectDisposedException) 
+            {
+                s_IOErrorOccurred = true;
+                try
+                {
+                    s_writer.Close();
+                    s_writer.Dispose();
+                    s_writer = null;
+                }
+                catch
+                {
+                    // supress exceptions that occur during cleanup.
         }  
+                return;
     }
+        }
+    }
+}
     
+namespace Microsoft.Research.DryadLinq
+{
     public static class DryadLinqLog
     {
-        public static bool IsOn { get; set; }
-        private static StreamWriter sw = new StreamWriter("LinqLog.txt", true);
+        public static int Level = Constants.TraceErrorLevel;
+        private static TextWriter s_writer = Console.Out;
 
-        static DryadLinqLog()
+        public static void Initialize(int logLevel, string filePath)
         {
-            sw.AutoFlush = true;
-        }
-
-        public static void Add(bool isOn, string msg, params object[] args)
-        {
-            if (isOn || IsOn)
+            Level = logLevel;
+            if (filePath != null)
             {
-                Console.WriteLine("DryadLinq: " + msg, args);
-                sw.WriteLine("DryadLinq: " + msg, args);
+                TextWriter temp = new StreamWriter(filePath, true);
+                s_writer = TextWriter.Synchronized(temp);
             }
         }
 
-        public static void Add(string msg, params object[] args)
+        private static void Add(string prefix, int logLevel, string msg, params object[] args)
         {
-            Add(true, msg, args);  //Debug - was false
+            if (logLevel <= Level)
+            {
+                try
+                {
+                    s_writer.WriteLine(prefix + msg, args);
+                    s_writer.Flush();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // we're in a shutdown scenario, writing the log triggers an error but it's ok, we can ignore it.
+                    // let's do the next best thing instead: write to the console.
+                    Console.WriteLine(prefix + msg, args);
+                }
+            }
+        }
+
+        public static void AddCritical(string msg, params object[] args)
+        {
+            Add("Critical: ", Constants.TraceCriticalLevel, msg, args);
+        }
+
+        public static void AddError(string msg, params object[] args)
+        {
+            Add("Error: ", Constants.TraceErrorLevel, msg, args);
+        }
+
+        public static void AddWarning(string msg, params object[] args)
+        {
+            Add("Warning: ", Constants.TraceWarningLevel, msg, args);
+        }
+
+        public static void AddInfo(string msg, params object[] args)
+        {
+            Add("Info: ", Constants.TraceInfoLevel, msg, args);
+        }
+
+        public static void AddVerbose(string msg, params object[] args)
+        {
+            Add("Verbose: ", Constants.TraceVerboseLevel, msg, args);
         }  
     }
 }

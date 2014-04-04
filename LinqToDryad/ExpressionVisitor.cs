@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -133,9 +130,9 @@ namespace Microsoft.Research.DryadLinq
                 }
                 default:
                 {
-                    throw new DryadLinqException(HpcLinqErrorCode.ExpressionTypeNotHandled,
-                                               String.Format(SR.ExpressionTypeNotHandled,
-                                                             "ExpressionVisitor", exp.NodeType));
+                    throw new DryadLinqException(DryadLinqErrorCode.ExpressionTypeNotHandled,
+                                                 String.Format(SR.ExpressionTypeNotHandled,
+                                                               "ExpressionVisitor", exp.NodeType));
                 }
             }
         }
@@ -158,9 +155,9 @@ namespace Microsoft.Research.DryadLinq
                 }
                 default:
                 {
-                    throw new DryadLinqException(HpcLinqErrorCode.ExpressionTypeNotHandled,
-                                               String.Format(SR.ExpressionTypeNotHandled,
-                                                             "ExpressionVisitor", binding.BindingType));
+                    throw new DryadLinqException(DryadLinqErrorCode.ExpressionTypeNotHandled,
+                                                 String.Format(SR.ExpressionTypeNotHandled,
+                                                               "ExpressionVisitor", binding.BindingType));
                 }
             }
         }
@@ -634,7 +631,7 @@ namespace Microsoft.Research.DryadLinq
         internal override Expression Visit(Expression expr)
         {
             if (expr == null) return expr;
-            if (HpcLinqExpression.IsConstant(expr))
+            if (DryadLinqExpression.IsConstant(expr))
             {
                 object val = ExpressionSimplifier.Evaluate(expr);
                 if (val is IQueryable)
@@ -651,40 +648,42 @@ namespace Microsoft.Research.DryadLinq
     {
         private Dictionary<Expression, QueryNodeInfo> m_referencedQueryMap;
         private int m_idx;
-        private List<Pair<string, DryadQueryNode>> m_referencedQueries;
+        private List<Pair<ParameterExpression, DLinqQueryNode>> m_referencedQueries;
 
         public ReferencedQuerySubst(Dictionary<Expression, QueryNodeInfo> referencedQueryMap)
         {
             this.m_referencedQueryMap = referencedQueryMap;
             this.m_idx = 0;
-            this.m_referencedQueries = new List<Pair<string, DryadQueryNode>>();
+            this.m_referencedQueries = new List<Pair<ParameterExpression, DLinqQueryNode>>();
         }
 
         internal override Expression Visit(Expression expr)
         {
             if (expr == null) return expr;
-            if (HpcLinqExpression.IsConstant(expr))
+            if (DryadLinqExpression.IsConstant(expr))
             {
                 object val = ExpressionSimplifier.Evaluate(expr);
                 if (val is IQueryable)
                 {
                     QueryNodeInfo nodeInfo;
-                    if (this.m_referencedQueryMap.TryGetValue(((IQueryable)val).Expression, out nodeInfo))
+                    if (this.m_referencedQueryMap.TryGetValue(((IQueryable)val).Expression, out nodeInfo) &&
+                        nodeInfo.QueryNode != null)
                     {
                         string name = "side__" + this.m_idx;
                         this.m_idx++;
-                        this.m_referencedQueries.Add(new Pair<string, DryadQueryNode>(name, nodeInfo.queryNode));
-                        return Expression.Parameter(expr.Type, name);
+                        ParameterExpression paramExpr = Expression.Parameter(expr.Type, name);
+                        this.m_referencedQueries.Add(new Pair<ParameterExpression, DLinqQueryNode>(paramExpr, nodeInfo.QueryNode));
+                        return paramExpr;
                     }
-                    throw new DryadLinqException(HpcLinqErrorCode.UnhandledQuery,
-                                               String.Format(SR.UnhandledQuery, HpcLinqExpression.Summarize(expr)));
+                    throw new DryadLinqException(DryadLinqErrorCode.UnhandledQuery,
+                                                 String.Format(SR.UnhandledQuery, DryadLinqExpression.Summarize(expr)));
                 }
                 return expr;
             }
             return base.Visit(expr);
         }
 
-        public List<Pair<string, DryadQueryNode>> GetReferencedQueries()
+        public List<Pair<ParameterExpression, DLinqQueryNode>> GetReferencedQueries()
         {
             return this.m_referencedQueries;
         }
@@ -693,10 +692,12 @@ namespace Microsoft.Research.DryadLinq
     internal sealed class ExpressionInfo : ExpressionVisitor
     {
         private bool m_isExpensive;
+        private bool m_isStateful;
 
         public ExpressionInfo(Expression expr)
         {
             this.m_isExpensive = false;
+            this.m_isStateful = false;
             this.Visit(expr);
         }
 
@@ -706,10 +707,12 @@ namespace Microsoft.Research.DryadLinq
             if (resourceAttrib == null)
             {
                 this.m_isExpensive = true;
+                this.m_isStateful = true;
             }
             else
             {
                 this.m_isExpensive = this.m_isExpensive || ((ResourceAttribute)resourceAttrib).IsExpensive;
+                this.m_isStateful = this.m_isStateful || ((ResourceAttribute)resourceAttrib).IsStateful;
             }
             return mcExpr;
         }
@@ -726,10 +729,12 @@ namespace Microsoft.Research.DryadLinq
                 if (resourceAttrib == null)
                 {
                     this.m_isExpensive = true;
+                    this.m_isStateful = true;
                 }
                 else
                 {
                     this.m_isExpensive = this.m_isExpensive || ((ResourceAttribute)resourceAttrib).IsExpensive;
+                    this.m_isStateful = this.m_isStateful || ((ResourceAttribute)resourceAttrib).IsStateful;
                 }
                 return b;
             }
@@ -743,7 +748,17 @@ namespace Microsoft.Research.DryadLinq
             }
             else
             {
-                this.m_isExpensive = true;
+                Attribute resourceAttrib = AttributeSystem.GetAttrib(u, typeof(ResourceAttribute));
+                if (resourceAttrib == null)
+                {
+                    this.m_isExpensive = true;
+                    this.m_isStateful = true;
+                }
+                else
+                {
+                    this.m_isExpensive = this.m_isExpensive || ((ResourceAttribute)resourceAttrib).IsExpensive;
+                    this.m_isStateful = this.m_isStateful || ((ResourceAttribute)resourceAttrib).IsStateful;
+                }
                 return u;
             }
         }

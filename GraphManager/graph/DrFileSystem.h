@@ -24,7 +24,7 @@ DRBASECLASS(DrInputStream abstract), public DrIInputPartitionReader
 {
 public:
     virtual DrString GetStreamName() DRABSTRACT;
-    virtual int GetNumberOfPartitions() DRABSTRACT;
+    virtual int GetNumberOfParts() DRABSTRACT;
     virtual DrAffinityRef GetAffinity(int partitionIndex) DRABSTRACT;
     virtual DrString GetURIForRead(int partitionIndex, DrResourcePtr runningResource) DRABSTRACT;
 };
@@ -46,13 +46,14 @@ public:
 DRBASECLASS(DrOutputStream abstract)
 {
 public:
-    virtual void SetNumberOfPartitions(int numberOfPartitions) DRABSTRACT;
+    virtual void SetNumberOfParts(int numberOfParts) DRABSTRACT;
     virtual DrString GetURIForWrite(int partitionIndex, int id, int version, int outputPort,
                                     DrResourcePtr runningResource,
                                     DrMetaDataRef metaData) DRABSTRACT;
-    virtual void DiscardUnusedPartition(int partitionIndex, int id, int version, int outputPort,
-                                        DrResourcePtr runningResource) DRABSTRACT;
-    virtual HRESULT FinalizeSuccessfulPartitions(DrOutputPartitionArrayRef partitionArray) DRABSTRACT;
+    virtual void DiscardUnusedPart(int partitionIndex, int id, int version, int outputPort,
+                                   DrResourcePtr runningResource, bool jobSuccess) DRABSTRACT;
+    virtual HRESULT FinalizeSuccessfulParts(DrOutputPartitionArrayRef partitionArray, DrStringR errorText) DRABSTRACT;
+    virtual HRESULT DiscardFailedStream(DrStringR errorText) DRABSTRACT;
     virtual void ExtendLease(DrTimeInterval) DRABSTRACT;
 };
 DRREF(DrOutputStream);
@@ -92,16 +93,16 @@ public:
 
     DrStageManagerPtr GetStageManager();
 
-    void SetNumberOfPartitions(int numberOfPartitions);
+    void SetNumberOfParts(int numberOfParts);
     DrOutputVertexListPtr GetVertices();
 
     /* the DrIOutputPartitionGenerator implementation */
     virtual void AddDynamicSplitVertex(DrOutputVertexPtr newVertex);
-    virtual HRESULT FinalizeSuccessfulPartitions();
+    virtual HRESULT FinalizeSuccessfulParts(bool jobSuccess, DrStringR errorText);
     virtual DrString GetURIForWrite(int partitionIndex, int id, int version, int outputPort,
                                     DrResourcePtr runningResource, DrMetaDataRef metaData);
     virtual void AbandonVersion(int partitionIndex, int id, int version, int outputPort,
-                                DrResourcePtr runningResource);
+                                DrResourcePtr runningResource, bool jobSuccess);
     virtual void ExtendLease(DrTimeInterval);
 
 private:

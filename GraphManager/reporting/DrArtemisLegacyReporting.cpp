@@ -18,7 +18,8 @@ limitations under the License.
 
 */
 
-#include <DrReporting.h>
+#include <DrStageHeaders.h>
+#include <DrArtemisLegacyReporting.h>
 
 //
 // Prints a timestamp as MM/DD/YYYY HH:MM:SS.MS
@@ -39,6 +40,19 @@ static void PrintTimestamp()
         local.wMinute,
         local.wSecond,
         local.wMilliseconds);
+}
+
+//
+// Prints a timestamp as MM/DD/YYYY HH:MM:SS.MS
+// 
+static FILETIME ConvertToFileTime(DrDateTime timestamp)
+{
+    union {
+        FILETIME    ft;
+        DrDateTime  ts;
+    };
+    ts = timestamp;
+    return ft;
 }
 
 /*
@@ -94,7 +108,7 @@ void DrArtemisLegacyReporter::ReceiveMessage(DrProcessInfoRef info)
         PrintTimestamp();
         printf("Process started for %s GUID {%s} machine %s\n",
                processName.GetChars(), info->m_state->m_process->GetHandleIdAsString().GetChars(),
-               info->m_state->m_process->GetAssignedNode()->GetName().GetChars());
+               info->m_state->m_process->GetAssignedNode()->GetLocality().GetChars());
         fflush(stdout);
     }
 }
@@ -140,13 +154,13 @@ void DrArtemisLegacyReporter::ReceiveMessage(DrVertexInfoRef info)
             processGuid = handle->GetHandleIdAsString();
             if (handle->GetAssignedNode() != DrNull)
             {
-                machineName = handle->GetAssignedNode()->GetName();
+                machineName = handle->GetAssignedNode()->GetLocality();
             }
         }
 
         processSchedule = process->GetInfo()->m_jmProcessScheduledTime;
-        processStartCreate = process->GetInfo()->m_statistics->m_createdTime;
-        processFinishCreate = process->GetInfo()->m_statistics->m_beginExecutionTime;
+        processStartCreate = process->GetInfo()->m_state->m_createdTime;
+        processFinishCreate = process->GetInfo()->m_state->m_beginExecutionTime;
     }
 
     if (info->m_state == DVS_Completed)
@@ -306,11 +320,7 @@ void DrArtemisLegacyReporter::ReportFinalTopology(DrVertexPtr vertex, DrResource
 
 void DrArtemisLegacyReporter::ReportStart(DrDateTime startTime)
 {
-    union {
-        FILETIME    ft;
-        DrDateTime  ts;
-    };
-    ts = startTime;
+    FILETIME ft = ConvertToFileTime(startTime);
     SYSTEMTIME utc, local;
     FileTimeToSystemTime(&ft, &utc);
     SystemTimeToTzSpecificLocalTime(NULL, &utc, &local);
@@ -327,7 +337,7 @@ void DrArtemisLegacyReporter::ReportStart(DrDateTime startTime)
     fflush(stdout);
 }
 
-void DrArtemisLegacyReporter::ReportStop(UINT exitCode)
+void DrArtemisLegacyReporter::ReportStop(UINT exitCode, DrNativeString /*errorString*/, DrDateTime /*stopTime*/)
 {
     SYSTEMTIME utc, local;
     FILETIME ft;

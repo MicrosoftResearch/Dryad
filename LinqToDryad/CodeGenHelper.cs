@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.IO;
 using System.Reflection;
@@ -48,14 +45,14 @@ namespace Microsoft.Research.DryadLinq.Internal
             Type typeT = typeof(T);
             if (typeT.IsValueType)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.Internal,
-                                           SR.Internal_CannotBeUsedForValueType);
+                throw new DryadLinqException(DryadLinqErrorCode.Internal,
+                                             SR.Internal_CannotBeUsedForValueType);
             }
             FieldInfo finfo = typeT.GetField(fname, BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic);
             if (finfo == null)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.Internal,
-                                           String.Format(SR.TypeDoesNotContainRequestedField, typeT.Name, fname));
+                throw new DryadLinqException(DryadLinqErrorCode.Internal,
+                                             String.Format(SR.TypeDoesNotContainRequestedField, typeT.Name, fname));
             }
             DynamicMethod dm = new DynamicMethod("GetObjField",
                                                  typeof(S),
@@ -74,14 +71,14 @@ namespace Microsoft.Research.DryadLinq.Internal
             Type typeT = typeof(T);
             if (typeT.IsValueType)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.Internal,
-                                           SR.Internal_CannotBeUsedForValueType);
+                throw new DryadLinqException(DryadLinqErrorCode.Internal,
+                                             SR.Internal_CannotBeUsedForValueType);
             }
             FieldInfo finfo = typeT.GetField(fname, BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic);
             if (finfo == null)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.Internal,
-                                           String.Format(SR.TypeDoesNotContainRequestedField, typeT.Name, fname));
+                throw new DryadLinqException(DryadLinqErrorCode.Internal,
+                                             String.Format(SR.TypeDoesNotContainRequestedField, typeT.Name, fname));
             }            
             DynamicMethod dm = new DynamicMethod("SetObjField",
                                                  typeof(void),
@@ -101,14 +98,14 @@ namespace Microsoft.Research.DryadLinq.Internal
             Type typeT = typeof(T);
             if (!typeT.IsValueType)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.Internal,
-                                           SR.CannotBeUsedForReferenceType);
+                throw new DryadLinqException(DryadLinqErrorCode.Internal,
+                                             SR.CannotBeUsedForReferenceType);
             }
             FieldInfo finfo = typeT.GetField(fname, BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic);
             if (finfo == null)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.Internal,
-                                           String.Format(SR.TypeDoesNotContainRequestedField, typeT.Name, fname));
+                throw new DryadLinqException(DryadLinqErrorCode.Internal,
+                                             String.Format(SR.TypeDoesNotContainRequestedField, typeT.Name, fname));
             }            
             DynamicMethod dm = new DynamicMethod("GetStructField",
                                                  typeof(S),
@@ -127,14 +124,14 @@ namespace Microsoft.Research.DryadLinq.Internal
             Type typeT = typeof(T);
             if (!typeT.IsValueType)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.Internal,
-                                           SR.CannotBeUsedForReferenceType);
+                throw new DryadLinqException(DryadLinqErrorCode.Internal,
+                                             SR.CannotBeUsedForReferenceType);
             }
             FieldInfo finfo = typeT.GetField(fname, BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic);
             if (finfo == null)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.Internal,
-                                           String.Format(SR.TypeDoesNotContainRequestedField, typeT.Name, fname));
+                throw new DryadLinqException(DryadLinqErrorCode.Internal,
+                                             String.Format(SR.TypeDoesNotContainRequestedField, typeT.Name, fname));
             }            
             DynamicMethod dm = new DynamicMethod("SetStructField",
                                                  typeof(void),

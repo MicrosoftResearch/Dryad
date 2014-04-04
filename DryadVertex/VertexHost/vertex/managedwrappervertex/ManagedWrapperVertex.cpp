@@ -190,6 +190,14 @@ void ManagedWrapperVertex::Main(WorkQueue* workQueue,
         }
     }
 
+    System::String^ logName = System::String::Format("vertex-{0}-{1}-LinqLog.txt", GetVertexId(), GetVertexVersion());
+    System::String^ logDirectory = System::Environment::GetEnvironmentVariable("LOG_DIRS");
+    if (logDirectory != nullptr)
+    {
+        logDirectory = logDirectory->Split(',')[0]->Trim();
+        logName = System::IO::Path::Combine(logDirectory, logName);
+    }
+
     DrLogI("ManagedWrapperVertex: %p %u %u", nativeInfo, numberOfInputChannels, numberOfOutputChannels);
     DrLogI("ManagedWrapperVertex: Calling %s.%s", GetArgument(2), GetArgument(3));
     DrLogging::FlushLog();
@@ -210,7 +218,7 @@ void ManagedWrapperVertex::Main(WorkQueue* workQueue,
         //     L"<vertexAssembly>,<vertexClassName>,<vertexMethodName>,<vertexMethodArgs>"
         //
         System::String ^bridgeAssemblyPartialName = gcnew System::String(L"Microsoft.Research.DryadLinq");
-        System::String ^bridgeClassName = gcnew System::String(L"Microsoft.Research.DryadLinq.Internal.HpcLinqVertexEnv");
+        System::String ^bridgeClassName = gcnew System::String(L"Microsoft.Research.DryadLinq.Internal.VertexEnv");
         System::String ^bridgeMethodName = gcnew System::String(L"VertexBridge");
 
         //
@@ -252,19 +260,22 @@ void ManagedWrapperVertex::Main(WorkQueue* workQueue,
         //                
         try
         {
+            System::Console::WriteLine("Assembly name " + bridgeAssemblyPartialName);
             System::Reflection::Assembly ^vertexBridgeAsm = System::Reflection::Assembly::LoadWithPartialName(bridgeAssemblyPartialName);
             System::Type ^vertexBridgeType = vertexBridgeAsm->GetType(gcnew System::String(bridgeClassName));
             System::Reflection::MethodInfo ^vertexBridgeMethod = vertexBridgeType->GetMethod(gcnew System::String(bridgeMethodName), 
                                                                                              static_cast<System::Reflection::BindingFlags>(System::Reflection::BindingFlags::NonPublic | 
                                                                                                                                            System::Reflection::BindingFlags::Static));
 
-            cli::array<System::Object^> ^invokeArgs = gcnew array<System::Object^>(1);
-            invokeArgs[0] = vertexBridgeArg->ToString();
+            cli::array<System::Object^> ^invokeArgs = gcnew array<System::Object^>(2);
+            invokeArgs[0] = logName;
+            invokeArgs[1] = vertexBridgeArg->ToString();
 
             vertexBridgeMethod->Invoke(nullptr, invokeArgs);
         }
         catch(System::Exception ^ex)
         {
+            System::Console::WriteLine(ex->ToString());
             hr = System::Runtime::InteropServices::Marshal::GetHRForException(ex);
             
             if (hr == S_OK) 

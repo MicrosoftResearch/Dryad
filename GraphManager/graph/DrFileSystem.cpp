@@ -24,9 +24,9 @@ DrInputStreamManager::DrInputStreamManager(DrInputStreamPtr stream, DrStageManag
 {
     m_stage = stage;
     m_vertices = DrNew DrStorageVertexList();
-    int numberOfPartitions = stream->GetNumberOfPartitions();
+    int numberOfParts = stream->GetNumberOfParts();
 
-    for (int i = 0; i < numberOfPartitions; ++i)
+    for (int i = 0; i < numberOfParts; ++i)
     {
         m_vertices->Add(DrNew DrStorageVertex(m_stage, i, stream));
     }
@@ -142,19 +142,19 @@ DrString DrOutputStreamManager::GetName()
     return m_name;
 }
 
-void DrOutputStreamManager::SetNumberOfPartitions(int numberOfPartitions)
+void DrOutputStreamManager::SetNumberOfParts(int numberOfParts)
 {
-    m_vertices = DrNew DrOutputVertexList(numberOfPartitions);
+    m_vertices = DrNew DrOutputVertexList(numberOfParts);
 
     int i;
-    for (i=0; i<numberOfPartitions; ++i)
+    for (i=0; i<numberOfParts; ++i)
     {
         DrOutputVertexRef v = DrNew DrOutputVertex(m_stage, i, this);
         m_vertices->Add(v);
     }
     
     SetName(m_name);
-    m_stream->SetNumberOfPartitions(numberOfPartitions);
+    m_stream->SetNumberOfParts(numberOfParts);
     
 }
 
@@ -168,24 +168,33 @@ void DrOutputStreamManager::AddDynamicSplitVertex(DrOutputVertexPtr newVertex)
     if (m_startedSplitting == false)
     {
         DrAssert(m_vertices->Size() == 1);
-        SetNumberOfPartitions(0);
+        SetNumberOfParts(0);
         m_startedSplitting = true;
     }
 
     m_vertices->Add(newVertex);
 }
 
-HRESULT DrOutputStreamManager::FinalizeSuccessfulPartitions()
+HRESULT DrOutputStreamManager::FinalizeSuccessfulParts(bool jobSuccess, DrStringR errorText)
 {
     DrOutputPartitionArrayRef partitionArray = DrNew DrOutputPartitionArray(m_vertices->Size());
 
     int i;
     for (i=0; i<m_vertices->Size(); ++i)
     {
-        partitionArray[i] = m_vertices[i]->FinalizeVersions();
+        // this call abandons all non-successful version. If jobSuccess==false, it will abandon
+        // all versions
+        partitionArray[i] = m_vertices[i]->FinalizeVersions(jobSuccess);
     }
 
-    return m_stream->FinalizeSuccessfulPartitions(partitionArray);
+    if (jobSuccess)
+    {
+        return m_stream->FinalizeSuccessfulParts(partitionArray, errorText);
+    }
+    else
+    {
+        return m_stream->DiscardFailedStream(errorText);
+    }
 }
 
 DrString DrOutputStreamManager::GetURIForWrite(int partitionIndex, int id, int version, int outputPort,
@@ -195,9 +204,9 @@ DrString DrOutputStreamManager::GetURIForWrite(int partitionIndex, int id, int v
 }
 
 void DrOutputStreamManager::AbandonVersion(int partitionIndex, int id, int version, int outputPort,
-                                           DrResourcePtr runningResource)
+                                           DrResourcePtr runningResource, bool jobSuccess)
 {
-    m_stream->DiscardUnusedPartition(partitionIndex, id, version, outputPort, runningResource);
+    m_stream->DiscardUnusedPart(partitionIndex, id, version, outputPort, runningResource, jobSuccess);
 }
 
 void DrOutputStreamManager::ExtendLease(DrTimeInterval lease)

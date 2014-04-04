@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -35,29 +32,29 @@ using Microsoft.Research.DryadLinq;
 
 namespace Microsoft.Research.DryadLinq
 {
-    // If a class T implements HpcSerializer<T>, HpcLinq will use the
+    // If a class T implements DryadLinqSerializer<T>, DryadLinq will use the
     // read and write methods of the class to do serialization.
-    public interface IHpcSerializer<T>
+    public interface IDryadLinqSerializer<T>
     {
-        T Read(HpcBinaryReader reader);
-        void Write(HpcBinaryWriter writer, T x);
+        T Read(DryadLinqBinaryReader reader);
+        void Write(DryadLinqBinaryWriter writer, T x);
     }
 }
 
 namespace Microsoft.Research.DryadLinq.Internal
 {
-    public abstract class HpcSerializer<T> : IHpcSerializer<T>
+    public abstract class DryadLinqSerializer<T> : IDryadLinqSerializer<T>
     {
-        public HpcSerializer() { }
-        public abstract T Read(HpcBinaryReader reader);
-        public abstract void Write(HpcBinaryWriter writer, T x);
+        public DryadLinqSerializer() { }
+        public abstract T Read(DryadLinqBinaryReader reader);
+        public abstract void Write(DryadLinqBinaryWriter writer, T x);
     }
 
-    internal struct HpcLinqSequence<T> : IEnumerable<T>
+    internal struct DryadLinqSequence<T> : IEnumerable<T>
     {
         private T[] elements;
 
-        internal HpcLinqSequence(T[] elems)
+        internal DryadLinqSequence(T[] elems)
         {
             this.elements = elems;
         }
@@ -87,13 +84,13 @@ namespace Microsoft.Research.DryadLinq.Internal
     }
 
     // The only use is to handle Nullable<T>.
-    public static class StructHpcSerialization<T, S>
+    public static class StructDryadLinqSerialization<T, S>
         where T : struct
-        where S : HpcSerializer<T>, new()
+        where S : DryadLinqSerializer<T>, new()
     {
         private static S serializer = new S();
         
-        public static void Read(HpcBinaryReader reader, out Nullable<T> val)
+        public static void Read(DryadLinqBinaryReader reader, out Nullable<T> val)
         {
             bool hasValue = reader.ReadBool();
             if (hasValue)
@@ -106,7 +103,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Write(HpcBinaryWriter writer, Nullable<T> val)
+        public static void Write(DryadLinqBinaryWriter writer, Nullable<T> val)
         {
             writer.Write(val.HasValue);
             if (val.HasValue)
@@ -116,23 +113,23 @@ namespace Microsoft.Research.DryadLinq.Internal
         }
     }
 
-    public static class StructHpcSerialization<T1, T2, S1, S2>
+    public static class StructDryadLinqSerialization<T1, T2, S1, S2>
         where T1 : struct
         where T2 : struct        
-        where S1 : HpcSerializer<T1>, new()
-        where S2 : HpcSerializer<T2>, new()        
+        where S1 : DryadLinqSerializer<T1>, new()
+        where S2 : DryadLinqSerializer<T2>, new()        
     {
         private static S1 serializer1 = new S1();
         private static S2 serializer2 = new S2();
     }
 
     // A workaround to deal with some limitation of C# generics
-    public static class HpcSerialization<T, S>
-        where S : HpcSerializer<T>, new()
+    public static class DryadLinqSerialization<T, S>
+        where S : DryadLinqSerializer<T>, new()
     {
         private static S serializer = new S();
         
-        public static void Read(HpcBinaryReader reader, out List<T> list)
+        public static void Read(DryadLinqBinaryReader reader, out List<T> list)
         {
             int cnt = reader.ReadInt32();
             list = new List<T>(cnt);
@@ -142,7 +139,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Write(HpcBinaryWriter writer, List<T> list)
+        public static void Write(DryadLinqBinaryWriter writer, List<T> list)
         {
             writer.Write(list.Count);         
             foreach (T elem in list)
@@ -151,7 +148,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Read(HpcBinaryReader reader, out LinkedList<T> list)
+        public static void Read(DryadLinqBinaryReader reader, out LinkedList<T> list)
         {
             int cnt = reader.ReadInt32();
             list = new LinkedList<T>();
@@ -161,7 +158,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Write(HpcBinaryWriter writer, LinkedList<T> list)
+        public static void Write(DryadLinqBinaryWriter writer, LinkedList<T> list)
         {
             writer.Write(list.Count);
             foreach (T elem in list)
@@ -170,7 +167,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Read(HpcBinaryReader reader, out Queue<T> queue)
+        public static void Read(DryadLinqBinaryReader reader, out Queue<T> queue)
         {
             int cnt = reader.ReadInt32();
             queue = new Queue<T>(cnt);
@@ -180,7 +177,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Write(HpcBinaryWriter writer, Queue<T> queue)
+        public static void Write(DryadLinqBinaryWriter writer, Queue<T> queue)
         {
             writer.Write(queue.Count);
             foreach (T elem in queue)
@@ -189,7 +186,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Read(HpcBinaryReader reader, out Stack<T> stack)
+        public static void Read(DryadLinqBinaryReader reader, out Stack<T> stack)
         {
             int cnt = reader.ReadInt32();
             stack = new Stack<T>(cnt);
@@ -199,7 +196,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Write(HpcBinaryWriter writer, Stack<T> stack)
+        public static void Write(DryadLinqBinaryWriter writer, Stack<T> stack)
         {
             writer.Write(stack.Count);
             foreach (T elem in stack)
@@ -208,7 +205,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Read(HpcBinaryReader reader, out HashSet<T> set)
+        public static void Read(DryadLinqBinaryReader reader, out HashSet<T> set)
         {
             int cnt = reader.ReadInt32();
             set = new HashSet<T>();
@@ -218,7 +215,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Write(HpcBinaryWriter writer, HashSet<T> set)
+        public static void Write(DryadLinqBinaryWriter writer, HashSet<T> set)
         {
             writer.Write(set.Count);
             foreach (T elem in set)
@@ -227,7 +224,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Read(HpcBinaryReader reader, out Collection<T> set)
+        public static void Read(DryadLinqBinaryReader reader, out Collection<T> set)
         {
             int cnt = reader.ReadInt32();
             set = new Collection<T>();
@@ -237,7 +234,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Write(HpcBinaryWriter writer, Collection<T> set)
+        public static void Write(DryadLinqBinaryWriter writer, Collection<T> set)
         {
             writer.Write(set.Count);
             foreach (T elem in set)
@@ -246,7 +243,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Read(HpcBinaryReader reader, out ReadOnlyCollection<T> set)
+        public static void Read(DryadLinqBinaryReader reader, out ReadOnlyCollection<T> set)
         {
             int cnt = reader.ReadInt32();
             List<T> lst = new List<T>(cnt);
@@ -257,7 +254,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             set = new ReadOnlyCollection<T>(lst);
         }
 
-        public static void Write(HpcBinaryWriter writer, ReadOnlyCollection<T> set)
+        public static void Write(DryadLinqBinaryWriter writer, ReadOnlyCollection<T> set)
         {
             writer.Write(set.Count);
             foreach (T elem in set)
@@ -266,7 +263,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
         
-        public static void Read(HpcBinaryReader reader, out IEnumerable<T> seq)
+        public static void Read(DryadLinqBinaryReader reader, out IEnumerable<T> seq)
         {
             int cnt = reader.ReadInt32();
             T[] elems = new T[cnt];
@@ -274,10 +271,10 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 elems[i] = serializer.Read(reader);
             }
-            seq = new HpcLinqSequence<T>(elems);
+            seq = new DryadLinqSequence<T>(elems);
         }
 
-        public static void Write(HpcBinaryWriter writer, IEnumerable<T> seq)
+        public static void Write(DryadLinqBinaryWriter writer, IEnumerable<T> seq)
         {
             writer.Write(seq.Count());
             foreach (T elem in seq)
@@ -286,7 +283,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Read(HpcBinaryReader reader, out IList<T> seq)
+        public static void Read(DryadLinqBinaryReader reader, out IList<T> seq)
         {
             int cnt = reader.ReadInt32();
             seq = new List<T>(cnt);
@@ -296,7 +293,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Write(HpcBinaryWriter writer, IList<T> seq)
+        public static void Write(DryadLinqBinaryWriter writer, IList<T> seq)
         {
             writer.Write(seq.Count);
             foreach (T elem in seq)
@@ -305,7 +302,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Read(HpcBinaryReader reader, out ForkValue<T> val)
+        public static void Read(DryadLinqBinaryReader reader, out ForkValue<T> val)
         {
             val = new ForkValue<T>();
             if (reader.ReadBool())
@@ -314,7 +311,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Write(HpcBinaryWriter writer, ForkValue<T> val)
+        public static void Write(DryadLinqBinaryWriter writer, ForkValue<T> val)
         {
             writer.Write(val.HasValue);
             if (val.HasValue)
@@ -323,7 +320,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Read(HpcBinaryReader reader, out AggregateValue<T> aggVal)
+        public static void Read(DryadLinqBinaryReader reader, out AggregateValue<T> aggVal)
         {
             long cnt = reader.ReadInt64();
             T val = default(T);
@@ -334,7 +331,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             aggVal = new AggregateValue<T>(val, cnt);
         }
 
-        public static void Write(HpcBinaryWriter writer, AggregateValue<T> aggVal)
+        public static void Write(DryadLinqBinaryWriter writer, AggregateValue<T> aggVal)
         {
             writer.Write(aggVal.Count);
             if (aggVal.Count > 0)
@@ -343,28 +340,28 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Read(HpcBinaryReader reader, out IndexedValue<T> indexedVal)
+        public static void Read(DryadLinqBinaryReader reader, out IndexedValue<T> indexedVal)
         {
             int index = reader.ReadInt32();
             T val = serializer.Read(reader);
             indexedVal = new IndexedValue<T>(index, val);
         }
 
-        public static void Write(HpcBinaryWriter writer, IndexedValue<T> indexedVal)
+        public static void Write(DryadLinqBinaryWriter writer, IndexedValue<T> indexedVal)
         {
             writer.Write(indexedVal.Index);
             serializer.Write(writer, indexedVal.Value);
         }
     }
 
-    public static class HpcSerialization<T1, T2, S1, S2>
-        where S1 : HpcSerializer<T1>, new()
-        where S2 : HpcSerializer<T2>, new()
+    public static class DryadLinqSerialization<T1, T2, S1, S2>
+        where S1 : DryadLinqSerializer<T1>, new()
+        where S2 : DryadLinqSerializer<T2>, new()
     {
         private static S1 serializer1 = new S1();
         private static S2 serializer2 = new S2();
         
-        public static void Read(HpcBinaryReader reader, out Dictionary<T1, T2> dict)
+        public static void Read(DryadLinqBinaryReader reader, out Dictionary<T1, T2> dict)
         {
             int cnt = reader.ReadInt32();
             dict = new Dictionary<T1, T2>(cnt);
@@ -376,7 +373,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Write(HpcBinaryWriter writer, Dictionary<T1, T2> dict)
+        public static void Write(DryadLinqBinaryWriter writer, Dictionary<T1, T2> dict)
         {
             writer.Write(dict.Count);
             foreach (KeyValuePair<T1, T2> elem in dict)
@@ -386,7 +383,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Read(HpcBinaryReader reader, out SortedDictionary<T1, T2> dict)
+        public static void Read(DryadLinqBinaryReader reader, out SortedDictionary<T1, T2> dict)
         {
             int cnt = reader.ReadInt32();
             dict = new SortedDictionary<T1, T2>();
@@ -398,7 +395,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Write(HpcBinaryWriter writer, SortedDictionary<T1, T2> dict)
+        public static void Write(DryadLinqBinaryWriter writer, SortedDictionary<T1, T2> dict)
         {
             writer.Write(dict.Count);
             foreach (KeyValuePair<T1, T2> elem in dict)
@@ -408,7 +405,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Read(HpcBinaryReader reader, out SortedList<T1, T2> list)
+        public static void Read(DryadLinqBinaryReader reader, out SortedList<T1, T2> list)
         {
             int cnt = reader.ReadInt32();
             list = new SortedList<T1, T2>(cnt);
@@ -420,7 +417,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Write(HpcBinaryWriter writer, SortedList<T1, T2> list)
+        public static void Write(DryadLinqBinaryWriter writer, SortedList<T1, T2> list)
         {
             writer.Write(list.Count);
             foreach (KeyValuePair<T1, T2> elem in list)
@@ -430,7 +427,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Read(HpcBinaryReader reader, out IGrouping<T1, T2> group)
+        public static void Read(DryadLinqBinaryReader reader, out IGrouping<T1, T2> group)
         {
             T1 key = serializer1.Read(reader);
             int len = reader.ReadInt32();
@@ -443,7 +440,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             group = realGroup;
         }
 
-        public static void Write(HpcBinaryWriter writer, IGrouping<T1, T2> group)
+        public static void Write(DryadLinqBinaryWriter writer, IGrouping<T1, T2> group)
         {
             serializer1.Write(writer, group.Key);
             writer.Write(group.Count());
@@ -454,33 +451,33 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Read(HpcBinaryReader reader, out KeyValuePair<T1, T2> kv)
+        public static void Read(DryadLinqBinaryReader reader, out KeyValuePair<T1, T2> kv)
         {
             T1 key = serializer1.Read(reader);
             T2 val = serializer2.Read(reader);
             kv = new KeyValuePair<T1, T2>(key, val);
         }
 
-        public static void Write(HpcBinaryWriter writer, KeyValuePair<T1, T2> kv)
+        public static void Write(DryadLinqBinaryWriter writer, KeyValuePair<T1, T2> kv)
         {
             serializer1.Write(writer, kv.Key);
             serializer2.Write(writer, kv.Value);
         }
 
-        public static void Read(HpcBinaryReader reader, out Pair<T1, T2> pair)
+        public static void Read(DryadLinqBinaryReader reader, out Pair<T1, T2> pair)
         {
             T1 x = serializer1.Read(reader);
             T2 y = serializer2.Read(reader);
             pair = new Pair<T1, T2>(x, y);
         }
 
-        public static void Write(HpcBinaryWriter writer, Pair<T1, T2> pair)
+        public static void Write(DryadLinqBinaryWriter writer, Pair<T1, T2> pair)
         {
             serializer1.Write(writer, pair.Key);
             serializer2.Write(writer, pair.Value);
         }
 
-        public static void Read(HpcBinaryReader reader, out ForkTuple<T1, T2> val)
+        public static void Read(DryadLinqBinaryReader reader, out ForkTuple<T1, T2> val)
         {
             val = new ForkTuple<T1, T2>();
             if (reader.ReadBool())
@@ -493,7 +490,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
         
-        public static void Write(HpcBinaryWriter writer, ForkTuple<T1, T2> val)
+        public static void Write(DryadLinqBinaryWriter writer, ForkTuple<T1, T2> val)
         {
             writer.Write(val.HasFirst);
             if (val.HasFirst)
@@ -508,7 +505,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        public static void Read(HpcBinaryReader reader, out HpcLinqGrouping<T1, T2> group)
+        public static void Read(DryadLinqBinaryReader reader, out DryadLinqGrouping<T1, T2> group)
         {
             T1 key = serializer1.Read(reader);
             int cnt = reader.ReadInt32();
@@ -517,10 +514,10 @@ namespace Microsoft.Research.DryadLinq.Internal
             {
                 elems[i] = serializer2.Read(reader);
             }
-            group = new HpcLinqGrouping<T1, T2>(key, elems);
+            group = new DryadLinqGrouping<T1, T2>(key, elems);
         }
 
-        public static void Write(HpcBinaryWriter writer, HpcLinqGrouping<T1, T2> group)
+        public static void Write(DryadLinqBinaryWriter writer, DryadLinqGrouping<T1, T2> group)
         {
             serializer1.Write(writer, group.Key);
             writer.Write(group.Count());
@@ -531,223 +528,230 @@ namespace Microsoft.Research.DryadLinq.Internal
         }
     }
 
-    public sealed class ByteHpcSerializer : HpcSerializer<byte>
+    public static class DryadLinqSerialization<T1, T2, T3, S1, S2, S3>
+        where S1 : DryadLinqSerializer<T1>, new()
+        where S2 : DryadLinqSerializer<T2>, new()
+        where S3 : DryadLinqSerializer<T3>, new()
     {
-        public override byte Read(HpcBinaryReader reader)
+    }
+
+    public sealed class ByteDryadLinqSerializer : DryadLinqSerializer<byte>
+    {
+        public override byte Read(DryadLinqBinaryReader reader)
         {
             return reader.ReadUByte();
         }
 
-        public override void Write(HpcBinaryWriter writer, byte x)
+        public override void Write(DryadLinqBinaryWriter writer, byte x)
         {
             writer.Write(x);
         }
     }
 
-    public sealed class SByteHpcSerializer : HpcSerializer<sbyte>
+    public sealed class SByteDryadLinqSerializer : DryadLinqSerializer<sbyte>
     {
-        public override sbyte Read(HpcBinaryReader reader)
+        public override sbyte Read(DryadLinqBinaryReader reader)
         {
             return reader.ReadSByte();
         }
 
-        public override void Write(HpcBinaryWriter writer, sbyte x)
+        public override void Write(DryadLinqBinaryWriter writer, sbyte x)
         {
             writer.Write(x);
         }
     }
 
-    public sealed class BoolHpcSerializer : HpcSerializer<bool>
+    public sealed class BoolDryadLinqSerializer : DryadLinqSerializer<bool>
     {
-        public override bool Read(HpcBinaryReader reader)
+        public override bool Read(DryadLinqBinaryReader reader)
         {
             return reader.ReadBool();
         }
 
-        public override void Write(HpcBinaryWriter writer, bool x)
+        public override void Write(DryadLinqBinaryWriter writer, bool x)
         {
             writer.Write(x);
         }
     }
 
-    public sealed class CharHpcSerializer : HpcSerializer<char>
+    public sealed class CharDryadLinqSerializer : DryadLinqSerializer<char>
     {
-        public override char Read(HpcBinaryReader reader)
+        public override char Read(DryadLinqBinaryReader reader)
         {
             return reader.ReadChar();
         }
 
-        public override void Write(HpcBinaryWriter writer, char x)
+        public override void Write(DryadLinqBinaryWriter writer, char x)
         {
             writer.Write(x);
         }
     }
 
-    public sealed class Int16HpcSerializer : HpcSerializer<Int16>
+    public sealed class Int16DryadLinqSerializer : DryadLinqSerializer<Int16>
     {
-        public override Int16 Read(HpcBinaryReader reader)
+        public override Int16 Read(DryadLinqBinaryReader reader)
         {
             return reader.ReadInt16();
         }
 
-        public override void Write(HpcBinaryWriter writer, Int16 x)
+        public override void Write(DryadLinqBinaryWriter writer, Int16 x)
         {
             writer.Write(x);
         }
     }
 
-    public sealed class UInt16HpcSerializer : HpcSerializer<UInt16>
+    public sealed class UInt16DryadLinqSerializer : DryadLinqSerializer<UInt16>
     {
-        public override UInt16 Read(HpcBinaryReader reader)
+        public override UInt16 Read(DryadLinqBinaryReader reader)
         {
             return reader.ReadUInt16();
         }
 
-        public override void Write(HpcBinaryWriter writer, UInt16 x)
+        public override void Write(DryadLinqBinaryWriter writer, UInt16 x)
         {
             writer.Write(x);
         }
     }
 
-    public sealed class Int32HpcSerializer : HpcSerializer<Int32>
+    public sealed class Int32DryadLinqSerializer : DryadLinqSerializer<Int32>
     {
-        public override Int32 Read(HpcBinaryReader reader)
+        public override Int32 Read(DryadLinqBinaryReader reader)
         {
             return reader.ReadInt32();
         }
 
-        public override void Write(HpcBinaryWriter writer, Int32 x)
+        public override void Write(DryadLinqBinaryWriter writer, Int32 x)
         {
             writer.Write(x);
         }
     }
 
-    public sealed class UInt32HpcSerializer : HpcSerializer<UInt32>
+    public sealed class UInt32DryadLinqSerializer : DryadLinqSerializer<UInt32>
     {
-        public override UInt32 Read(HpcBinaryReader reader)
+        public override UInt32 Read(DryadLinqBinaryReader reader)
         {
             return reader.ReadUInt32();
         }
 
-        public override void Write(HpcBinaryWriter writer, UInt32 x)
+        public override void Write(DryadLinqBinaryWriter writer, UInt32 x)
         {
             writer.Write(x);
         }
     }
 
-    public sealed class Int64HpcSerializer : HpcSerializer<Int64>
+    public sealed class Int64DryadLinqSerializer : DryadLinqSerializer<Int64>
     {
-        public override Int64 Read(HpcBinaryReader reader)
+        public override Int64 Read(DryadLinqBinaryReader reader)
         {
             return reader.ReadInt64();
         }
 
-        public override void Write(HpcBinaryWriter writer, Int64 x)
+        public override void Write(DryadLinqBinaryWriter writer, Int64 x)
         {
             writer.Write(x);
         }
     }
 
-    public sealed class UInt64HpcSerializer : HpcSerializer<UInt64>
+    public sealed class UInt64DryadLinqSerializer : DryadLinqSerializer<UInt64>
     {
-        public override UInt64 Read(HpcBinaryReader reader)
+        public override UInt64 Read(DryadLinqBinaryReader reader)
         {
             return reader.ReadUInt64();
         }
 
-        public override void Write(HpcBinaryWriter writer, UInt64 x)
+        public override void Write(DryadLinqBinaryWriter writer, UInt64 x)
         {
             writer.Write(x);
         }
     }
 
-    public sealed class SingleHpcSerializer : HpcSerializer<float>
+    public sealed class SingleDryadLinqSerializer : DryadLinqSerializer<float>
     {
-        public override float Read(HpcBinaryReader reader)
+        public override float Read(DryadLinqBinaryReader reader)
         {
             return reader.ReadSingle();
         }
 
-        public override void Write(HpcBinaryWriter writer, float x)
+        public override void Write(DryadLinqBinaryWriter writer, float x)
         {
             writer.Write(x);
         }
     }
 
-    public sealed class DoubleHpcSerializer : HpcSerializer<double>
+    public sealed class DoubleDryadLinqSerializer : DryadLinqSerializer<double>
     {
-        public override double Read(HpcBinaryReader reader)
+        public override double Read(DryadLinqBinaryReader reader)
         {
             return reader.ReadDouble();
         }
 
-        public override void Write(HpcBinaryWriter writer, double x)
+        public override void Write(DryadLinqBinaryWriter writer, double x)
         {
             writer.Write(x);
         }
     }
 
-    public sealed class DecimalHpcSerializer : HpcSerializer<decimal>
+    public sealed class DecimalDryadLinqSerializer : DryadLinqSerializer<decimal>
     {
-        public override decimal Read(HpcBinaryReader reader)
+        public override decimal Read(DryadLinqBinaryReader reader)
         {
             return reader.ReadDecimal();
         }
 
-        public override void Write(HpcBinaryWriter writer, decimal x)
+        public override void Write(DryadLinqBinaryWriter writer, decimal x)
         {
             writer.Write(x);
         }
     }
 
-    public sealed class DateTimeHpcSerializer : HpcSerializer<DateTime>
+    public sealed class DateTimeDryadLinqSerializer : DryadLinqSerializer<DateTime>
     {
-        public override DateTime Read(HpcBinaryReader reader)
+        public override DateTime Read(DryadLinqBinaryReader reader)
         {
             return reader.ReadDateTime();
         }
 
-        public override void Write(HpcBinaryWriter writer, DateTime x)
+        public override void Write(DryadLinqBinaryWriter writer, DateTime x)
         {
             writer.Write(x);
         }
     }
 
-    public sealed class StringHpcSerializer : HpcSerializer<string>
+    public sealed class StringDryadLinqSerializer : DryadLinqSerializer<string>
     {
-        public override string Read(HpcBinaryReader reader)
+        public override string Read(DryadLinqBinaryReader reader)
         {
             return reader.ReadString();
         }
 
-        public override void Write(HpcBinaryWriter writer, string x)
+        public override void Write(DryadLinqBinaryWriter writer, string x)
         {
             writer.Write(x);
         }
     }
 
-    public sealed class GuidHpcSerializer : HpcSerializer<Guid>
+    public sealed class GuidDryadLinqSerializer : DryadLinqSerializer<Guid>
     {
-        public override Guid Read(HpcBinaryReader reader)
+        public override Guid Read(DryadLinqBinaryReader reader)
         {
             return reader.ReadGuid();
         }
 
-        public override void Write(HpcBinaryWriter writer, Guid x)
+        public override void Write(DryadLinqBinaryWriter writer, Guid x)
         {
             writer.Write(x);
         }
     }
 
 
-    public sealed class SqlDateTimeHpcSerializer : HpcSerializer<SqlDateTime>
+    public sealed class SqlDateTimeDryadLinqSerializer : DryadLinqSerializer<SqlDateTime>
     {
-        public override SqlDateTime Read(HpcBinaryReader reader)
+        public override SqlDateTime Read(DryadLinqBinaryReader reader)
         {
             return reader.ReadSqlDateTime();
         }
 
-        public override void Write(HpcBinaryWriter writer, SqlDateTime x)
+        public override void Write(DryadLinqBinaryWriter writer, SqlDateTime x)
         {
             writer.Write(x);
         }

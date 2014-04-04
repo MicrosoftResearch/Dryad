@@ -70,6 +70,11 @@ DrMemoryBuffer* DataBlockItem::GetData()
     return m_buf.Ptr();
 }
 
+UInt64 DataBlockItem::GetItemSize() const
+{
+    return m_buf->GetAvailableSize();
+}
+
 DataBlockParser::DataBlockParser(DObjFactoryBase* factory) : 
     RChannelItemParser()
 {

@@ -33,7 +33,6 @@ class ConcreteRChannel
 {
 public:
     static bool IsNTFSFile(const char* uri);
-//JC    static bool IsXComputeFile(const char* uri);
 //JC    static bool IsDryadStream(const char* uri);
 //JC    static bool IsDryadPipe(const char* uri);
     static bool IsDscStream(const char* uri);

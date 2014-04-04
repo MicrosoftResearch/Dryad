@@ -24,6 +24,6 @@ limitations under the License.
 
 #include <DrMessagePump.h>
 
-#include <DrCluster.h>
+#include <DrResources.h>
 #include <DrProcess.h>
-#include <DrXCompute.h>
+#include <DrCluster.h>

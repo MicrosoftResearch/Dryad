@@ -24,7 +24,6 @@ limitations under the License.
 #include "channelreader.h"
 #include "concreterchannelhelpers.h"
 #include <dvertexcommand.h>
-#include <XCompute.h>
 
 #pragma warning(disable:4995)
 #include <map>
@@ -166,7 +165,7 @@ private:
     DryadOrderedSendLatch<ChannelBufferList>  m_latch;
 
 protected:
-    CRITSEC                                  m_baseDR;
+    CRITSEC                                  m_baseCS;
 
     friend class ReadHandler;
 };

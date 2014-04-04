@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -83,7 +80,7 @@ namespace Microsoft.Research.DryadLinq
     internal class Decomposition
     {
         internal static List<DecompositionInfo>
-            GetDecompositionInfoList(LambdaExpression resultSelectExpr, HpcLinqCodeGen codeGen)
+            GetDecompositionInfoList(LambdaExpression resultSelectExpr, DryadLinqCodeGen codeGen)
         {
             ParameterExpression keyParam;
             ParameterExpression groupParam;
@@ -114,7 +111,7 @@ namespace Microsoft.Research.DryadLinq
                                                      ParameterExpression groupParam,
                                                      MemberBinding mbinding,
                                                      List<DecompositionInfo> infoList,
-                                                     HpcLinqCodeGen codeGen)
+                                                     DryadLinqCodeGen codeGen)
         {
             if (mbinding is MemberAssignment)
             {
@@ -147,10 +144,10 @@ namespace Microsoft.Research.DryadLinq
                                                      ParameterExpression groupParam,
                                                      Expression expr,
                                                      List<DecompositionInfo> infoList,
-                                                     HpcLinqCodeGen codeGen)
+                                                     DryadLinqCodeGen codeGen)
         {
             IEnumerable<Expression> argList = null;
-            if (HpcLinqExpression.IsConstant(expr))
+            if (DryadLinqExpression.IsConstant(expr))
             {
                 return true;
             }
@@ -259,7 +256,7 @@ namespace Microsoft.Research.DryadLinq
 
         private static DecompositionInfo GetDecompositionInfo(ParameterExpression groupParam,
                                                               MethodCallExpression mcExpr,
-                                                              HpcLinqCodeGen codeGen)
+                                                              DryadLinqCodeGen codeGen)
         {
             if (mcExpr.Arguments.Count == 0 || mcExpr.Arguments[0] != groupParam)
             {
@@ -267,7 +264,7 @@ namespace Microsoft.Research.DryadLinq
             }
             for (int i = 1; i < mcExpr.Arguments.Count; i++)
             {
-                if (HpcLinqExpression.Contains(groupParam, mcExpr.Arguments[i]))
+                if (DryadLinqExpression.Contains(groupParam, mcExpr.Arguments[i]))
                 {
                     return null;
                 }
@@ -331,7 +328,7 @@ namespace Microsoft.Research.DryadLinq
                             }
                             else
                             {
-                                LambdaExpression predExpr = HpcLinqExpression.GetLambda(mcExpr.Arguments[1]);
+                                LambdaExpression predExpr = DryadLinqExpression.GetLambda(mcExpr.Arguments[1]);
                                 param2 = predExpr.Parameters[0];
                                 body = predExpr.Body;
                             }
@@ -347,7 +344,7 @@ namespace Microsoft.Research.DryadLinq
                         case "All":
                         {
                             ParameterExpression param1 = Expression.Parameter(typeof(bool), "a");
-                            LambdaExpression predExpr = HpcLinqExpression.GetLambda(mcExpr.Arguments[1]);
+                            LambdaExpression predExpr = DryadLinqExpression.GetLambda(mcExpr.Arguments[1]);
                             ParameterExpression param2 = predExpr.Parameters[0];
 
                             Expression body = predExpr.Body;
@@ -393,7 +390,7 @@ namespace Microsoft.Research.DryadLinq
                             }
                             else
                             {
-                                LambdaExpression selectExpr = HpcLinqExpression.GetLambda(mcExpr.Arguments[1]);
+                                LambdaExpression selectExpr = DryadLinqExpression.GetLambda(mcExpr.Arguments[1]);
                                 param2 = selectExpr.Parameters[0];
                                 arg2 = selectExpr.Body;
                             }
@@ -402,7 +399,7 @@ namespace Microsoft.Research.DryadLinq
                             if (arg2.Type.IsGenericType)
                             {
                                 param1 = Expression.Parameter(arg2.Type.GetGenericArguments()[0], "a");
-                                MethodInfo accumulateInfo = typeof(HpcLinqVertex).GetMethod(
+                                MethodInfo accumulateInfo = typeof(DryadLinqVertex).GetMethod(
                                                                      "SumAccumulate",
                                                                      new Type[] { param1.Type, arg2.Type });
                                 sbody = Expression.Constant(0, param1.Type);
@@ -438,7 +435,7 @@ namespace Microsoft.Research.DryadLinq
                             }
                             else
                             {
-                                LambdaExpression selectExpr = HpcLinqExpression.GetLambda(mcExpr.Arguments[1]);
+                                LambdaExpression selectExpr = DryadLinqExpression.GetLambda(mcExpr.Arguments[1]);
                                 param2 = selectExpr.Parameters[0];
                                 abody = selectExpr.Body;
                             }
@@ -449,12 +446,12 @@ namespace Microsoft.Research.DryadLinq
                             string methodName = (mInfo.Name == "Max") ? "MaxAccumulate" : "MinAccumulate";
                             if (mInfo.IsGenericMethod && (mInfo.GetParameters().Length == 1))
                             {
-                                accumulateInfo = typeof(HpcLinqVertex).GetMethod(methodName + "Generic");
+                                accumulateInfo = typeof(DryadLinqVertex).GetMethod(methodName + "Generic");
                                 accumulateInfo = accumulateInfo.MakeGenericMethod(sourceElemType);
                             }
                             else
                             {
-                                accumulateInfo = typeof(HpcLinqVertex).GetMethod(
+                                accumulateInfo = typeof(DryadLinqVertex).GetMethod(
                                                                methodName,
                                                                new Type[] { param1.Type, abody.Type });
                             }
@@ -474,23 +471,23 @@ namespace Microsoft.Research.DryadLinq
                             LambdaExpression seedExpr;
                             if (mcExpr.Arguments.Count == 2)
                             {
-                                accumulateExpr = HpcLinqExpression.GetLambda(mcExpr.Arguments[1]);
+                                accumulateExpr = DryadLinqExpression.GetLambda(mcExpr.Arguments[1]);
                                 seedExpr = Expression.Lambda(elemParam, elemParam);
                             }
                             else
                             {
-                                accumulateExpr = HpcLinqExpression.GetLambda(mcExpr.Arguments[2]);
+                                accumulateExpr = DryadLinqExpression.GetLambda(mcExpr.Arguments[2]);
                                 object seedVal = evaluator.Eval(mcExpr.Arguments[1]);
                                 Expression body = Expression.Constant(seedVal, seedVal.GetType());
                                 ParameterSubst subst = new ParameterSubst(accumulateExpr.Parameters[0], body);
                                 body = subst.Visit(accumulateExpr.Body);
                                 seedExpr = Expression.Lambda(body, accumulateExpr.Parameters[1]);
                             }
-                            if (!HpcLinqExpression.IsAssociative(accumulateExpr))
+                            if (!DryadLinqExpression.IsAssociative(accumulateExpr))
                             {
                                 return null;
                             }
-                            LambdaExpression recursiveAccumulateExpr = HpcLinqExpression.GetAssociativeCombiner(accumulateExpr);
+                            LambdaExpression recursiveAccumulateExpr = DryadLinqExpression.GetAssociativeCombiner(accumulateExpr);
                             return new DecompositionInfo(mcExpr, seedExpr, accumulateExpr, recursiveAccumulateExpr, null);
                         }
                         case "Average":
@@ -504,7 +501,7 @@ namespace Microsoft.Research.DryadLinq
                             }
                             else
                             {
-                                LambdaExpression selectExpr = HpcLinqExpression.GetLambda(mcExpr.Arguments[1]);
+                                LambdaExpression selectExpr = DryadLinqExpression.GetLambda(mcExpr.Arguments[1]);
                                 param2 = selectExpr.Parameters[0];
                                 abody = selectExpr.Body;
                             }
@@ -534,7 +531,7 @@ namespace Microsoft.Research.DryadLinq
 
                             Type sumAndCountType = typeof(AggregateValue<>).MakeGenericType(aggValueType);
                             ParameterExpression param1 = Expression.Parameter(sumAndCountType, "a");
-                            MethodInfo accumulateInfo = typeof(HpcLinqVertex).GetMethod(
+                            MethodInfo accumulateInfo = typeof(DryadLinqVertex).GetMethod(
                                                                "AverageAccumulate",
                                                                new Type[] { sumAndCountType, abody.Type });
 
@@ -616,7 +613,7 @@ namespace Microsoft.Research.DryadLinq
                 implementedInterface.GetGenericArguments().Length != 3)
             {
                 throw new DryadLinqException("Decomposition class " + decomposerType.FullName +
-                                           "must implement IDecomposable<,,>");
+                                             "must implement IDecomposable<,,>");
             }
 
             // The second type of the implemented interface definition is the accumulatorType.

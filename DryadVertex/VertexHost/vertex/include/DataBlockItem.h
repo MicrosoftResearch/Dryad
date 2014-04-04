@@ -37,6 +37,8 @@ public:
     void * GetDataAddress();
     DrMemoryBuffer * GetData();
 
+    virtual UInt64 GetItemSize() const;
+
 private:
     DrRef<DrMemoryBuffer> m_buf;  
 };

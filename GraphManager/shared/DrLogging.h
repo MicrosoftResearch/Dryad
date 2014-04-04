@@ -41,10 +41,26 @@ DRPUBLICENUM(DrLogType)
     DrLog_Debug = 31
 };
 
+#ifdef _MANAGED
+public enum class DrLogTypeManaged
+{
+    Off = DrLog_Off,
+    Assert = DrLog_Assert,
+    Error = DrLog_Error,
+    Warning = DrLog_Warning,
+    Info = DrLog_Info,
+    Debug = DrLog_Debug
+};
+#endif
+
 DRCLASS(DrLogging)
 {
 public:
-    static void Initialize();
+#ifdef _MANAGED
+    static void Initialize(System::String^ logPath, bool redirectStdStreams);
+#else
+    static void Initialize(DrString logPath, bool redirectStdStreams);
+#endif
     static void ShutDown(UINT code);
     static void ShutDown(int code);
     static void SetLoggingLevel(DrLogType type);
@@ -53,6 +69,23 @@ public:
     static bool DebuggerIsPresent();
 
     static bool WriteMiniDump();
+
+#ifdef _MANAGED
+    static void SetLoggingLevel(DrLogTypeManaged type);
+
+    static void LogInformation(System::String^ message,
+                               System::String^ file,
+                               System::String^ function,
+                               int line);
+    static void LogWarning(System::String^ message,
+                           System::String^ file,
+                           System::String^ function,
+                           int line);
+    static void LogCritical(System::String^ message,
+                            System::String^ file,
+                            System::String^ function,
+                            int line);
+#endif
 
 private:
     static void MiniDumpThread();

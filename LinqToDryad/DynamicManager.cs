@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -54,13 +51,13 @@ namespace Microsoft.Research.DryadLinq
         internal static DynamicManager Broadcast = new DynamicManager(DynamicManagerType.Broadcast);
 
         private DynamicManagerType m_managerType;
-        internal protected List<DryadQueryNode> m_vertexNodes;
+        internal protected List<DLinqQueryNode> m_vertexNodes;
         private string[] m_vertexNames;
 
         private DynamicManager(DynamicManagerType type)
         {
             this.m_managerType = type;
-            this.m_vertexNodes = new List<DryadQueryNode>();
+            this.m_vertexNodes = new List<DLinqQueryNode>();
             this.m_vertexNames = null;
             this.AggregationLevels = 0;
             // default aggregation has 1 level
@@ -75,7 +72,7 @@ namespace Microsoft.Research.DryadLinq
         /// </summary>
         /// <param name="type">Type of dynamic manager to create.</param>
         /// <param name="nodes">Nodes that the manager depends on.</param>
-        internal DynamicManager(DynamicManagerType type, List<DryadQueryNode> nodes)
+        internal DynamicManager(DynamicManagerType type, List<DLinqQueryNode> nodes)
             : this(type)
         {
             this.m_vertexNodes.AddRange(nodes);
@@ -86,7 +83,7 @@ namespace Microsoft.Research.DryadLinq
         /// </summary>
         /// <param name="type">Type of manager to create.</param>
         /// <param name="node">Node that the manager depends on.</param>
-        internal DynamicManager(DynamicManagerType type, DryadQueryNode node)
+        internal DynamicManager(DynamicManagerType type, DLinqQueryNode node)
             : this(type)
         {
             this.m_vertexNodes.Add(node);
@@ -107,12 +104,12 @@ namespace Microsoft.Research.DryadLinq
         /// </summary>
         internal int AggregationLevels { get; set; }
 
-        internal DryadQueryNode GetVertexNode(int index)
+        internal DLinqQueryNode GetVertexNode(int index)
         {
             return this.m_vertexNodes[index];
         }
         
-        internal void InsertVertexNode(int index, DryadQueryNode node)
+        internal void InsertVertexNode(int index, DLinqQueryNode node)
         {
             if (index == -1)
             {
@@ -168,11 +165,11 @@ namespace Microsoft.Research.DryadLinq
     {
         private double m_sampleRate;
 
-        internal DynamicRangeDistributor(DryadQueryNode node)
+        internal DynamicRangeDistributor(DLinqQueryNode node)
             : base(DynamicManagerType.RangeDistributor, node)
         {
             //@@TODO[P2]: This sample rate used here should really be its own constant.
-            this.m_sampleRate = HpcLinqSampler.SAMPLE_RATE;
+            this.m_sampleRate = DryadLinqSampler.SAMPLE_RATE;
         }
 
         internal override void CreateVertexCode()
@@ -191,7 +188,7 @@ namespace Microsoft.Research.DryadLinq
             managerElem.AppendChild(elem);
 
             elem = queryDoc.CreateElement("VertexId");
-            DryadQueryNode node = this.m_vertexNodes[0];
+            DLinqQueryNode node = this.m_vertexNodes[0];
             if (node.SuperNode != null)
             {
                 node = node.SuperNode;

@@ -40,8 +40,6 @@ DrVertexTemplateRef DrDefaultParameters::MakeVertexTemplate()
 {
     DrVertexTemplateRef t = DrNew DrVertexTemplate();
 
-    t->SetStatusBlockTime(DrTimeInterval_Second * 10);
-
     return t;
 }
 
@@ -49,6 +47,7 @@ DrGraphParametersRef DrDefaultParameters::Make(DrNativeString exeName, DrNativeS
 {
     DrGraphParametersRef p = DrNew DrGraphParameters();
 
+    p->m_propertyUpdateInterval = DrTimeInterval_Second;
     p->m_processAbortTimeOut = DrTimeInterval_Second * 30;
     p->m_maxActiveFailureCount = 6;
 

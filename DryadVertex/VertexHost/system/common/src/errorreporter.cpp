@@ -23,6 +23,31 @@ limitations under the License.
 
 #pragma unmanaged
 
+DrError DVErrorReporter::GetFormattedErrorFromMetaData(DryadMetaData* metaData, DrStr* pFormattedOutput)
+{
+    DrError errorCode = DrError_OK;
+    if (metaData == NULL)
+    {
+        return errorCode;
+    }
+
+    metaData->GetErrorCode(&errorCode);
+    DrStr128 errorString = metaData->GetErrorString();
+
+    if (errorCode == DrError_OK && errorString == NULL)
+    {
+        return errorCode;
+    }
+
+    pFormattedOutput->SetF("ErrorCode: %08x\nErrorCodeText: %s", errorCode, DRERRORSTRING(errorCode));
+    if (errorString.GetString() != NULL)
+    {
+        pFormattedOutput->AppendF("\nErrorDescription: %s", errorString.GetString());
+    }
+
+    return errorCode;
+}
+
 DVErrorReporter::DVErrorReporter()
 {
     m_errorCode = DrError_OK;
@@ -53,7 +78,7 @@ void DVErrorReporter::InterruptProcessing()
 
 void DVErrorReporter::ReportError(DrError errorStatus)
 {
-    m_errorCode = errorStatus;
+    ReportError(errorStatus, (const char*)NULL);
 }
 
 void DVErrorReporter::ReportError(const char* errorFormat, ...)
@@ -81,8 +106,15 @@ void DVErrorReporter::ReportFormattedErrorInternal(DrError errorStatus,
                                                    va_list args)
 {
     DryadMetaData::Create(&m_metaData);
-    DrStr128 errorString;
-    errorString.VSetF(errorFormat, args);
-    m_metaData->AddErrorWithDescription(errorStatus, errorString);
+    if (errorFormat == NULL)
+    {
+        m_metaData->AddError(errorStatus);
+    }
+    else
+    {
+        DrStr128 errorString;
+        errorString.VSetF(errorFormat, args);
+        m_metaData->AddErrorWithDescription(errorStatus, errorString);
+    }
     m_errorCode = errorStatus;
 }

@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -346,23 +343,6 @@ namespace Microsoft.Research.DryadLinq
             }
         }
 
-        private static bool IsDynamicAssembly(Assembly asm)
-        {
-            if (asm is AssemblyBuilder) return true;
-
-            try
-            {
-                if (asm.Location != null) return false;
-            }
-            catch
-            {
-                // if we get an exception from asm.Location it's a dynamic assembly.
-                return true;
-            }
-
-            return false;
-        }
-
         private static HashSet<Assembly> s_allReferencedAssemblies = null;
 
         /// <summary>
@@ -380,7 +360,7 @@ namespace Microsoft.Research.DryadLinq
                 Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
                 foreach (Assembly asm in assemblies)
                 {
-                    if (!referencedAssemblies.Contains(asm) && !IsDynamicAssembly(asm))
+                    if (!referencedAssemblies.Contains(asm) && !asm.IsDynamic)
                     {
                         toscan.Enqueue(asm);
                         referencedAssemblies.Add(asm);
@@ -998,7 +978,7 @@ namespace Microsoft.Research.DryadLinq
             Type declType = expression.Method.DeclaringType;
             return (declType == typeof(System.Linq.Enumerable) ||
                     declType == typeof(System.Linq.Queryable) ||
-                    declType == typeof(Microsoft.Research.DryadLinq.HpcLinqQueryable));
+                    declType == typeof(Microsoft.Research.DryadLinq.DryadLinqQueryable));
         }
 
         internal static FieldInfo[] GetAllFields(Type type)
@@ -1326,6 +1306,25 @@ namespace Microsoft.Research.DryadLinq
                 }
             }
             return type;
+        }
+
+        public static bool IsBlittable(Type type)
+        {
+            if (type.IsPrimitive) return true;
+            if (!type.IsValueType || !type.IsLayoutSequential || type.IsGenericType)
+            {
+                return false;
+            }
+
+            FieldInfo[] finfos = TypeSystem.GetAllFields(type);
+            foreach (FieldInfo finfo in finfos)
+            {
+                if (!IsBlittable(finfo.FieldType))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         // A hack to detect anonymous types

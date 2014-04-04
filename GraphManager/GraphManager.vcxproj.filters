@@ -84,9 +84,6 @@
     <ClInclude Include="vertex\DrClique.h">
       <Filter>Header Files\vertex</Filter>
     </ClInclude>
-    <ClInclude Include="kernel\DrCluster.h">
-      <Filter>Header Files\kernel</Filter>
-    </ClInclude>
     <ClInclude Include="vertex\DrCohort.h">
       <Filter>Header Files\vertex</Filter>
     </ClInclude>
@@ -168,9 +165,6 @@
     <ClInclude Include="stagemanager\DrPipelineSplitManager.h">
       <Filter>Header Files\stagemanager</Filter>
     </ClInclude>
-    <ClInclude Include="kernel\DrXCompute.h">
-      <Filter>Header Files\kernel</Filter>
-    </ClInclude>
     <ClInclude Include="vertex\DrVertexRecord.h">
       <Filter>Header Files\vertex</Filter>
     </ClInclude>
@@ -225,13 +219,22 @@
     <ClInclude Include="shared\DrTypes.h">
       <Filter>Header Files\shared</Filter>
     </ClInclude>
-    <ClInclude Include="kernel\DrXComputeYarn.h">
-      <Filter>Header Files\kernel</Filter>
-    </ClInclude>
-    <ClInclude Include="kernel\DrYarnBridge.h">
-      <Filter>Header Files\kernel</Filter>
-    </ClInclude>
     <ClInclude Include="filesystem\DrHdfsClient.h">
+      <Filter>Header Files\filesystem</Filter>
+    </ClInclude>
+    <ClInclude Include="kernel\DrResources.h">
+      <Filter>Header Files\kernel</Filter>
+    </ClInclude>
+    <ClInclude Include="kernel\DrCluster.h">
+      <Filter>Header Files\kernel</Filter>
+    </ClInclude>
+    <ClInclude Include="kernel\DrClusterInternal.h">
+      <Filter>Header Files\kernel</Filter>
+    </ClInclude>
+    <ClInclude Include="reporting\DrCalypsoReporting.h">
+      <Filter>Header Files\reporting</Filter>
+    </ClInclude>
+    <ClInclude Include="filesystem\DrAzureBlobClient.h">
       <Filter>Header Files\filesystem</Filter>
     </ClInclude>
   </ItemGroup>
@@ -253,9 +256,6 @@
     </ClCompile>
     <ClCompile Include="vertex\DrClique.cpp">
       <Filter>Source Files\vertex</Filter>
-    </ClCompile>
-    <ClCompile Include="kernel\DrCluster.cpp">
-      <Filter>Source Files\kernel</Filter>
     </ClCompile>
     <ClCompile Include="stagemanager\DrDefaultManager.cpp">
       <Filter>Source Files\stagemanager</Filter>
@@ -332,17 +332,23 @@
     <ClCompile Include="vertex\DrVertexRecord.cpp">
       <Filter>Source Files\vertex</Filter>
     </ClCompile>
-    <ClCompile Include="kernel\DrXComputeYarn.cpp">
-      <Filter>Source Files\kernel</Filter>
-    </ClCompile>
-    <ClCompile Include="kernel\DrYarnBridge.cpp">
-      <Filter>Source Files\kernel</Filter>
-    </ClCompile>
-    <ClCompile Include="kernel\DrYarnNetServer.cpp">
-      <Filter>Source Files\kernel</Filter>
-    </ClCompile>
     <ClCompile Include="filesystem\DrHdfsClient.cpp">
       <Filter>Source Files\filesystem</Filter>
     </ClCompile>
+    <ClCompile Include="kernel\DrResources.cpp">
+      <Filter>Source Files\kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="kernel\DrCluster.cpp">
+      <Filter>Source Files\kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="reporting\DrCalypsoReporting.cpp">
+      <Filter>Source Files\reporting</Filter>
+    </ClCompile>
+    <ClCompile Include="filesystem\DrAzureBlobClient.cpp">
+      <Filter>Source Files\filesystem</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

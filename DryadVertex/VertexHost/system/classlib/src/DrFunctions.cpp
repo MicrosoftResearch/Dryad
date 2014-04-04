@@ -444,9 +444,9 @@ DrError DrStringToIntegerSize(PCSTR psz, Int64* result)
 
 
 //
-// Close xcompute session after completing outstanding requests
+// Close session after completing outstanding requests
 //
-DrError DryadShutdownXCompute();
+DrError DryadShutdown();
 
 //
 // Same as ExitProcess, but flushes logging and stdout/stderr first...
@@ -454,16 +454,16 @@ DrError DryadShutdownXCompute();
 void DrExitProcess(UInt32 exitCode)
 { 
     //
-    // Close the xcompute connection
+    // Close the cluster connection
     //
-    DrError e = DryadShutdownXCompute();
+    DrError e = DryadShutdown();
     if (e == DrError_OK)
     {
-        DrLogI("Completed uninitialise xcompute");
+        DrLogI("Completed uninitialize dryad");
     }
     else
     {
-        DrLogE("Couldn't uninitialise xcompute");
+        DrLogE("Couldn't uninitialize dryad");
     }
     
     //

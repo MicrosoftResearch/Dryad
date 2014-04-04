@@ -23,10 +23,6 @@ limitations under the License.
 #include <DrStageHeaders.h>
 
 #include <DrPartitionFile.h>
-
-
-#ifdef _MANAGED
-//#include <DrDscClient.h>
-#endif
-
 #include <DrHdfsClient.h>
+#include <DrAzureBlobClient.h>
+

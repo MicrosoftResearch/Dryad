@@ -1,5 +1,6 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Microsoft.Research.Peloponnese.0.7.1-beta\build\Microsoft.Research.Peloponnese.props" Condition="Exists('..\packages\Microsoft.Research.Peloponnese.0.7.1-beta\build\Microsoft.Research.Peloponnese.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -10,7 +11,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.Research.DryadLinq</RootNamespace>
     <AssemblyName>Microsoft.Research.DryadLinq</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>//depot/v3sp1/private/disc/LinqToDryad</SccProjectName>
     <SccLocalPath>.</SccLocalPath>
@@ -18,35 +19,91 @@
     </SccAuxPath>
     <SccProvider>MSSCCI:Source Depot</SccProvider>
     <TargetFrameworkProfile />
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
     <OutputPath>..\bin\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
     <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>..\x64\Release\</OutputPath>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>..\bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
     <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Data.Edm, Version=5.6.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.Data.Edm.5.6.1\lib\net40\Microsoft.Data.Edm.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Data.OData, Version=5.6.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.Data.OData.5.6.1\lib\net40\Microsoft.Data.OData.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Data.Services.Client, Version=5.6.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.Data.Services.Client.5.6.1\lib\net40\Microsoft.Data.Services.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Hadoop.Client, Version=1.1.0.7, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.Hadoop.Client.1.1.0.7\lib\net40\Microsoft.Hadoop.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Research.Peloponnese.HadoopBridge, Version=0.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.Research.Peloponnese.0.7.1-beta\lib\net45\Microsoft.Research.Peloponnese.HadoopBridge.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Research.Peloponnese.Utils, Version=0.7.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.Research.Peloponnese.0.7.1-beta\lib\net45\Microsoft.Research.Peloponnese.Utils.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Configuration, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.WindowsAzure.ConfigurationManager.2.0.3\lib\net40\Microsoft.WindowsAzure.Configuration.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Management.HDInsight, Version=1.1.0.7, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.WindowsAzure.Management.HDInsight.1.1.0.7\lib\net40\Microsoft.WindowsAzure.Management.HDInsight.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Management.HDInsight.Framework, Version=1.1.0.7, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.Hadoop.Client.1.1.0.7\lib\net40\Microsoft.WindowsAzure.Management.HDInsight.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Management.HDInsight.Framework.Core, Version=1.1.0.7, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.Hadoop.Client.1.1.0.7\lib\net40\Microsoft.WindowsAzure.Management.HDInsight.Framework.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Storage, Version=3.1.0.1, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\WindowsAzure.Storage.3.1.0.1\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Newtonsoft.Json.6.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Linq" />
+    <Reference Include="System.Data.Services.Client" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Spatial, Version=5.6.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\System.Spatial.5.6.1\lib\net40\System.Spatial.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
@@ -57,33 +114,45 @@
     <Compile Include="BitVector.cs" />
     <Compile Include="CodeGenHelper.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="DryadLinqBinaryReader.cs" />
+    <Compile Include="DryadLinqBinaryWriter.cs" />
+    <Compile Include="DryadLinqBlockStream.cs" />
+    <Compile Include="DryadLinqCodeGen.cs" />
+    <Compile Include="DryadLinqContext.cs" />
     <Compile Include="DryadLinqDecomposition.cs" />
+    <Compile Include="DryadLinqEnumerable.cs" />
     <Compile Include="DryadLinqExtension.cs" />
+    <Compile Include="DryadLinqFactory.cs" />
     <Compile Include="DryadLinqHelper.cs" />
+    <Compile Include="DryadLinqJobExecutor.cs" />
+    <Compile Include="DryadLinqQueryable.cs" />
+    <Compile Include="DryadLinqQueryDoc.cs" />
+    <Compile Include="DryadLinqQueryExplain.cs" />
+    <Compile Include="DryadLinqQueryGen.cs" />
+    <Compile Include="DryadLinqQueryNode.cs" />
+    <Compile Include="DryadLinqQueryRuntime.cs" />
+    <Compile Include="DryadLinqRecordReader.cs" />
+    <Compile Include="DryadLinqRecordWriter.cs" />
+    <Compile Include="DryadLinqStringDictionary.cs" />
+    <Compile Include="DryadLinqStringList.cs" />
+    <Compile Include="DryadLinqTextReader.cs" />
+    <Compile Include="DryadLinqTextWriter.cs" />
+    <Compile Include="DryadLinqVertexReader.cs" />
+    <Compile Include="DryadLinqVertexWriter.cs" />
     <Compile Include="DscStubs.cs" />
-    <Compile Include="HpcLinqCache.cs" />
-    <Compile Include="HpcLinqStringList.cs" />
     <Compile Include="ForkTuple.cs" />
-    <Compile Include="HpcLinqStringDictionary.cs" />
     <Compile Include="IAssociative.cs" />
     <Compile Include="IDecomposable.cs" />
+    <Compile Include="LocalJobSubmission.cs" />
     <Compile Include="MultiEnumerable.cs" />
     <Compile Include="DataPath.cs" />
     <Compile Include="DataProvider.cs" />
     <Compile Include="DataSetInfo.cs" />
-    <Compile Include="DryadBinaryReader.cs" />
-    <Compile Include="DryadBinaryWriter.cs" />
-    <Compile Include="DryadCodeGen.cs" />
-    <Compile Include="DryadFactory.cs" />
     <Compile Include="DryadLinqCollection.cs" />
     <Compile Include="DryadLinqException.cs" />
     <Compile Include="DryadLinqExpression.cs" />
     <Compile Include="DryadLinqFaultCodes.cs" />
-    <Compile Include="DryadLinqFileStream.cs" />
     <Compile Include="DryadLinqGlobals.cs" />
-    <Compile Include="DryadLinqIEnumerable.cs" />
-    <Compile Include="DryadLinqIQueryable.cs" />
-    <Compile Include="DryadLinqJobSubmission.cs" />
     <Compile Include="DryadLinqLog.cs" />
     <Compile Include="DryadLinqMetaData.cs" />
     <Compile Include="DryadLinqNative.cs" />
@@ -95,32 +164,18 @@
     <Compile Include="DryadLinqUtil.cs" />
     <Compile Include="DryadLinqVertex.cs" />
     <Compile Include="DryadLinqVertexParams.cs" />
-    <Compile Include="DryadQueryDoc.cs" />
-    <Compile Include="DryadQueryExplain.cs" />
-    <Compile Include="DryadQueryGen.cs" />
-    <Compile Include="DryadQueryNode.cs" />
-    <Compile Include="DryadRecordReader.cs" />
-    <Compile Include="DryadRecordWriter.cs" />
-    <Compile Include="DryadRuntime.cs" />
-    <Compile Include="DryadTextReader.cs" />
-    <Compile Include="DryadTextWriter.cs" />
-    <Compile Include="DryadVertexEnv.cs" />
-    <Compile Include="DryadVertexReader.cs" />
-    <Compile Include="DryadVertexWriter.cs" />
     <Compile Include="DscClientHelper.cs" />
     <Compile Include="DynamicManager.cs" />
     <Compile Include="ExpressionMatcher.cs" />
     <Compile Include="ExpressionSimplifier.cs" />
     <Compile Include="ExpressionVisitor.cs" />
     <Compile Include="Hash64.cs" />
-    <Compile Include="HpcJobSubmission.cs" />
-    <Compile Include="HpcLinqConfiguration.cs" />
-    <Compile Include="HpcLinqContext.cs" />
     <Compile Include="IDryadLinqJobSubmission.cs" />
     <Compile Include="LineRecord.cs" />
     <Compile Include="MultiBlockStream.cs" />
     <Compile Include="MultiQueryable.cs" />
     <Compile Include="NativeBlockStream.cs" />
+    <Compile Include="PeloponneseJobSubmission.cs" />
     <Compile Include="QueryTraceLevel.cs" />
     <Compile Include="SimpleRewriter.cs" />
     <Compile Include="SR.Designer.cs">
@@ -130,7 +185,7 @@
     </Compile>
     <Compile Include="TypeSystem.cs" />
     <Compile Include="VertexCodeGen.cs" />
-    <Compile Include="WebHdfsClient.cs" />
+    <Compile Include="VertexEnv.cs" />
     <Compile Include="YarnJobSubmission.cs" />
     <Compile Include="YarnScheduler.cs" />
   </ItemGroup>
@@ -145,12 +200,18 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Hdfs\HdfsBridgeManaged\HdfsBridgeManaged.vcxproj">
-      <Project>{C0F4C1E3-1F9E-4C55-BD6A-0241D35425F5}</Project>
-      <Name>HdfsBridgeManaged</Name>
-    </ProjectReference>
+    <None Include="app.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Microsoft.Research.Peloponnese.0.7.1-beta\build\Microsoft.Research.Peloponnese.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Research.Peloponnese.0.7.1-beta\build\Microsoft.Research.Peloponnese.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Research.Peloponnese.0.7.1-beta\build\Microsoft.Research.Peloponnese.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Research.Peloponnese.0.7.1-beta\build\Microsoft.Research.Peloponnese.targets'))" />
+  </Target>
+  <Import Project="..\packages\Microsoft.Research.Peloponnese.0.7.1-beta\build\Microsoft.Research.Peloponnese.targets" Condition="Exists('..\packages\Microsoft.Research.Peloponnese.0.7.1-beta\build\Microsoft.Research.Peloponnese.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

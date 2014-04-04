@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -35,68 +32,62 @@ using System.Text;
 
 namespace Microsoft.Research.DryadLinq
 {
-    //@@TODO[P1]: read/write meta-data to the DSC stream attribute.
-    //       use the query-plan to pass the meta-data to the JM which will set the attribute on each output stream.
-    internal class DryadLinqMetaData
+    public class DryadLinqMetaData
     {
         const int FLAG_ALLOW_NULL_RECORDS = 0x1;
         const int FLAG_ALLOW_NULL_FIELDS = 0x2;
         const int FLAG_ALLOW_NULL_ARRAY_ELEMENTS = 0x4;
         const int FLAG_ALLOW_AUTO_TYPE_INFERENCE = 0x8;
 
-        private HpcLinqContext m_context;
-        private string m_dscStreamName;
+        private DryadLinqContext m_context;
+        private Uri m_dataSetUri;
         private Type m_elemType;
-        private DscCompressionScheme m_compressionScheme;
+        private CompressionScheme m_compressionScheme;
         //private Version m_version;
         //private int m_serializationFlags;
         //private UInt64 m_fp;
         //private DataSetInfo m_dataSetInfo;
         
-        internal const string RECORD_TYPE_NAME = "__LinqToHPC__ 364C7B59-08C0-44ED-B8A2-7E224ED5B7ED";
-        //internal const string COMPRESSION_SCHEME_NAME = "__LinqToHpc__8D22DD19-FA86-45DB-A0D7-C3C3A1440C90";
-        //NOTE: although Compression is stored as a DSC attribute, it can only be retrieved via dscFileSet.CompressionScheme
-        //      fs.GetMetaData("name") will only return the byte[] payload, for which there is none.
+        internal const string RECORD_TYPE_NAME = "__DLINQ__364C7B59-08C0-44ED-B8A2-7E224ED5B7ED";
+        //NOTE: While Compression is a DSC attribute, it can only be retrieved via dscFileSet.CompressionScheme
+        //      fs.GetMetaData("name") will only return the byte[] payload.
         //      Also, fs.CompressionScheme can only be set via dsc.CreateFileSet(.., scheme)
+
         private DryadLinqMetaData()
         {
         }
 
-        internal static DryadLinqMetaData ForLocalDebug(HpcLinqContext context,
-                                                        Type recordType,
-                                                        string dscStreamName,
-                                                        DscCompressionScheme compressionScheme)
+        internal DryadLinqMetaData(DryadLinqContext context,
+                                   Type recordType,
+                                   Uri dataSetUri,
+                                   CompressionScheme compressionScheme)
         {
-            DryadLinqMetaData metaData = new DryadLinqMetaData();
-            
-            metaData.m_context = context;
-            metaData.m_dscStreamName = dscStreamName;
-            metaData.m_elemType = recordType;
-            metaData.m_compressionScheme = compressionScheme;
-            //metaData.m_version = context.ClientVersion;
-            //metaData.InitializeFlags();
+            this.m_context = context;
+            this.m_dataSetUri = dataSetUri;
+            this.m_elemType = recordType;
+            this.m_compressionScheme = compressionScheme;
+            //this.m_version = context.ClientVersion();
+            //this.InitializeFlags();
 
-            //metaData.m_fp = 0UL;
-            //metaData.m_dataSetInfo = node.OutputDataSetInfo;
-
-            return metaData;
+            //this.m_fp = 0UL;
+            //this.m_dataSetInfo = node.OutputDataSetInfo;
         }
 
         // create DryadLinqMetaData from a query OutputNode
-        internal static DryadLinqMetaData FromOutputNode(HpcLinqContext context, DryadOutputNode node)
+        internal static DryadLinqMetaData Get(DryadLinqContext context, DLinqOutputNode node)
         {
             DryadLinqMetaData metaData = new DryadLinqMetaData();
-            
-            if (! (DataPath.IsDsc(node.MetaDataUri) || DataPath.IsHdfs(node.MetaDataUri)) )
+
+            if (!DataPath.IsValidDataPath(node.OutputUri))
             {
                 throw new InvalidOperationException();
             }
 
             metaData.m_context = context;
-            metaData.m_dscStreamName = node.MetaDataUri;
+            metaData.m_dataSetUri = node.OutputUri;
             metaData.m_elemType = node.OutputTypes[0];
             metaData.m_compressionScheme = node.OutputCompressionScheme;
-            //metaData.m_version = context.ClientVersion;
+            //metaData.m_version = context.ClientVersion();
             //metaData.InitializeFlags();
             
             //metaData.m_fp = 0UL;
@@ -105,41 +96,13 @@ namespace Microsoft.Research.DryadLinq
             return metaData;
         }
 
-        // Load a DryadLinqMetaData from an existing dsc stream.
-        internal static DryadLinqMetaData FromDscStream(HpcLinqContext context, string dscStreamName)
+        internal static DryadLinqMetaData Get(DryadLinqContext context, Uri dataSetUri)
         {
-            DryadLinqMetaData metaData;
-            try
-            {
-                DscFileSet fs = context.DscService.GetFileSet(dscStreamName);
-                metaData = new DryadLinqMetaData();
-                metaData.m_context = context;
-                metaData.m_dscStreamName = dscStreamName;
-                //metaData.m_fp = 0L;
-                //metaData.m_dataSetInfo = null;
-
-                byte[] metaDataBytes; 
-                
-                //record-type
-                metaDataBytes = fs.GetMetadata(DryadLinqMetaData.RECORD_TYPE_NAME);
-                if (metaDataBytes != null)
-                {
-                    string recordTypeString = Encoding.UTF8.GetString(metaDataBytes);
-                    metaData.m_elemType = Type.GetType(recordTypeString);
-                }
-
-                //Compression-scheme
-                metaData.m_compressionScheme = fs.CompressionScheme;
-            }
-            catch (Exception e)
-            {
-                throw new DryadLinqException(HpcLinqErrorCode.ErrorReadingMetadata,
-                                           String.Format(SR.ErrorReadingMetadata), e);
-            }
-
-            return metaData;
+            string scheme = DataPath.GetScheme(dataSetUri);
+            DataProvider dataProvider = DataProvider.GetDataProvider(scheme);
+            return dataProvider.GetMetaData(context, dataSetUri);
         }
-        
+
         //private void InitializeFlags()
         //{
         //    this.m_serializationFlags = 0;
@@ -162,9 +125,9 @@ namespace Microsoft.Research.DryadLinq
         //    }
         //}
 
-        internal string MetaDataUri
+        internal Uri DataSetUri
         {
-            get { return this.m_dscStreamName; }
+            get { return this.m_dataSetUri; }
         }
 
         internal Type ElemType
@@ -172,15 +135,15 @@ namespace Microsoft.Research.DryadLinq
             get { return this.m_elemType; }
         }
 
+        internal CompressionScheme CompressionScheme
+        {
+            get { return this.m_compressionScheme; }
+        }
+
         //internal Version Version
         //{
         //    get { return this.m_version; }
         //}
-
-        internal DscCompressionScheme CompressionScheme
-        {
-            get { return this.m_compressionScheme; }
-        }
 
         //internal bool AllowNullRecords
         //{

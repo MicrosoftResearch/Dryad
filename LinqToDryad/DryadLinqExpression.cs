@@ -18,9 +18,6 @@ limitations under the License.
 
 */
 
-//
-// � Microsoft Corporation.  All rights reserved.
-//
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -39,7 +36,7 @@ using Microsoft.Research.DryadLinq.Internal;
 namespace Microsoft.Research.DryadLinq
 {
     // Various methods to support Expression manipulation.
-    internal static class HpcLinqExpression
+    internal static class DryadLinqExpression
     {
         #region TOCSHARPSTRING
         public static ParameterExpression GetParameterMemberAccess(Expression expr)
@@ -71,8 +68,8 @@ namespace Microsoft.Research.DryadLinq
                 }
                 else
                 {
-                    throw new DryadLinqException(HpcLinqErrorCode.Internal,
-                                               String.Format(SR.TypeDoesNotContainMember, expr.Type, name));
+                    throw new DryadLinqException(DryadLinqErrorCode.Internal,
+                                                 String.Format(SR.TypeDoesNotContainMember, expr.Type, name));
                 }
             }
             return resultExpr;
@@ -201,9 +198,8 @@ namespace Microsoft.Research.DryadLinq
                 case "op_LogicalNot":
                     return ExpressionType.Not;
                 default:
-                    // @TODO: does this have to appear in HpcLinqErrorCode? Consider a generic "Internal error" fault code, with English only messages.
-                    throw new DryadLinqException(HpcLinqErrorCode.UnrecognizedOperatorName,
-                                               String.Format(SR.UnrecognizedOperatorName , opName));
+                    throw new DryadLinqException(DryadLinqErrorCode.UnrecognizedOperatorName,
+                                                 String.Format(SR.UnrecognizedOperatorName , opName));
             }
         }
 
@@ -247,13 +243,13 @@ namespace Microsoft.Research.DryadLinq
                     ParameterInfo[] pInfos = cInfo.GetParameters();
                     if (cInfo == null || pInfos.Length != 2)
                     {
-                        throw new DryadLinqException(HpcLinqErrorCode.AssociativeMethodHasWrongForm,
-                                                   string.Format(SR.AssociativeMethodHasWrongForm, cInfo.Name));
+                        throw new DryadLinqException(DryadLinqErrorCode.AssociativeMethodHasWrongForm,
+                                                     string.Format(SR.AssociativeMethodHasWrongForm, cInfo.Name));
                     }
                     if (funcTypeArgs[0] != pInfos[0].ParameterType || pInfos[0].ParameterType != pInfos[1].ParameterType)
                     {
-                        throw new DryadLinqException(HpcLinqErrorCode.AssociativeMethodHasWrongForm,
-                                                   string.Format(SR.AssociativeMethodHasWrongForm, cInfo.Name));
+                        throw new DryadLinqException(DryadLinqErrorCode.AssociativeMethodHasWrongForm,
+                                                     string.Format(SR.AssociativeMethodHasWrongForm, cInfo.Name));
                     }
                 }
                 else
@@ -263,8 +259,9 @@ namespace Microsoft.Research.DryadLinq
                     {
                         if (associativeType.GetGenericArguments().Length != 1)
                         {
-                            throw new DryadLinqException(HpcLinqErrorCode.AssociativeTypeDoesNotImplementInterface,
-                                                       String.Format(SR.AssociativeTypeDoesNotImplementInterface, associativeType.FullName));
+                            throw new DryadLinqException(DryadLinqErrorCode.AssociativeTypeDoesNotImplementInterface,
+                                                         String.Format(SR.AssociativeTypeDoesNotImplementInterface,
+                                                                       associativeType.FullName));
                         }
                         if (associativeType.GetGenericArguments()[0].IsGenericParameter)
                         {
@@ -280,26 +277,30 @@ namespace Microsoft.Research.DryadLinq
                         {
                             if (implementedInterface != null)
                             {
-                                throw new DryadLinqException(HpcLinqErrorCode.AssociativeTypeImplementsTooManyInterfaces,
-                                                           String.Format(SR.AssociativeTypeImplementsTooManyInterfaces, associativeType.FullName));
+                                throw new DryadLinqException(DryadLinqErrorCode.AssociativeTypeImplementsTooManyInterfaces,
+                                                             String.Format(SR.AssociativeTypeImplementsTooManyInterfaces,
+                                                                           associativeType.FullName));
                             }
                             implementedInterface = inter;
                         }
                     }
                     if (implementedInterface == null)
                     {
-                        throw new DryadLinqException(HpcLinqErrorCode.AssociativeTypeDoesNotImplementInterface,
-                                                   String.Format(SR.AssociativeTypeDoesNotImplementInterface, associativeType.FullName));
+                        throw new DryadLinqException(DryadLinqErrorCode.AssociativeTypeDoesNotImplementInterface,
+                                                     String.Format(SR.AssociativeTypeDoesNotImplementInterface,
+                                                                   associativeType.FullName));
                     }
                     if (implementedInterface.GetGenericArguments()[0] != funcTypeArgs[0])
                     {
-                        throw new DryadLinqException(HpcLinqErrorCode.AssociativeTypesDoNotMatch,
-                                                   String.Format(SR.AssociativeTypesDoNotMatch, associativeType.FullName));
+                        throw new DryadLinqException(DryadLinqErrorCode.AssociativeTypesDoNotMatch,
+                                                   String.Format(SR.AssociativeTypesDoNotMatch,
+                                                                 associativeType.FullName));
                     }
                     if (!associativeType.IsPublic && !associativeType.IsNestedPublic)
                     {
-                        throw new DryadLinqException(HpcLinqErrorCode.AssociativeTypeMustBePublic,
-                                                   String.Format(SR.AssociativeTypeMustBePublic, associativeType.FullName));
+                        throw new DryadLinqException(DryadLinqErrorCode.AssociativeTypeMustBePublic,
+                                                   String.Format(SR.AssociativeTypeMustBePublic,
+                                                                 associativeType.FullName));
                     }
                     try
                     {
@@ -307,8 +308,9 @@ namespace Microsoft.Research.DryadLinq
                     }
                     catch (Exception)
                     {
-                        throw new DryadLinqException(HpcLinqErrorCode.AssociativeTypeDoesNotHavePublicDefaultCtor,
-                                                   String.Format(SR.AssociativeTypeDoesNotHavePublicDefaultCtor, associativeType.FullName));
+                        throw new DryadLinqException(DryadLinqErrorCode.AssociativeTypeDoesNotHavePublicDefaultCtor,
+                                                   String.Format(SR.AssociativeTypeDoesNotHavePublicDefaultCtor,
+                                                                 associativeType.FullName));
                     }
                     cInfo = associativeType.GetMethod("Accumulate", new Type[] { funcTypeArgs[0], funcTypeArgs[0] });
                     Debug.Assert(cInfo != null, "problem finding method on associativeType");
@@ -353,7 +355,7 @@ namespace Microsoft.Research.DryadLinq
                         //the following test is never expected to occur, and an assert would most likely suffice.
                         if (props.Length != newBody.Arguments.Count)
                         {
-                            throw new DryadLinqException(HpcLinqErrorCode.Internal, SR.BugInHandlingAnonymousClass);
+                            throw new DryadLinqException(DryadLinqErrorCode.Internal, SR.BugInHandlingAnonymousClass);
                         }
 
                         for (int i = 0; i < props.Length; i++)
@@ -423,7 +425,7 @@ namespace Microsoft.Research.DryadLinq
                                 }
                                 if (leftExpr == null)
                                 {
-                                    throw new DryadLinqException(HpcLinqErrorCode.Internal,
+                                    throw new DryadLinqException(DryadLinqErrorCode.Internal,
                                                                "The source of the FieldMapping annotation was wrong. " +
                                                                paramName + " is not a formal parameter.");
                                 }
@@ -552,9 +554,9 @@ namespace Microsoft.Research.DryadLinq
                     }
                     else
                     {
-                        int valIdx = HpcLinqObjectStore.Put(val);
+                        int valIdx = DryadLinqObjectStore.Put(val);
                         builder.Append("((" + TypeSystem.TypeName(expr.Type, typeNames) + ")");
-                        builder.Append("HpcLinqObjectStore.Get(" + valIdx + "))");
+                        builder.Append("DryadLinqObjectStore.Get(" + valIdx + "))");
                     }
                 }
             }
@@ -616,8 +618,8 @@ namespace Microsoft.Research.DryadLinq
             }
             else
             {
-                throw new DryadLinqException(HpcLinqErrorCode.UnsupportedExpressionsType,
-                                           String.Format(SR.UnsupportedExpressionsType, expr.NodeType));
+                throw new DryadLinqException(DryadLinqErrorCode.UnsupportedExpressionsType,
+                                             String.Format(SR.UnsupportedExpressionsType, expr.NodeType));
             }
         }
 
@@ -800,7 +802,7 @@ namespace Microsoft.Research.DryadLinq
             {
                 if (TypeSystem.IsTransparentIdentifier(param.Name))
                 {
-                    string newName = HpcLinqCodeGen.MakeUniqueName("h__TransparentIdentifier");
+                    string newName = DryadLinqCodeGen.MakeUniqueName("h__TransparentIdentifier");
                     s_transIdMap[param.Name] = newName;
                 }
             }
@@ -852,7 +854,7 @@ namespace Microsoft.Research.DryadLinq
                 }
                 else
                 {
-                    string newName = HpcLinqCodeGen.MakeUniqueName("h__TransparentIdentifier");
+                    string newName = DryadLinqCodeGen.MakeUniqueName("h__TransparentIdentifier");
                     s_transIdMap[memberName] = newName;
                     memberName = newName;
                 }
@@ -975,7 +977,7 @@ namespace Microsoft.Research.DryadLinq
                             }
                             else
                             {
-                                string newName = HpcLinqCodeGen.MakeUniqueName("h__TransparentIdentifier");
+                                string newName = DryadLinqCodeGen.MakeUniqueName("h__TransparentIdentifier");
                                 s_transIdMap.Add(propName, newName);
                                 propName = newName;
                             }
@@ -1093,7 +1095,7 @@ namespace Microsoft.Research.DryadLinq
         {
             if (expr.Name == null)
             {
-                throw new DryadLinqException(HpcLinqErrorCode.Internal, SR.UnnamedParameterExpression);
+                throw new DryadLinqException(DryadLinqErrorCode.Internal, SR.UnnamedParameterExpression);
             }
             string paramName = expr.Name;
             if (s_transIdMap.ContainsKey(paramName))
@@ -1391,8 +1393,8 @@ namespace Microsoft.Research.DryadLinq
             }
             else
             {
-                throw new DryadLinqException(HpcLinqErrorCode.UnsupportedExpressionType,
-                                           String.Format(SR.UnsupportedExpressionType, expr.NodeType));
+                throw new DryadLinqException(DryadLinqErrorCode.UnsupportedExpressionType,
+                                             String.Format(SR.UnsupportedExpressionType, expr.NodeType));
             }
         }
 
@@ -1519,7 +1521,7 @@ namespace Microsoft.Research.DryadLinq
             if (obj == null)
             {
                 Type type = expr.Method.DeclaringType;
-                builder.Append(HpcLinqUtil.SimpleName(TypeSystem.TypeName(type)));
+                builder.Append(DryadLinqUtil.SimpleName(TypeSystem.TypeName(type)));
             }
             else if (level > 0)
             {
@@ -1544,7 +1546,7 @@ namespace Microsoft.Research.DryadLinq
             else
             {
                 builder.Append(".");
-                builder.Append(HpcLinqUtil.SimpleName(expr.Method.Name));
+                builder.Append(DryadLinqUtil.SimpleName(expr.Method.Name));
                 builder.Append("(");
                 for (int i = start, n = expr.Arguments.Count; i < n; i++)
                 {

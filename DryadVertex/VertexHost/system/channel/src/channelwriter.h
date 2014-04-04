@@ -248,7 +248,7 @@ private:
 
     DrStr128                                   m_uri;
 
-    CRITSEC                                    m_baseDR;
+    CRITSEC                                    m_baseCS;
 
     friend class RChannelMarshalRequest;
 };
@@ -314,5 +314,5 @@ private:
     bool              m_started;
     RChannelItemRef   m_writeTerminationItem;
     DrStr128          m_uri;
-    CRITSEC           m_baseDR;
+    CRITSEC           m_baseCS;
 };

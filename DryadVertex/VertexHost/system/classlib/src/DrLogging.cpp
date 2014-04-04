@@ -35,6 +35,11 @@ limitations under the License.
 //
 static LogLevel s_loggingType = LogLevel_Warning;
 
+void DrLogging::Initialize(const WCHAR* logFileName)
+{
+    m_logFile = CreateLogFile(logFileName);
+}
+
 //
 // Update the logging level to all at supplied level and more severe
 //
@@ -70,22 +75,13 @@ FILE* DrLogging::GetLogFile()
 //
 // Create the vertex host log file
 //
-FILE* DrLogging::CreateLogFile()
+FILE* DrLogging::CreateLogFile(const WCHAR* logFileName)
 {
-    WCHAR szCurrentDir[MAX_PATH + 1] = {0};
-    WCHAR szLogFile[MAX_PATH + 1] = {0};
-    
-    if (GetCurrentDirectory(MAX_PATH, szCurrentDir) != 0)
+    FILE * logFile = _wfsopen(logFileName, L"w", _SH_DENYWR);
+    if(logFile != NULL)
     {
-        if (S_OK == StringCchPrintf(szLogFile, MAX_PATH, L"%s\\VertexHostLog.txt", szCurrentDir))
-        {
-            FILE * logFile = _wfsopen(szLogFile, L"w", _SH_DENYWR);
-            if(logFile != NULL)
-            {
-                // If log file created successfully, use it
-                return logFile;
-            }
-        }
+        // If log file created successfully, use it
+        return logFile;
     }
 
     // if there is an error creating the log file, fall back to stderr
@@ -95,7 +91,16 @@ FILE* DrLogging::CreateLogFile()
 //
 // Initialize log file 
 //
-FILE* DrLogging::m_logFile = CreateLogFile();
+FILE* DrLogging::m_logFile = stderr;
+
+static DrLogAssertCallback* s_assertCallback = NULL;
+static void*                s_assertCookie = NULL;
+
+void DrLogging::SetAssertCallback(DrLogAssertCallback callback, void* cookie)
+{
+    s_assertCallback = callback;
+    s_assertCookie = cookie;
+}
 
 //
 // Log the provided string
@@ -188,6 +193,13 @@ void DrLogHelper::operator()(const char* format, ...)
         if (IsDebuggerPresent())
         {
             ::DebugBreak();
+        }
+
+        if (s_assertCallback != NULL)
+        {
+            DrStr128 assertString;
+            assertString.SetF("%s,%s:%d,%s", m_function, m_file, m_line, s.GetString());
+            (*s_assertCallback)(s_assertCookie, assertString.GetString());
         }
 
         TerminateProcess(GetCurrentProcess(), DrError_Fail);

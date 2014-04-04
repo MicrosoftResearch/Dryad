@@ -85,6 +85,16 @@ static void GuidWrite(char *pDst, const GUID *pGuid)
     *pDst = 0;
 }
 
+void DrXComputeProcessHandle::SetAssignedNode(DrResourcePtr node)
+{
+    m_node = node;
+}
+
+DrResourcePtr DrXComputeProcessHandle::GetAssignedNode()
+{
+    return m_node;
+}
+
 void DrXComputeProcessHandle::CloseHandle()
 {
     if (m_handle != DrNull)
@@ -342,7 +352,8 @@ void DrXComputeSetCommandOverlapped::Process()
     parent->ProcessCommandResult(status, message);
 }
 
-
+// remove these in favor of DrScheduler.cpp
+#if 0
 DrXCompute::~DrXCompute()
 {
 }
@@ -352,7 +363,7 @@ DrXComputeRef DrXCompute::Create()
     //return DrNew DrXComputeYarn();
     return DrNew DrXComputeInternal();
 }
-
+#endif
 
 DrXComputeInternal::DrXComputeInternal()
 {
@@ -727,7 +738,7 @@ void DrXComputeInternal::ProcessStateChange(HRESULT status, DrPSRMessagePtr mess
     }
     else
     {
-        DrProcessHandlePtr process = notification->m_process;
+        DrXComputeProcessHandlePtr process = dynamic_cast<DrXComputeProcessHandlePtr>(notification->m_process);
         DrAssert(process != DrNull);
         HRESULT schedulingStatus;
         notification->m_state = process->GetState(schedulingStatus);
