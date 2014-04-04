@@ -13,7 +13,13 @@ namespace $rootnamespace$
 			string accountName = "Replace with your account name";
 			string storageKey = "Replace with your storage key";
 			string containerName = "Replace with the default container name for your HDInsight cluster";
+			
+			// If you have multiple HDInsight clusters, modify the DryadLinqContext to include the clusterName
             var config = new DryadLinqContext(accountName, storageKey, containerName);            
+			
+			// the LocalExecution flag determines if the computation is run locally or on a cluster
+			config.LocalExecution = false;
+			
 			var input = config.FromStore<LineRecord>(AzureUtils.ToAzureUri(accountName, storageKey, containerName, 
 					                                 "example/data/gutenberg/davinci.txt"));
             var words = input.SelectMany(x => x.Line.Split(' '));

@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<package xmlns="http://schemas.microsoft.com/packaging/2013/01/nuspec.xsd">
-    <metadata minClientVersion="2.5">
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+    <metadata>
         <id>Microsoft.Research.Calypso</id>
         <version>0.7.0-beta024</version>
         <title>Calypso Job Browser for DryadLINQ</title>
@@ -19,24 +19,30 @@
                 <dependency id="Microsoft.Research.Peloponnese" version="0.7.0-beta024" />
             </group>
         </dependencies>
-      <frameworkAssemblies>
-        <frameworkAssembly assemblyName="System" targetFramework=".NETFramework4.5" />
-        <frameworkAssembly assemblyName="System.Core" targetFramework=".NETFramework4.5" />
-        <frameworkAssembly assemblyName="System.Data" targetFramework=".NETFramework4.5" />
-        <frameworkAssembly assemblyName="System.Data.DataSetExtensions" targetFramework=".NETFramework4.5" />
-        <frameworkAssembly assemblyName="System.Data.Linq" targetFramework=".NETFramework4.5" />
-        <frameworkAssembly assemblyName="System.Deployment" targetFramework=".NETFramework4.5" />
-        <frameworkAssembly assemblyName="System.Drawing" targetFramework=".NETFramework4.5" />
-        <frameworkAssembly assemblyName="System.Runtime.Serialization" targetFramework=".NETFramework4.5" />
-        <frameworkAssembly assemblyName="System.ServiceModel" targetFramework=".NETFramework4.5" />
-        <frameworkAssembly assemblyName="System.Windows.Forms" targetFramework=".NETFramework4.5" />
-        <frameworkAssembly assemblyName="System.Xml" targetFramework=".NETFramework4.5" />
-        <frameworkAssembly assemblyName="System.Xml.Linq" targetFramework=".NETFramework4.5" />
-      </frameworkAssemblies>
+        <frameworkAssemblies>
+            <frameworkAssembly assemblyName="System" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.Core" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.Data" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.Data.DataSetExtensions" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.Data.Linq" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.Deployment" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.Drawing" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.Runtime.Serialization" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.ServiceModel" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.Windows.Forms" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.Xml" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.Xml.Linq" targetFramework=".NETFramework4.5" />
+        </frameworkAssemblies>
     </metadata>
-  <files>
-    <file src="Calypso\bin\x64\Release\DistributedDataCollection.dll" target="content\DistributedDataCollection.dll" />
-    <file src="Calypso\bin\x64\Release\DistributedDataCollection.pdb" target="content\DistributedDataCollection.pdb" />
-      
-  </files>
+    <files>
+        <file src="Calypso\bin\x64\Release\DistributedDataCollection.dll" target="lib\DistributedDataCollection.dll" />
+        <file src="Calypso\bin\x64\Release\DistributedDataCollection.pdb" target="lib\DistributedDataCollection.pdb" />
+        <file src="Calypso\bin\x64\Release\JobBrowser.exe" target="lib\JobBrowser.exe" />
+        <file src="Calypso\bin\x64\Release\JobBrowser.exe.config" target="lib\JobBrowser.exe.config" />
+        <file src="Calypso\bin\x64\Release\JobBrowser.pdb" target="lib\JobBrowser.pdb" />
+        <file src="Calypso\bin\x64\Release\Microsoft.Research.Calypso.Tools.dll" target="lib\Microsoft.Research.Calypso.Tools.dll" />
+        <file src="Calypso\bin\x64\Release\Microsoft.Research.Calypso.Tools.pdb" target="lib\Microsoft.Research.Calypso.Tools.pdb" />
+        <file src="Calypso\bin\x64\Release\Microsoft.Research.Calypso.UsefulForms.dll" target="lib\Microsoft.Research.Calypso.UsefulForms.dll" />
+        <file src="Calypso\bin\x64\Release\Microsoft.Research.Calypso.UsefulForms.pdb" target="lib\Microsoft.Research.Calypso.UsefulForms.pdb" />
+    </files>
 </package>
