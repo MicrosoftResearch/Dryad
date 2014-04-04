@@ -10,7 +10,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>DistributedDataCollection</RootNamespace>
-    <AssemblyName>DistributedDataCollection</AssemblyName>
+    <AssemblyName>Microsoft.Research.DryadLinq.JobBrowser.DistributedDataCollection</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <StartupObject>
@@ -45,7 +45,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\DistributedDataCollection.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Microsoft.Research.DryadLinq.JobBrowser.DistributedDataCollection.xml</DocumentationFile>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>

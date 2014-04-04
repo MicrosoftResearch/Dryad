@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>UsefulForms</RootNamespace>
-    <AssemblyName>Microsoft.Research.Calypso.UsefulForms</AssemblyName>
+    <AssemblyName>Microsoft.Research.DryadLinq.JobBrowser.UsefulForms</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>

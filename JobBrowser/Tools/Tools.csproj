@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.Research.Artemis.Tools</RootNamespace>
-    <AssemblyName>Microsoft.Research.Calypso.Tools</AssemblyName>
+    <AssemblyName>Microsoft.Research.DryadLinq.JobBrowser.Tools</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>
@@ -41,7 +41,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\Microsoft.Research.Calypso.Tools.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\Microsoft.Research.DryadLinq.JobBrowser.Tools.xml</DocumentationFile>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
