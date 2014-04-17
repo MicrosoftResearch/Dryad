@@ -1,0 +1,41 @@
+﻿<html xmlns:MSHelp="http://msdn.microsoft.com/mshelp" xmlns:mshelp="http://msdn.microsoft.com/mshelp"><head><link rel="SHORTCUT ICON" href="./../icons/favicon.ico" /><style type="text/css">.OH_CodeSnippetContainerTabLeftActive, .OH_CodeSnippetContainerTabLeft,.OH_CodeSnippetContainerTabLeftDisabled { }.OH_CodeSnippetContainerTabRightActive, .OH_CodeSnippetContainerTabRight,.OH_CodeSnippetContainerTabRightDisabled { }.OH_footer { }</style><link rel="stylesheet" type="text/css" href="./../styles/branding.css" /><link rel="stylesheet" type="text/css" href="./../styles/branding-en-US.css" /><style type="text/css">
+			body
+			{
+			border-left:5px solid #e6e6e6;
+			overflow-x:scroll;
+			overflow-y:scroll;
+			}
+		</style><script src="./../scripts/branding.js" type="text/javascript"><!----></script><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Quick Start</title><meta name="Language" content="en-us" /><meta name="Microsoft.Help.Id" content="e992fd94-c956-481d-82e6-dbdf45daa722" /><meta name="Description" content="Instructions for quickly getting started with DryadLINQ:" /><meta name="Microsoft.Help.ContentType" content="How To" /><meta name="BrandingAware" content="'true'" /><link type="text/css" rel="stylesheet" href="./../styles/highlight.css" /><script type="text/javascript" src="../scripts/highlight.js"><!----></script><meta name="SelfBranded" content="true" /></head><body onload="onLoad()" class="primary-mtps-offline-document"><div class="OH_outerDiv"><div class="OH_outerContent"><table class="TitleTable"><tr><td class="OH_tdTitleColumn">Quick Start</td><td class="OH_tdRunningTitleColumn">DryadLINQ documentation</td></tr></table><div id="mainSection"><div id="mainBody"><span class="introStyle"></span><div class="introduction"><p>Instructions for quickly getting started with DryadLINQ:</p></div><h3 class="procedureSubHeading">Get the core DryadLINQ libraries and example code</h3><div class="subSection"><ol><li><p>Create a new Visual Studio Visual C# Console Application project. You need Visual Studio 2012 or later.</p></li><li><p>Go to the Configuration manager menu, select your project, and add a new project platform <span class="code">x64</span>,
+            making sure to check the <span class="code">Create new solution platforms</span> box.
+          </p></li><li><p>Right-click on the project and select "Manage NuGet Packages...".</p></li><li><p>Change the "Stable Only" dropdown to "Include Prerelease".</p></li><li><p>Choose 'Online/nuget.org' in the left pane.</p></li><li><p>Enter "Dryad" into the search box, then select and install "Sample DryadLINQ Programs".</p></li><li><p>The sample includes a Word Count example in a separate <em>WordCount.cs</em> file. Add
+            <span class="code">WordCount.WordCountExample();</span> to the <span class="code">Main</span> method in <em>Program.cs</em>.</p></li></ol><p>You should now be able to build the project.</p></div><h3 class="procedureSubHeading">Running the sample on your local computer</h3><div class="subSection"><ul><li><p>The sample is initially configured to run locally. All you have to do is build and run the program with
+            no arguments, and it will perform a word count on a single line of text embedded in the <span class="code">lines</span>
+            variable, and output the results to the console. The output will look something like:</p><div id="ID0EAAAEAAAAA" class="OH_CodeSnippetContainer"><div class="OH_CodeSnippetContainerTabs" id="ID0EAAAEAAAAA_tabs"></div><div id="ID0EAAAEAAAAA_codecollection" class="OH_CodeSnippetContainerCodeCollection"><div class="OH_CodeSnippetToolBar"><div class="OH_CodeSnippetToolBarText"><a id="ID0EAAAEAAAAA_ViewColorized" href="#" onclick="javascript:ExchangeTitleContent('ID0EAAAEAAAAA','4')" title="View Colorized" style="display: none">View Colorized</a><a id="ID0EAAAEAAAAA_copycode" href="#" onclick="javascript:CopyToClipboard('ID0EAAAEAAAAA','4')" title="Copy to Clipboard">Copy to Clipboard</a><a id="ID0EAAAEAAAAA_PrintText" class="OH_PrintText" href="#" onclick="javascript:Print('ID0EAAAEAAAAA','4')" title="Print">Print</a></div></div><div id="ID0EAAAEAAAAA_code_Div1" class="OH_CodeSnippetContainerCode" style="display: block"><pre>QueryPlan: C:\Users\JaneDoe\AppData\Local\Temp\DRYADLINQ\DryadSample.vshost_5004\DryadLinqProgram__0.xml
+line: 1
+short: 1
+a: 2
+job: 1
+dummy: 1
+for: 1
+is: 1
+This: 1</pre></div><div id="ID0EAAAEAAAAA_code_Plain_Div1" class="OH_CodeSnippetContainerCode" style="display: none"><pre>QueryPlan: C:\Users\JaneDoe\AppData\Local\Temp\DRYADLINQ\DryadSample.vshost_5004\DryadLinqProgram__0.xml
+line: 1
+short: 1
+a: 2
+job: 1
+dummy: 1
+for: 1
+is: 1
+This: 1</pre></div></div></div><script>addSpecificTextLanguageTagSet('ID0EAAAEAAAAA');</script></li></ul></div><h3 class="procedureSubHeading">Running the sample on an Azure cluster</h3><div class="subSection"><ol><li><p>If you don't already have one, you must first <a href="4aefe670-7b2b-4c05-9a65-6c60ff13c3b5.htm" target="">create an HDInsight cluster</a>.</p></li><li><p>Comment the <span class="code">#define local</span> statement at the top of <em>WordCount.cs</em>
+            to modify the sample to run on Azure.</p></li><li><p>Specify your cluster name, default storage account and default container in the
+            <span class="code">clusterName</span>, <span class="code">accountName</span> and <span class="code">containerName</span>
+            variable constructors.</p></li><li><p>Now rebuild and run, and the program will execute on your cluster, writing output to Azure blob storage.
+            The first time you run a DryadLINQ program on a cluster you will see lots of output log lines telling you that 
+            binaries are being uploaded to 'staging' blobs so that they will be available for use by the running program.
+            Subsequent runs won't need nearly as many files to be uploaded. Once all the staging files have been uploaded
+            there will be a delay of a minute or so while HDInsight launches the DryadLINQ job. For a short test like this
+            one above almost all the time is taken by job launch, but for serious computation this startup time won't make
+            a big difference to the overall running time. Eventually the submission program will return, and if you go look
+            at the Azure storage container you specified above, there will be a blob called
+            <em>wc-out.txt/part-00000000-0001-0000</em> which contains the counted output.
+            For this simple program there is only a single output part, though in general there may be many.</p></li></ol></div><a name="seeAlsoSection"><!----></a><div class="OH_CollapsibleAreaRegion"><div class="OH_regiontitle">See Also</div><div class="OH_CollapsibleArea_HrDiv"><hr class="OH_CollapsibleArea_Hr" /></div></div><div class="OH_clear"></div><h4 class="subHeading">Other Resources</h4><div class="seeAlsoStyle"><a href="4aefe670-7b2b-4c05-9a65-6c60ff13c3b5.htm" target="">Setting up an HDInsight 3.0 cluster</a></div></div></div></div></div><div id="OH_footer" class="OH_footer"><p /><div class="OH_feedbacklink"><a href="mailto:?subject=DryadLINQ+documentation+Quick+Start+100+EN-US&amp;body=Your%20feedback%20is%20used%20to%20improve%20the%20documentation%20and%20the%20product.%20Your%20e-mail%20address%20will%20not%20be%20used%20for%20any%20other%20purpose%20and%20is%20disposed%20of%20after%20the%20issue%20you%20report%20is%20resolved.%20While%20working%20to%20resolve%20the%20issue%20that%20you%20report%2c%20you%20may%20be%20contacted%20via%20e-mail%20to%20get%20further%20details%20or%20clarification%20on%20the%20feedback%20you%20sent.%20After%20the%20issue%20you%20report%20has%20been%20addressed%2c%20you%20may%20receive%20an%20e-mail%20to%20let%20you%20know%20that%20your%20feedback%20has%20been%20addressed.">Send Feedback</a> on this topic.</div></div></body></html>

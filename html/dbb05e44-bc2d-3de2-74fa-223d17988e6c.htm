@@ -1,0 +1,112 @@
+﻿<html xmlns:MSHelp="http://msdn.microsoft.com/mshelp" xmlns:mshelp="http://msdn.microsoft.com/mshelp"><head><link rel="SHORTCUT ICON" href="./../icons/favicon.ico" /><style type="text/css">.OH_CodeSnippetContainerTabLeftActive, .OH_CodeSnippetContainerTabLeft,.OH_CodeSnippetContainerTabLeftDisabled { }.OH_CodeSnippetContainerTabRightActive, .OH_CodeSnippetContainerTabRight,.OH_CodeSnippetContainerTabRightDisabled { }.OH_footer { }</style><link rel="stylesheet" type="text/css" href="./../styles/branding.css" /><link rel="stylesheet" type="text/css" href="./../styles/branding-en-US.css" /><style type="text/css">
+			body
+			{
+			border-left:5px solid #e6e6e6;
+			overflow-x:scroll;
+			overflow-y:scroll;
+			}
+		</style><script src="./../scripts/branding.js" type="text/javascript"><!----></script><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>DryadLinqQueryable.SumAsQuery(TSource) Method (IQueryable(TSource), Expression(Func(TSource, Nullable(Single))))</title><meta name="Language" content="en-us" /><meta name="Microsoft.Help.Id" content="M:Microsoft.Research.DryadLinq.DryadLinqQueryable.SumAsQuery``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Nullable{System.Single}}})" /><meta name="Description" content="Same as , but returns an &lt;&gt; containing a single element. Computes the sum of a set of nullable float values that is obtained by applying a function to each element of the input dataset." /><meta name="Microsoft.Help.ContentType" content="Reference" /><meta name="BrandingAware" content="'true'" /><meta name="container" content="Microsoft.Research.DryadLinq" /><meta name="file" content="dbb05e44-bc2d-3de2-74fa-223d17988e6c" /><meta name="guid" content="dbb05e44-bc2d-3de2-74fa-223d17988e6c" /><meta name="SelfBranded" content="true" /></head><body onload="onLoad()" class="primary-mtps-offline-document"><div class="OH_outerDiv"><div class="OH_outerContent"><table class="TitleTable"><tr><td class="OH_tdTitleColumn">DryadLinqQueryable<span id="ID0EUBABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EUBABAAA?vb=.|cpp=::|cs=.|fs=.|nu=.");
+				</script>SumAsQuery<span id="ID0ESBABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0ESBABAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script><span class="typeparameter">TSource</span><span id="ID0EQBABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EQBABAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script> Method (IQueryable<span id="ID0EOBABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EOBABAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script><span class="typeparameter">TSource</span><span id="ID0EMBABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EMBABAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script>, Expression<span id="ID0EKBABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EKBABAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script>Func<span id="ID0EIBABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EIBABAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script><span class="typeparameter">TSource</span>, Nullable<span id="ID0EFBABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EFBABAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script>Single<span id="ID0EDBABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EDBABAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script><span id="ID0ECBABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0ECBABAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script><span id="ID0EBBABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EBBABAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script>)</td><td class="OH_tdRunningTitleColumn">DryadLINQ documentation</td></tr></table><div id="mainSection"><div id="mainBody"><span class="introStyle"></span><div class="summary">
+            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb534860" target="_blank">Sum<span id="ID0ERFMAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0ERFMAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script>TSource<span id="ID0EPFMAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EPFMAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script>(IQueryable<span id="ID0ENFMAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0ENFMAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script>TSource<span id="ID0ELFMAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0ELFMAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script>, Expression<span id="ID0EJFMAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EJFMAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script>Func<span id="ID0EHFMAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EHFMAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script>TSource, Nullable<span id="ID0EFFMAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EFFMAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script>Single<span id="ID0EDFMAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EDFMAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script><span id="ID0ECFMAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0ECFMAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script><span id="ID0EBFMAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EBFMAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/3www918f" target="_blank">Single</a>&gt;
+            containing a single element. Computes the sum of a set of nullable float values that
+            is obtained by applying a function to each element of the input dataset.
+            </div><p></p><strong>Namespace:</strong> <a href="efe6507e-9fd8-bbd3-8227-fd6ba9e289c1.htm" target="">Microsoft.Research.DryadLinq</a><br /><strong>Assembly:</strong> <span sdata="assembly">Microsoft.Research.DryadLinq</span> (in Microsoft.Research.DryadLinq.dll) Version: 0.1.1.0 (0.1.1.0)<div class="OH_CollapsibleAreaRegion"><div class="OH_regiontitle">Syntax</div><div class="OH_CollapsibleArea_HrDiv"><hr class="OH_CollapsibleArea_Hr" /></div></div><div class="OH_clear"></div><div id="snippetGroup_Syntax" class="code"><div id="ID0ECYCAAAAA" class="OH_CodeSnippetContainer"><div class="OH_CodeSnippetContainerTabs" id="ID0ECYCAAAAA_tabs"><div class="OH_CodeSnippetContainerTabLeftActive" id="ID0ECYCAAAAA_tabimgleft"></div><div id="ID0ECYCAAAAA_tab1" class="OH_CodeSnippetContainerTabActive" EnableCopyCode="true"><a href="#" onclick="javascript:ChangeTab('ID0ECYCAAAAA','C#','1','4');return false;">C#</a></div><div id="ID0ECYCAAAAA_tab2" class="OH_CodeSnippetContainerTab" EnableCopyCode="true"><a href="#" onclick="javascript:ChangeTab('ID0ECYCAAAAA','Visual Basic','2','4');return false;">VB</a></div><div id="ID0ECYCAAAAA_tab3" class="OH_CodeSnippetContainerTab" EnableCopyCode="true"><a href="#" onclick="javascript:ChangeTab('ID0ECYCAAAAA','Visual C++','3','4');return false;">C++</a></div><div id="ID0ECYCAAAAA_tab4" class="OH_CodeSnippetContainerTabDisabledNotFirst" EnableCopyCode="true" disabled="true"><a>F#</a></div><div class="OH_CodeSnippetContainerTabRight" id="ID0ECYCAAAAA_tabimgright"></div></div><div id="ID0ECYCAAAAA_codecollection" class="OH_CodeSnippetContainerCodeCollection"><div class="OH_CodeSnippetToolBar"><div class="OH_CodeSnippetToolBarText"><a id="ID0ECYCAAAAA_ViewColorized" href="#" onclick="javascript:ExchangeTitleContent('ID0ECYCAAAAA','4')" title="View Colorized" style="display: none">View Colorized</a><a id="ID0ECYCAAAAA_copycode" href="#" onclick="javascript:CopyToClipboard('ID0ECYCAAAAA','4')" title="Copy to Clipboard">Copy to Clipboard</a><a id="ID0ECYCAAAAA_PrintText" class="OH_PrintText" href="#" onclick="javascript:Print('ID0ECYCAAAAA','4')" title="Print">Print</a></div></div><div id="ID0ECYCAAAAA_code_Div1" class="OH_CodeSnippetContainerCode" style="display: block"><pre><span class="keyword">public</span> <span class="keyword">static</span> <span class="identifier">IQueryable</span>&lt;<span class="identifier">Nullable</span>&lt;<span class="identifier">float</span>&gt;&gt; <span class="identifier">SumAsQuery</span>&lt;TSource&gt;(
+	<span class="keyword">this</span> <span class="identifier">IQueryable</span>&lt;TSource&gt; <span class="parameter">source</span>,
+	<span class="identifier">Expression</span>&lt;<span class="identifier">Func</span>&lt;TSource, <span class="identifier">Nullable</span>&lt;<span class="identifier">float</span>&gt;&gt;&gt; <span class="parameter">selector</span>
+)</pre></div><div id="ID0ECYCAAAAA_code_Plain_Div1" class="OH_CodeSnippetContainerCode" style="display: none"><pre>public static IQueryable&lt;Nullable&lt;float&gt;&gt; SumAsQuery&lt;TSource&gt;(
+	this IQueryable&lt;TSource&gt; source,
+	Expression&lt;Func&lt;TSource, Nullable&lt;float&gt;&gt;&gt; selector
+)</pre></div><div id="ID0ECYCAAAAA_code_Div2" class="OH_CodeSnippetContainerCode" style="display: none"><pre>&lt;<span class="identifier">ExtensionAttribute</span>&gt; 
+<span class="keyword">Public</span> <span class="keyword">Shared</span> <span class="keyword">Function</span> <span class="identifier">SumAsQuery</span>(<span class="keyword">Of</span> TSource) ( 
+	<span class="parameter">source</span> <span class="keyword">As</span> <span class="identifier">IQueryable</span>(<span class="keyword">Of</span> TSource),
+	<span class="parameter">selector</span> <span class="keyword">As</span> <span class="identifier">Expression</span>(<span class="keyword">Of</span> <span class="identifier">Func</span>(<span class="keyword">Of</span> TSource, <span class="identifier">Nullable</span>(<span class="keyword">Of</span> <span class="identifier">Single</span>)))
+) <span class="keyword">As</span> <span class="identifier">IQueryable</span>(<span class="keyword">Of</span> <span class="identifier">Nullable</span>(<span class="keyword">Of</span> <span class="identifier">Single</span>))</pre></div><div id="ID0ECYCAAAAA_code_Plain_Div2" class="OH_CodeSnippetContainerCode" style="display: none"><pre>&lt;ExtensionAttribute&gt; 
+Public Shared Function SumAsQuery(Of TSource) ( 
+	source As IQueryable(Of TSource),
+	selector As Expression(Of Func(Of TSource, Nullable(Of Single)))
+) As IQueryable(Of Nullable(Of Single))</pre></div><div id="ID0ECYCAAAAA_code_Div3" class="OH_CodeSnippetContainerCode" style="display: none"><pre><span class="keyword">public</span>:
+[<span class="identifier">ExtensionAttribute</span>]
+<span class="keyword">generic</span>&lt;<span class="keyword">typename</span> TSource&gt;
+<span class="keyword">static</span> <span class="identifier">IQueryable</span>&lt;<span class="identifier">Nullable</span>&lt;<span class="identifier">float</span>&gt;&gt;^ <span class="identifier">SumAsQuery</span>(
+	<span class="identifier">IQueryable</span>&lt;TSource&gt;^ <span class="parameter">source</span>, 
+	<span class="identifier">Expression</span>&lt;<span class="identifier">Func</span>&lt;TSource, <span class="identifier">Nullable</span>&lt;<span class="identifier">float</span>&gt;&gt;^&gt;^ <span class="parameter">selector</span>
+)</pre></div><div id="ID0ECYCAAAAA_code_Plain_Div3" class="OH_CodeSnippetContainerCode" style="display: none"><pre>public:
+[ExtensionAttribute]
+generic&lt;typename TSource&gt;
+static IQueryable&lt;Nullable&lt;float&gt;&gt;^ SumAsQuery(
+	IQueryable&lt;TSource&gt;^ source, 
+	Expression&lt;Func&lt;TSource, Nullable&lt;float&gt;&gt;^&gt;^ selector
+)</pre></div><div id="ID0ECYCAAAAA_code_Div4" class="OH_CodeSnippetContainerCode" style="display: none"><pre /></div><div id="ID0ECYCAAAAA_code_Plain_Div4" class="OH_CodeSnippetContainerCode" style="display: none"><pre /></div></div></div><script>addSpecificTextLanguageTagSet('ID0ECYCAAAAA');</script></div><div id="parameters"><h4 class="subHeading">Parameters</h4><dl paramName="source"><dt><span class="parameter">source</span></dt><dd>Type: <a href="http://msdn2.microsoft.com/en-us/library/bb351562" target="_blank">System.Linq<span id="ID0EBFABXCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EBFABXCAAAAA?vb=.|cpp=::|cs=.|fs=.|nu=.");
+				</script>IQueryable</a><span id="ID0EEABXCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EEABXCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script><span class="selflink"><span class="typeparam">TSource</span></span><span id="ID0ECABXCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0ECABXCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script><br /><span>The input dataset</span></dd></dl><dl paramName="selector"><dt><span class="parameter">selector</span></dt><dd>Type: <a href="http://msdn2.microsoft.com/en-us/library/bb335710" target="_blank">System.Linq.Expressions<span id="ID0EBNAAXCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EBNAAXCAAAAA?vb=.|cpp=::|cs=.|fs=.|nu=.");
+				</script>Expression</a><span id="ID0EMAAXCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EMAAXCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script><a href="http://msdn2.microsoft.com/en-us/library/bb549151" target="_blank">Func</a><span id="ID0EKAAXCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EKAAXCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script><span class="selflink"><span class="typeparam">TSource</span></span>, <a href="http://msdn2.microsoft.com/en-us/library/b3h38hb0" target="_blank">Nullable</a><span id="ID0EGAAXCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EGAAXCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script><a href="http://msdn2.microsoft.com/en-us/library/3www918f" target="_blank">Single</a><span id="ID0EEAAXCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EEAAXCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script><span id="ID0EDAAXCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EDAAXCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script><span id="ID0ECAAXCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0ECAAXCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script><br /><span>A transformation function to apply to each element</span></dd></dl></div><div class="OH_CollapsibleAreaRegion"><div class="OH_regiontitle">Type Parameters</div><div class="OH_CollapsibleArea_HrDiv"><hr class="OH_CollapsibleArea_Hr" /></div></div><div class="OH_clear"></div><dl><dt><span class="parameter">TSource</span></dt><dd>The type of the elements of source</dd></dl><h4 class="subHeading">Return Value</h4>Type: <a href="http://msdn2.microsoft.com/en-us/library/bb351562" target="_blank">IQueryable</a><span id="ID0ESCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0ESCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script><a href="http://msdn2.microsoft.com/en-us/library/b3h38hb0" target="_blank">Nullable</a><span id="ID0EQCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EQCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script><a href="http://msdn2.microsoft.com/en-us/library/3www918f" target="_blank">Single</a><span id="ID0EOCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EOCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script><span id="ID0ENCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0ENCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script><br />The sum of the values after applying the transformation function<h4 class="subHeading">Usage Note</h4>In Visual Basic and C#, you can call this method as an instance method on any object of type <a href="http://msdn2.microsoft.com/en-us/library/bb351562" target="_blank">IQueryable</a><span id="ID0EHCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EHCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script><span class="selflink"><span class="typeparam">TSource</span></span><span id="ID0EFCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EFCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script>. When you use instance method syntax to call this method, omit the first parameter. For more information, see <a href="http://msdn.microsoft.com/en-us/library/bb384936.aspx" target="_blank">Extension Methods (Visual Basic)</a> or <a href="http://msdn.microsoft.com/en-us/library/bb383977.aspx" target="_blank">Extension Methods (C# Programming Guide)</a>.<a name="seeAlsoSection"><!----></a><div class="OH_CollapsibleAreaRegion"><div class="OH_regiontitle">See Also</div><div class="OH_CollapsibleArea_HrDiv"><hr class="OH_CollapsibleArea_Hr" /></div></div><div class="OH_clear"></div><div class="seeAlsoStyle"><a href="6d67ec6b-96ed-0a8b-0ad4-1c0568c7bf91.htm" target="">DryadLinqQueryable Class</a></div><div class="seeAlsoStyle"><a href="f7353d8f-b53e-4485-3a32-a47d26df83b2.htm" target="">SumAsQuery Overload</a></div><div class="seeAlsoStyle"><a href="efe6507e-9fd8-bbd3-8227-fd6ba9e289c1.htm" target="">Microsoft.Research.DryadLinq Namespace</a></div></div></div></div></div><div id="OH_footer" class="OH_footer"><p /><div class="OH_feedbacklink"><a href="mailto:?subject=DryadLINQ+documentation+DryadLinqQueryable.SumAsQuery(TSource)+Method+(IQueryable(TSource)%2c+Expression(Func(TSource%2c+Nullable(Single))))+100+EN-US&amp;body=Your%20feedback%20is%20used%20to%20improve%20the%20documentation%20and%20the%20product.%20Your%20e-mail%20address%20will%20not%20be%20used%20for%20any%20other%20purpose%20and%20is%20disposed%20of%20after%20the%20issue%20you%20report%20is%20resolved.%20While%20working%20to%20resolve%20the%20issue%20that%20you%20report%2c%20you%20may%20be%20contacted%20via%20e-mail%20to%20get%20further%20details%20or%20clarification%20on%20the%20feedback%20you%20sent.%20After%20the%20issue%20you%20report%20has%20been%20addressed%2c%20you%20may%20receive%20an%20e-mail%20to%20let%20you%20know%20that%20your%20feedback%20has%20been%20addressed.">Send Feedback</a> on this topic.</div></div></body></html>

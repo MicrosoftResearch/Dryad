@@ -1,0 +1,122 @@
+﻿<html xmlns:MSHelp="http://msdn.microsoft.com/mshelp" xmlns:mshelp="http://msdn.microsoft.com/mshelp"><head><link rel="SHORTCUT ICON" href="./../icons/favicon.ico" /><style type="text/css">.OH_CodeSnippetContainerTabLeftActive, .OH_CodeSnippetContainerTabLeft,.OH_CodeSnippetContainerTabLeftDisabled { }.OH_CodeSnippetContainerTabRightActive, .OH_CodeSnippetContainerTabRight,.OH_CodeSnippetContainerTabRightDisabled { }.OH_footer { }</style><link rel="stylesheet" type="text/css" href="./../styles/branding.css" /><link rel="stylesheet" type="text/css" href="./../styles/branding-en-US.css" /><style type="text/css">
+			body
+			{
+			border-left:5px solid #e6e6e6;
+			overflow-x:scroll;
+			overflow-y:scroll;
+			}
+		</style><script src="./../scripts/branding.js" type="text/javascript"><!----></script><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>DryadLinqQueryable.Aggregate(TSource, TAccumulate, TResult) Method (IQueryable(TSource), Expression(Func(TAccumulate)), Expression(Func(TAccumulate, TSource, TAccumulate)), Expression(Func(TAccumulate, TResult)))</title><meta name="Language" content="en-us" /><meta name="Microsoft.Help.Id" content="M:Microsoft.Research.DryadLinq.DryadLinqQueryable.Aggregate``3(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``1}},System.Linq.Expressions.Expression{System.Func{``1,``0,``1}},System.Linq.Expressions.Expression{System.Func{``1,``2}})" /><meta name="Description" content="Applies an aggregator function over a sequence." /><meta name="Microsoft.Help.ContentType" content="Reference" /><meta name="BrandingAware" content="'true'" /><meta name="container" content="Microsoft.Research.DryadLinq" /><meta name="file" content="da78cce5-ac5d-fbb6-a6be-b1fc45f73240" /><meta name="guid" content="da78cce5-ac5d-fbb6-a6be-b1fc45f73240" /><meta name="SelfBranded" content="true" /></head><body onload="onLoad()" class="primary-mtps-offline-document"><div class="OH_outerDiv"><div class="OH_outerContent"><table class="TitleTable"><tr><td class="OH_tdTitleColumn">DryadLinqQueryable<span id="ID0E0IB0BABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0E0IB0BABAAA?vb=.|cpp=::|cs=.|fs=.|nu=.");
+				</script>Aggregate<span id="ID0E0GB0BABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0E0GB0BABAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script><span class="typeparameter">TSource</span>, <span class="typeparameter">TAccumulate</span>, <span class="typeparameter">TResult</span><span id="ID0E0AB0BABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0E0AB0BABAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script> Method (IQueryable<span id="ID0E5BABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0E5BABAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script><span class="typeparameter">TSource</span><span id="ID0E3BABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0E3BABAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script>, Expression<span id="ID0E1BABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0E1BABAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script>Func<span id="ID0EYBABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EYBABAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script><span class="typeparameter">TAccumulate</span><span id="ID0EWBABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EWBABAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script><span id="ID0EVBABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EVBABAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script>, Expression<span id="ID0ETBABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0ETBABAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script>Func<span id="ID0ERBABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0ERBABAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script><span class="typeparameter">TAccumulate</span>, <span class="typeparameter">TSource</span>, <span class="typeparameter">TAccumulate</span><span id="ID0ELBABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0ELBABAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script><span id="ID0EKBABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EKBABAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script>, Expression<span id="ID0EIBABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EIBABAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script>Func<span id="ID0EGBABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EGBABAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script><span class="typeparameter">TAccumulate</span>, <span class="typeparameter">TResult</span><span id="ID0ECBABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0ECBABAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script><span id="ID0EBBABAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EBBABAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script>)</td><td class="OH_tdRunningTitleColumn">DryadLINQ documentation</td></tr></table><div id="mainSection"><div id="mainBody"><span class="introStyle"></span><div class="summary">
+            Applies an aggregator function over a sequence.
+            </div><p></p><strong>Namespace:</strong> <a href="efe6507e-9fd8-bbd3-8227-fd6ba9e289c1.htm" target="">Microsoft.Research.DryadLinq</a><br /><strong>Assembly:</strong> <span sdata="assembly">Microsoft.Research.DryadLinq</span> (in Microsoft.Research.DryadLinq.dll) Version: 0.1.1.0 (0.1.1.0)<div class="OH_CollapsibleAreaRegion"><div class="OH_regiontitle">Syntax</div><div class="OH_CollapsibleArea_HrDiv"><hr class="OH_CollapsibleArea_Hr" /></div></div><div class="OH_clear"></div><div id="snippetGroup_Syntax" class="code"><div id="ID0ECSCAAAAA" class="OH_CodeSnippetContainer"><div class="OH_CodeSnippetContainerTabs" id="ID0ECSCAAAAA_tabs"><div class="OH_CodeSnippetContainerTabLeftActive" id="ID0ECSCAAAAA_tabimgleft"></div><div id="ID0ECSCAAAAA_tab1" class="OH_CodeSnippetContainerTabActive" EnableCopyCode="true"><a href="#" onclick="javascript:ChangeTab('ID0ECSCAAAAA','C#','1','4');return false;">C#</a></div><div id="ID0ECSCAAAAA_tab2" class="OH_CodeSnippetContainerTab" EnableCopyCode="true"><a href="#" onclick="javascript:ChangeTab('ID0ECSCAAAAA','Visual Basic','2','4');return false;">VB</a></div><div id="ID0ECSCAAAAA_tab3" class="OH_CodeSnippetContainerTab" EnableCopyCode="true"><a href="#" onclick="javascript:ChangeTab('ID0ECSCAAAAA','Visual C++','3','4');return false;">C++</a></div><div id="ID0ECSCAAAAA_tab4" class="OH_CodeSnippetContainerTabDisabledNotFirst" EnableCopyCode="true" disabled="true"><a>F#</a></div><div class="OH_CodeSnippetContainerTabRight" id="ID0ECSCAAAAA_tabimgright"></div></div><div id="ID0ECSCAAAAA_codecollection" class="OH_CodeSnippetContainerCodeCollection"><div class="OH_CodeSnippetToolBar"><div class="OH_CodeSnippetToolBarText"><a id="ID0ECSCAAAAA_ViewColorized" href="#" onclick="javascript:ExchangeTitleContent('ID0ECSCAAAAA','4')" title="View Colorized" style="display: none">View Colorized</a><a id="ID0ECSCAAAAA_copycode" href="#" onclick="javascript:CopyToClipboard('ID0ECSCAAAAA','4')" title="Copy to Clipboard">Copy to Clipboard</a><a id="ID0ECSCAAAAA_PrintText" class="OH_PrintText" href="#" onclick="javascript:Print('ID0ECSCAAAAA','4')" title="Print">Print</a></div></div><div id="ID0ECSCAAAAA_code_Div1" class="OH_CodeSnippetContainerCode" style="display: block"><pre><span class="keyword">public</span> <span class="keyword">static</span> TResult <span class="identifier">Aggregate</span>&lt;TSource, TAccumulate, TResult&gt;(
+	<span class="keyword">this</span> <span class="identifier">IQueryable</span>&lt;TSource&gt; <span class="parameter">source</span>,
+	<span class="identifier">Expression</span>&lt;<span class="identifier">Func</span>&lt;TAccumulate&gt;&gt; <span class="parameter">seedFunc</span>,
+	<span class="identifier">Expression</span>&lt;<span class="identifier">Func</span>&lt;TAccumulate, TSource, TAccumulate&gt;&gt; <span class="parameter">func</span>,
+	<span class="identifier">Expression</span>&lt;<span class="identifier">Func</span>&lt;TAccumulate, TResult&gt;&gt; <span class="parameter">selector</span>
+)</pre></div><div id="ID0ECSCAAAAA_code_Plain_Div1" class="OH_CodeSnippetContainerCode" style="display: none"><pre>public static TResult Aggregate&lt;TSource, TAccumulate, TResult&gt;(
+	this IQueryable&lt;TSource&gt; source,
+	Expression&lt;Func&lt;TAccumulate&gt;&gt; seedFunc,
+	Expression&lt;Func&lt;TAccumulate, TSource, TAccumulate&gt;&gt; func,
+	Expression&lt;Func&lt;TAccumulate, TResult&gt;&gt; selector
+)</pre></div><div id="ID0ECSCAAAAA_code_Div2" class="OH_CodeSnippetContainerCode" style="display: none"><pre>&lt;<span class="identifier">ExtensionAttribute</span>&gt; 
+<span class="keyword">Public</span> <span class="keyword">Shared</span> <span class="keyword">Function</span> <span class="identifier">Aggregate</span>(<span class="keyword">Of</span> TSource, TAccumulate, TResult) ( 
+	<span class="parameter">source</span> <span class="keyword">As</span> <span class="identifier">IQueryable</span>(<span class="keyword">Of</span> TSource),
+	<span class="parameter">seedFunc</span> <span class="keyword">As</span> <span class="identifier">Expression</span>(<span class="keyword">Of</span> <span class="identifier">Func</span>(<span class="keyword">Of</span> TAccumulate)),
+	<span class="parameter">func</span> <span class="keyword">As</span> <span class="identifier">Expression</span>(<span class="keyword">Of</span> <span class="identifier">Func</span>(<span class="keyword">Of</span> TAccumulate, TSource, TAccumulate)),
+	<span class="parameter">selector</span> <span class="keyword">As</span> <span class="identifier">Expression</span>(<span class="keyword">Of</span> <span class="identifier">Func</span>(<span class="keyword">Of</span> TAccumulate, TResult))
+) <span class="keyword">As</span> TResult</pre></div><div id="ID0ECSCAAAAA_code_Plain_Div2" class="OH_CodeSnippetContainerCode" style="display: none"><pre>&lt;ExtensionAttribute&gt; 
+Public Shared Function Aggregate(Of TSource, TAccumulate, TResult) ( 
+	source As IQueryable(Of TSource),
+	seedFunc As Expression(Of Func(Of TAccumulate)),
+	func As Expression(Of Func(Of TAccumulate, TSource, TAccumulate)),
+	selector As Expression(Of Func(Of TAccumulate, TResult))
+) As TResult</pre></div><div id="ID0ECSCAAAAA_code_Div3" class="OH_CodeSnippetContainerCode" style="display: none"><pre><span class="keyword">public</span>:
+[<span class="identifier">ExtensionAttribute</span>]
+<span class="keyword">generic</span>&lt;<span class="keyword">typename</span> TSource, <span class="keyword">typename</span> TAccumulate, <span class="keyword">typename</span> TResult&gt;
+<span class="keyword">static</span> TResult <span class="identifier">Aggregate</span>(
+	<span class="identifier">IQueryable</span>&lt;TSource&gt;^ <span class="parameter">source</span>, 
+	<span class="identifier">Expression</span>&lt;<span class="identifier">Func</span>&lt;TAccumulate&gt;^&gt;^ <span class="parameter">seedFunc</span>, 
+	<span class="identifier">Expression</span>&lt;<span class="identifier">Func</span>&lt;TAccumulate, TSource, TAccumulate&gt;^&gt;^ <span class="parameter">func</span>, 
+	<span class="identifier">Expression</span>&lt;<span class="identifier">Func</span>&lt;TAccumulate, TResult&gt;^&gt;^ <span class="parameter">selector</span>
+)</pre></div><div id="ID0ECSCAAAAA_code_Plain_Div3" class="OH_CodeSnippetContainerCode" style="display: none"><pre>public:
+[ExtensionAttribute]
+generic&lt;typename TSource, typename TAccumulate, typename TResult&gt;
+static TResult Aggregate(
+	IQueryable&lt;TSource&gt;^ source, 
+	Expression&lt;Func&lt;TAccumulate&gt;^&gt;^ seedFunc, 
+	Expression&lt;Func&lt;TAccumulate, TSource, TAccumulate&gt;^&gt;^ func, 
+	Expression&lt;Func&lt;TAccumulate, TResult&gt;^&gt;^ selector
+)</pre></div><div id="ID0ECSCAAAAA_code_Div4" class="OH_CodeSnippetContainerCode" style="display: none"><pre /></div><div id="ID0ECSCAAAAA_code_Plain_Div4" class="OH_CodeSnippetContainerCode" style="display: none"><pre /></div></div></div><script>addSpecificTextLanguageTagSet('ID0ECSCAAAAA');</script></div><div id="parameters"><h4 class="subHeading">Parameters</h4><dl paramName="source"><dt><span class="parameter">source</span></dt><dd>Type: <a href="http://msdn2.microsoft.com/en-us/library/bb351562" target="_blank">System.Linq<span id="ID0EBFADRCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EBFADRCAAAAA?vb=.|cpp=::|cs=.|fs=.|nu=.");
+				</script>IQueryable</a><span id="ID0EEADRCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EEADRCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script><span class="selflink"><span class="typeparam">TSource</span></span><span id="ID0ECADRCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0ECADRCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script><br /><span>The input sequence</span></dd></dl><dl paramName="seedFunc"><dt><span class="parameter">seedFunc</span></dt><dd>Type: <a href="http://msdn2.microsoft.com/en-us/library/bb335710" target="_blank">System.Linq.Expressions<span id="ID0EBIACRCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EBIACRCAAAAA?vb=.|cpp=::|cs=.|fs=.|nu=.");
+				</script>Expression</a><span id="ID0EHACRCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EHACRCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script><a href="http://msdn2.microsoft.com/en-us/library/bb534960" target="_blank">Func</a><span id="ID0EFACRCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EFACRCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script><span class="selflink"><span class="typeparam">TAccumulate</span></span><span id="ID0EDACRCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EDACRCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script><span id="ID0ECACRCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0ECACRCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script><br /><span>The function that creates the initial accumulator value </span></dd></dl><dl paramName="func"><dt><span class="parameter">func</span></dt><dd>Type: <a href="http://msdn2.microsoft.com/en-us/library/bb335710" target="_blank">System.Linq.Expressions<span id="ID0EBMABRCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EBMABRCAAAAA?vb=.|cpp=::|cs=.|fs=.|nu=.");
+				</script>Expression</a><span id="ID0ELABRCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0ELABRCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script><a href="http://msdn2.microsoft.com/en-us/library/bb534647" target="_blank">Func</a><span id="ID0EJABRCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EJABRCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script><span class="selflink"><span class="typeparam">TAccumulate</span></span>, <span class="selflink"><span class="typeparam">TSource</span></span>, <span class="selflink"><span class="typeparam">TAccumulate</span></span><span id="ID0EDABRCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EDABRCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script><span id="ID0ECABRCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0ECABRCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script><br /><span>An accumualator function to apply to each element</span></dd></dl><dl paramName="selector"><dt><span class="parameter">selector</span></dt><dd>Type: <a href="http://msdn2.microsoft.com/en-us/library/bb335710" target="_blank">System.Linq.Expressions<span id="ID0EBKAARCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EBKAARCAAAAA?vb=.|cpp=::|cs=.|fs=.|nu=.");
+				</script>Expression</a><span id="ID0EJAARCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EJAARCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script><a href="http://msdn2.microsoft.com/en-us/library/bb549151" target="_blank">Func</a><span id="ID0EHAARCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EHAARCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script><span class="selflink"><span class="typeparam">TAccumulate</span></span>, <span class="selflink"><span class="typeparam">TResult</span></span><span id="ID0EDAARCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EDAARCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script><span id="ID0ECAARCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0ECAARCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script><br /><span>A function to transform the final accumulator value into the result value</span></dd></dl></div><div class="OH_CollapsibleAreaRegion"><div class="OH_regiontitle">Type Parameters</div><div class="OH_CollapsibleArea_HrDiv"><hr class="OH_CollapsibleArea_Hr" /></div></div><div class="OH_clear"></div><dl><dt><span class="parameter">TSource</span></dt><dd>The type of the elements of source</dd><dt><span class="parameter">TAccumulate</span></dt><dd>The type of the accumulator value</dd><dt><span class="parameter">TResult</span></dt><dd>The type of final result</dd></dl><h4 class="subHeading">Return Value</h4>Type: <span class="selflink"><span class="typeparam">TResult</span></span><br />The result of applying selector to the accumulator value<h4 class="subHeading">Usage Note</h4>In Visual Basic and C#, you can call this method as an instance method on any object of type <a href="http://msdn2.microsoft.com/en-us/library/bb351562" target="_blank">IQueryable</a><span id="ID0EHCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EHCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
+				</script><span class="selflink"><span class="typeparam">TSource</span></span><span id="ID0EFCAAAAA"> </span><script type="text/javascript">
+					addToLanSpecTextIdSet("ID0EFCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
+				</script>. When you use instance method syntax to call this method, omit the first parameter. For more information, see <a href="http://msdn.microsoft.com/en-us/library/bb384936.aspx" target="_blank">Extension Methods (Visual Basic)</a> or <a href="http://msdn.microsoft.com/en-us/library/bb383977.aspx" target="_blank">Extension Methods (C# Programming Guide)</a>.<a name="seeAlsoSection"><!----></a><div class="OH_CollapsibleAreaRegion"><div class="OH_regiontitle">See Also</div><div class="OH_CollapsibleArea_HrDiv"><hr class="OH_CollapsibleArea_Hr" /></div></div><div class="OH_clear"></div><div class="seeAlsoStyle"><a href="6d67ec6b-96ed-0a8b-0ad4-1c0568c7bf91.htm" target="">DryadLinqQueryable Class</a></div><div class="seeAlsoStyle"><a href="c0f6970e-9d7d-0f05-99ec-aea86dd3901d.htm" target="">Aggregate Overload</a></div><div class="seeAlsoStyle"><a href="efe6507e-9fd8-bbd3-8227-fd6ba9e289c1.htm" target="">Microsoft.Research.DryadLinq Namespace</a></div></div></div></div></div><div id="OH_footer" class="OH_footer"><p /><div class="OH_feedbacklink"><a href="mailto:?subject=DryadLINQ+documentation+DryadLinqQueryable.Aggregate(TSource%2c+TAccumulate%2c+TResult)+Method+(IQueryable(TSource)%2c+Expression(Func(TAccumulate))%2c+Expression(Func(TAccumulate%2c+TSource%2c+TAccumulate))%2c+Expression(Func(TAccumulate%2c+TResult)))+100+EN-US&amp;body=Your%20feedback%20is%20used%20to%20improve%20the%20documentation%20and%20the%20product.%20Your%20e-mail%20address%20will%20not%20be%20used%20for%20any%20other%20purpose%20and%20is%20disposed%20of%20after%20the%20issue%20you%20report%20is%20resolved.%20While%20working%20to%20resolve%20the%20issue%20that%20you%20report%2c%20you%20may%20be%20contacted%20via%20e-mail%20to%20get%20further%20details%20or%20clarification%20on%20the%20feedback%20you%20sent.%20After%20the%20issue%20you%20report%20has%20been%20addressed%2c%20you%20may%20receive%20an%20e-mail%20to%20let%20you%20know%20that%20your%20feedback%20has%20been%20addressed.">Send Feedback</a> on this topic.</div></div></body></html>
