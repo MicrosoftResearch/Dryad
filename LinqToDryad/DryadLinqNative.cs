@@ -30,7 +30,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 {       
     internal struct MEMORYSTATUSEX
     {
-        public UInt32  dwLength;
+        public UInt32 dwLength;
         public UInt32 dwMemoryLoad;  
         public UInt64 ullTotalPhys;
         public UInt64 ullAvailPhys;

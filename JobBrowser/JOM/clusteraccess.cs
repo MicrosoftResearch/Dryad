@@ -20,15 +20,15 @@ limitations under the License.
 */
 
 using System.Text.RegularExpressions;
-using Microsoft.Research.Calypso.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Diagnostics;
 using Microsoft.Research.Peloponnese.Storage;
+using Microsoft.Research.Tools;
 using Microsoft.WindowsAzure.Storage.Blob;
 
-namespace Microsoft.Research.Calypso.JobObjectModel
+namespace Microsoft.Research.JobObjectModel
 {
     /// <summary>
     /// A cluster-resident object is a file or a folder.
@@ -158,7 +158,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
             if (file.Job == null)
                 return;
             if (string.IsNullOrEmpty(file.LocalCachePath))
-                throw new CalypsoClusterException("Missing expected LocalCachePath");
+                throw new ClusterException("Missing expected LocalCachePath");
 
             CachedClusterResidentObject.RecordCachedFile(file.Job, file.LocalCachePath);
         }
@@ -375,7 +375,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                 {
                     // cache it 
                     if (this.RepresentsAFolder)
-                        throw new CalypsoClusterException("Cannot cache folders");
+                        throw new ClusterException("Cannot cache folders");
 
                     StreamWriter writer = this.CreateTempStream();
                     return new FileSharedStreamReader(this.Pathname.ToString(), writer, this.OnClose);
@@ -504,7 +504,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
             get
             {
                 if (this.RepresentsAFolder)
-                    throw new CalypsoClusterException("Cannot get size of a folder");
+                    throw new ClusterException("Cannot get size of a folder");
                 if (File.Exists(this.LocalCachePath))
                 {
                     FileInfo info = new FileInfo(this.LocalCachePath);
@@ -732,7 +732,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// <returns>Throws an exception.</returns>
         public IEnumerable<IClusterResidentObject> GetFilesAndFolders(string match)
         {
-            throw new CalypsoClusterException("Object is not a folder");
+            throw new ClusterException("Object is not a folder");
         }
 
         private long size;
@@ -787,7 +787,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// <returns>Throws an exception.</returns>
         public IClusterResidentObject GetFile(string filename)
         {
-            throw new CalypsoClusterException("Object is not a folder");
+            throw new ClusterException("Object is not a folder");
         }
 
         /// <summary>
@@ -797,7 +797,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// <returns>Throws an exception.</returns>
         public IClusterResidentObject GetFolder(string foldername)
         {
-            throw new CalypsoClusterException("Object is not a folder");
+            throw new ClusterException("Object is not a folder");
         }
     }
 
@@ -1011,13 +1011,24 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                     this.client.ContainerName,
                     this.path);
             }
-            StreamReader reader = new StreamReader(stream, System.Text.Encoding.UTF8, false, 1024 * 1024);
+
+            long size = this.Size;
+            int bufferSize = 1024*1024;
+            if (size >= 0)
+            {
+                bufferSize = (int)(size/10);
+                if (bufferSize < 1024*1024)
+                    bufferSize = 1024*1024;
+                if (bufferSize > 20*1024*1024)
+                    bufferSize = 20*1024*1024;
+            }
+            StreamReader reader = new StreamReader(stream, System.Text.Encoding.UTF8, false, bufferSize);
 
             if (this.ShouldCacheLocally && this.LocalCachePath != null)
             {
                 // cache it 
                 if (this.RepresentsAFolder)
-                    throw new CalypsoClusterException("Cannot cache folders");
+                    throw new ClusterException("Cannot cache folders");
                 StreamWriter writer = this.CreateTempStream();
                 return new SharedStreamReader(reader, writer, this.OnClose);
             }

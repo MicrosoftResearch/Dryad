@@ -19,7 +19,7 @@ limitations under the License.
 
 */
 
-namespace Microsoft.Research.Calypso.Tools
+namespace Microsoft.Research.Tools
 {
     using System;
     using System.Drawing;

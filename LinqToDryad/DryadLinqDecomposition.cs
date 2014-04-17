@@ -26,10 +26,11 @@ using System.Reflection;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Diagnostics;
-using Microsoft.Research.DryadLinq.Internal;
 
 namespace Microsoft.Research.DryadLinq
 {
+    using Microsoft.Research.DryadLinq.Internal;
+
     internal class DecompositionInfo
     {
         private Expression m_func;                       // The original function call
@@ -744,6 +745,13 @@ namespace Microsoft.Research.DryadLinq
             }
         }
     }
+}
+
+#pragma warning disable 1591
+
+namespace Microsoft.Research.DryadLinq.Internal
+{
+    using Microsoft.Research.DryadLinq;
 
     public class ContainsDecomposition<TSource> : IDecomposable<TSource, bool, bool>
     {

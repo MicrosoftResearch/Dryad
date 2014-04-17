@@ -27,10 +27,26 @@ using System.Reflection;
 using System.Linq.Expressions;
 using System.Linq;
 
+#pragma warning disable 1591
+
 namespace Microsoft.Research.DryadLinq.Internal
 {
+    /// <summary>
+    /// DryadLINQ helper functions. They are mainly used in the implementation of DryadLINQ.
+    /// </summary>
+    /// <remarks>A DryadLINQ user should not need to use DryadLinqHelper directly.</remarks>
     public static class DryadLinqHelper
     {
+        /// <summary>
+        /// Check if an input source is sorted.
+        /// </summary>
+        /// <typeparam name="TSource">The type of input record.</typeparam>
+        /// <typeparam name="TKey">The type of key.</typeparam>
+        /// <param name="source">The input source.</param>
+        /// <param name="keySelector">The key selection function.</param>
+        /// <param name="comparer">A comparer object used to compare keys.</param>
+        /// <param name="isDescending">True if the check is for descending</param>
+        /// <returns></returns>
         [Resource(IsStateful = false)]
         public static IEnumerable<TSource>
             CheckSort<TSource, TKey>(IEnumerable<TSource> source,
@@ -65,6 +81,16 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
         
+        /// <summary>
+        /// Apply a function to the cross product of two input sequences.
+        /// </summary>
+        /// <typeparam name="T1">The record type of the first input.</typeparam>
+        /// <typeparam name="T2">The record type of the second input.</typeparam>
+        /// <typeparam name="T3">The record yype of the result.</typeparam>
+        /// <param name="s1">The first input.</param>
+        /// <param name="s2">The second input.</param>
+        /// <param name="procFunc">The function to apply.</param>
+        /// <returns>The result of applying the function to the cross product of two inputs.</returns>
         public static IEnumerable<T3> Cross<T1, T2, T3>(IEnumerable<T1> s1,
                                                         IEnumerable<T2> s2,
                                                         Expression<Func<T1, T2, T3>> procFunc)
@@ -104,7 +130,14 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
-        // Used in SequenceEqual()
+        /// <summary>
+        /// Determines whether two sequences are equal according to an equality comparer
+        /// </summary>
+        /// <typeparam name="T">The record type of the sequences.</typeparam>
+        /// <param name="s1">The first sequence.</param>
+        /// <param name="s2">The second sequence.</param>
+        /// <param name="comparer">An equality comparer.</param>
+        /// <returns>true iff the two sequences are equal.</returns>
         public static IEnumerable<bool> SequenceEqual<T>(IEnumerable<T> s1,
                                                          IEnumerable<T> s2,
                                                          IEqualityComparer<T> comparer)
@@ -114,6 +147,14 @@ namespace Microsoft.Research.DryadLinq.Internal
         }
 
         // Used in SlidingWindow()
+        /// <summary>
+        /// Returns the last windowSize-1 records in a sequence.
+        /// </summary>
+        /// <typeparam name="T">The record type of the sequence.</typeparam>
+        /// <param name="source">The input sequence.</param>
+        /// <param name="windowSize">The window size</param>
+        /// <returns>The last windowSize-1 records as an array.</returns>
+        /// <remarks>Used in sliding windows computations.</remarks>
         [Resource(IsStateful = false)]
         public static IEnumerable<T[]> Last<T>(IEnumerable<T> source,
                                                int windowSize)

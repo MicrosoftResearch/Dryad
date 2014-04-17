@@ -23,15 +23,26 @@ using Microsoft.Research.DryadLinq;
 
 namespace Microsoft.Research.DryadLinq.Internal
 {
+    /// <summary>
+    /// A simple BitVector implementation.
+    /// </summary>
     public struct BitVector
     {
         private byte[] m_array;
         
+        /// <summary>
+        /// Initializes a new instance of the BitVector class.
+        /// </summary>
+        /// <param name="length">The number of bits for the bit vector.</param>
         public BitVector(int length)
         {
             this.m_array = new byte[(length + 7) / 8];
         }
-    
+
+        /// <summary>
+        /// Initializes a new instance of the BitVector class from an array of boolean values.  
+        /// </summary>
+        /// <param name="values">An array of boolean values representing a bit vector.</param>
         public BitVector(bool[] values)
         {
             this.m_array = new byte[(values.Length + 7) / 8];
@@ -49,11 +60,21 @@ namespace Microsoft.Research.DryadLinq.Internal
             this.m_array = values;
         }
     
+        /// <summary>
+        /// Gets the bit at the specified index.
+        /// </summary>
+        /// <param name="index">An index into the bit vector.</param>
+        /// <returns>The value of the bit as a boolean.</returns>
         public bool this[int index]
         {
             get { return this.Get(index); }
         }
     
+        /// <summary>
+        /// Gets the bit at the specified index.
+        /// </summary>
+        /// <param name="index">An index into the bit vector.</param>
+        /// <returns>The value of the bit as a boolean.</returns>
         public bool Get(int index)
         {
             int idx = index / 8;
@@ -61,11 +82,19 @@ namespace Microsoft.Research.DryadLinq.Internal
                     (this.m_array[idx] & (1 << (index % 8))) != 0);
         }
 
+        /// <summary>
+        /// Sets the bit at the specified index.
+        /// </summary>
+        /// <param name="index">An index into the bit vector.</param>
         public void Set(int index)
         {
-            m_array[index / 8] |= (byte)(1 << (index % 8));
+            this.m_array[index / 8] |= (byte)(1 << (index % 8));
         }
-    
+
+        /// <summary>
+        /// Sets all the bits to the specified value.
+        /// </summary>
+        /// <param name="value">The value to be set for all bits.</param>
         public void SetAll(bool value)
         {
             byte fillValue = 0;
@@ -91,6 +120,11 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
         
+        /// <summary>
+        /// Reads a BitVector from the specified DryadLinqBinaryReader. 
+        /// </summary>
+        /// <param name="reader">The DryadLinqBinaryReader to read from.</param>
+        /// <returns>A BitVector</returns>
         public static BitVector Read(DryadLinqBinaryReader reader)
         {
             Int32 len = reader.ReadCompactInt32();
@@ -102,6 +136,11 @@ namespace Microsoft.Research.DryadLinq.Internal
             return new BitVector(values);
         }
 
+        /// <summary>
+        /// Writes a BitVector to the specified DryadLinqBinaryWriter.
+        /// </summary>
+        /// <param name="writer">The DryadLinqBinaryWriter to write to.</param>
+        /// <param name="bv">The BitVector to write</param>
         public static void Write(DryadLinqBinaryWriter writer, BitVector bv)
         {
             bv.WriteInner(writer);

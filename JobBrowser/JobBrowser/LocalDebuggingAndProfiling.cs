@@ -24,13 +24,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Microsoft.Research.Calypso.JobObjectModel;
-using Microsoft.Research.Calypso.Tools;
-using Microsoft.Research.Calypso.UsefulForms;
+using Microsoft.Research.JobObjectModel;
+using Microsoft.Research.Tools;
+using Microsoft.Research.UsefulForms;
 using Microsoft.Win32;
 using System.Diagnostics;
 
-namespace Microsoft.Research.Calypso.DryadAnalysis
+namespace Microsoft.Research.DryadAnalysis
 {
     /// <summary>
     /// Class that encapsulates the steps required to debug a vertex locally.

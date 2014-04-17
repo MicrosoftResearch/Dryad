@@ -22,7 +22,7 @@ limitations under the License.
 using System;
 using System.Windows.Forms;
 
-namespace Microsoft.Research.Calypso.UsefulForms
+namespace Microsoft.Research.UsefulForms
 {
     /// <summary>
     /// A box displaying a warning, which can be turned off.

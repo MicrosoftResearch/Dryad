@@ -18,7 +18,7 @@ See the Apache Version 2.0 License for specific language governing permissions a
 limitations under the License. 
 
 */
-namespace Microsoft.Research.Calypso.DryadAnalysis
+namespace Microsoft.Research.DryadAnalysis
 {
     partial class JobBrowser
     {
@@ -65,13 +65,13 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             this.menu = new System.Windows.Forms.MenuStrip();
             this.jobToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.refreshToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.collectDataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.hideCancelledVerticesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exportToCSVToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem_terminate = new System.Windows.Forms.ToolStripMenuItem();
             this.packageCachedFilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.diagnoseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.closeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.cancelCurrentWorkToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.stageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cacheLogsForAllVerticesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.vertexToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -80,7 +80,6 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             this.profileLocallyCPUSamplingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.profileLocallyMemorySamplingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.jMStdoutMentionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.jMLogsMentionsToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.diagnoseToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.loadFileInEditorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -124,7 +123,6 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             this.menuItem_stageVertexProfileLocallyCPUSampling = new System.Windows.Forms.ToolStripMenuItem();
             this.menuItem_stageVertexProfileLocallyMemorySampling = new System.Windows.Forms.ToolStripMenuItem();
             this.jMStdoutLinesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.jMLogsMentionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.diagnoseToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer_vertexData = new System.Windows.Forms.SplitContainer();
             this.dataGridView_vertexHeader = new System.Windows.Forms.DataGridView();
@@ -147,7 +145,6 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             this.toolStripStatusLabel_currentWork = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel_backgroundWork = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripProgressBar = new System.Windows.Forms.ToolStripProgressBar();
-            this.backgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.menu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer_jobAndRest)).BeginInit();
             this.splitContainer_jobAndRest.Panel1.SuspendLayout();
@@ -204,13 +201,13 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             // 
             this.jobToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.refreshToolStripMenuItem,
-            this.collectDataToolStripMenuItem,
             this.hideCancelledVerticesToolStripMenuItem,
             this.exportToCSVToolStripMenuItem,
             this.toolStripMenuItem_terminate,
             this.packageCachedFilesToolStripMenuItem,
             this.diagnoseToolStripMenuItem,
-            this.closeToolStripMenuItem});
+            this.closeToolStripMenuItem,
+            this.cancelCurrentWorkToolStripMenuItem});
             this.jobToolStripMenuItem.Name = "jobToolStripMenuItem";
             this.jobToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.jobToolStripMenuItem.Text = "Job";
@@ -248,7 +245,6 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             this.toolStripMenuItem_terminate.Size = new System.Drawing.Size(195, 22);
             this.toolStripMenuItem_terminate.Text = "Terminate job";
             this.toolStripMenuItem_terminate.ToolTipText = "Requests the cluster to terminate the job execution.";
-            this.toolStripMenuItem_terminate.Visible = false;
             this.toolStripMenuItem_terminate.Click += new System.EventHandler(this.toolStripMenuItem_terminate_Click);
             // 
             // packageCachedFilesToolStripMenuItem
@@ -279,6 +275,13 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             this.closeToolStripMenuItem.ToolTipText = "Save the settings and close the window.";
             this.closeToolStripMenuItem.Click += new System.EventHandler(this.closeToolStripMenuItem_Click);
             // 
+            // cancelCurrentWorkToolStripMenuItem
+            // 
+            this.cancelCurrentWorkToolStripMenuItem.Name = "cancelCurrentWorkToolStripMenuItem";
+            this.cancelCurrentWorkToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
+            this.cancelCurrentWorkToolStripMenuItem.Text = "Cancel current work";
+            this.cancelCurrentWorkToolStripMenuItem.Click += new System.EventHandler(this.cancelCurrentWorkToolStripMenuItem_Click);
+            // 
             // stageToolStripMenuItem
             // 
             this.stageToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -304,7 +307,6 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             this.profileLocallyCPUSamplingToolStripMenuItem,
             this.profileLocallyMemorySamplingToolStripMenuItem,
             this.jMStdoutMentionsToolStripMenuItem,
-            this.jMLogsMentionsToolStripMenuItem1,
             this.diagnoseToolStripMenuItem1});
             this.vertexToolStripMenuItem.Enabled = false;
             this.vertexToolStripMenuItem.Name = "vertexToolStripMenuItem";
@@ -908,10 +910,9 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             this.menuItem_stageVertexProfileLocallyCPUSampling,
             this.menuItem_stageVertexProfileLocallyMemorySampling,
             this.jMStdoutLinesToolStripMenuItem,
-            this.jMLogsMentionsToolStripMenuItem,
             this.diagnoseToolStripMenuItem2});
             this.contextMenu_stageVertex.Name = "vertexContextMenuStrip";
-            this.contextMenu_stageVertex.Size = new System.Drawing.Size(256, 158);
+            this.contextMenu_stageVertex.Size = new System.Drawing.Size(256, 136);
             // 
             // menuItem_stageVertexLocalDebugManaged
             // 
@@ -1252,11 +1253,6 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             this.toolStripProgressBar.Name = "toolStripProgressBar";
             this.toolStripProgressBar.Size = new System.Drawing.Size(100, 16);
             // 
-            // backgroundWorker
-            // 
-            this.backgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker_DoWork);
-            this.backgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker_RunWorkerCompleted);
-            // 
             // JobBrowser
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1352,7 +1348,6 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         private System.Windows.Forms.TextBox textBox_stageCode;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel3;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel4;
-        private System.Windows.Forms.ToolStripMenuItem collectDataToolStripMenuItem;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel5;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox textBox_find;
@@ -1362,7 +1357,6 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         private System.Windows.Forms.Label label_matches;
         private System.Windows.Forms.CheckBox checkBox_refresh;
         private System.Windows.Forms.Button button_filter;
-        private System.ComponentModel.BackgroundWorker backgroundWorker;
         private System.Windows.Forms.ComboBox comboBox_vertexInformation;
         private System.Windows.Forms.Label label_comboVertex;
         private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
@@ -1380,9 +1374,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         private System.Windows.Forms.ToolStripMenuItem menuItem_stageVertexLocalDebugUnmanaged;
         private System.Windows.Forms.ToolStripMenuItem debugLocallyUnmanagedToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem jMStdoutMentionsToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem jMLogsMentionsToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem jMStdoutLinesToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem jMLogsMentionsToolStripMenuItem;
         private System.Windows.Forms.TextBox textBox_stageFilter;
         private System.Windows.Forms.Button button_stageFilter;
         private System.Windows.Forms.Button button_clearStageFilter;
@@ -1412,5 +1404,6 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         private System.Windows.Forms.ToolStripMenuItem cacheAllLogsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem exportToCSVToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem cacheLogsForAllVerticesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem cancelCurrentWorkToolStripMenuItem;
     }
 }

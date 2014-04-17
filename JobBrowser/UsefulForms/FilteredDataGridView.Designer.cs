@@ -18,7 +18,7 @@ See the Apache Version 2.0 License for specific language governing permissions a
 limitations under the License. 
 
 */
-namespace Microsoft.Research.Calypso.Tools
+namespace Microsoft.Research.Tools
 {
     partial class FilteredDataGridView
     {
@@ -33,7 +33,7 @@ namespace Microsoft.Research.Calypso.Tools
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
+            if (disposing && (components != null)) 
             {
                 components.Dispose();
             }

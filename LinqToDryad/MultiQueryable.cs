@@ -31,34 +31,99 @@ using Microsoft.Research.DryadLinq.Internal;
 
 namespace Microsoft.Research.DryadLinq
 {
+    /// <summary>
+    /// The base interface to access a collection of IQueryable instances. The 
+    /// DryadLINQ Fork operator returns a value that implements this interface.
+    /// </summary>
     public interface IMultiQueryable
     {
+        /// <summary>
+        /// Gets the element type of the query at a specified index.
+        /// </summary>
+        /// <param name="index">The index</param>
+        /// <returns>A Type that represents the type of the elements</returns>
         Type ElementType(int index);
+
+        /// <summary>
+        /// Gets the expression tree that is associated with this instance of IMultiQueryable
+        /// </summary>
         Expression Expression { get; }
+
+        /// <summary>
+        /// Gets the query provider that is associated with this instance of IMultiQueryable
+        /// </summary>
         IQueryProvider Provider { get; }
+
+        /// <summary>
+        /// Gets the number of queries in this instance of IMultiQueryable
+        /// </summary>
         UInt32 NumberOfInputs { get; }
     }
 
-    public interface IKeyedMultiQueryable<T, K> : IMultiQueryable
-    {
-        IQueryable<T> this[K key] { get; }
-        K[] Keys { get; }
-    }
-
+    /// <summary>
+    /// The interface to access a collection of two IQueryable{T} instances.
+    /// </summary>
+    /// <typeparam name="T1">The element type of the first IQueryable{T}</typeparam>
+    /// <typeparam name="T2">The element type of the second IQueryable{T}</typeparam>
     public interface IMultiQueryable<T1, T2> : IMultiQueryable
     {
+        /// <summary>
+        /// Gets the first IQueryable{T}
+        /// </summary>
         IQueryable<T1> First { get; }
+
+        /// <summary>
+        /// Gets the second IQueryable{T}
+        /// </summary>
         IQueryable<T2> Second { get; }
     }
 
+    /// <summary>
+    /// The interface to access a collection of three IQueryable{T} instances.
+    /// </summary>
+    /// <typeparam name="T1">The element type of the first IQueryable{T}</typeparam>
+    /// <typeparam name="T2">The element type of the second IQueryable{T}</typeparam>
+    /// <typeparam name="T3">The element type of the third IQueryable{T}</typeparam>
     public interface IMultiQueryable<T1, T2, T3> : IMultiQueryable
     {
+        /// <summary>
+        /// Gets the first IQueryable{T}
+        /// </summary>
         IQueryable<T1> First { get; }
-       IQueryable<T2> Second { get; }
+
+        /// <summary>
+        /// Gets the second IQueryable{T}
+        /// </summary>
+        IQueryable<T2> Second { get; }
+
+        /// <summary>
+        /// Gets the third IQueryable{T}
+        /// </summary>
         IQueryable<T3> Third { get; }
     }
 
-    public class MultiQueryable<T, K> : IKeyedMultiQueryable<T, K>
+    /// <summary>
+    /// The interface to access a collection of IQueryable{T} instances. Each IQueryable{T}
+    /// contains only elements of the same key. The IQueryable{T}s are indexed by a set of keys.
+    /// </summary>
+    /// <typeparam name="T">The element type of IQueryable{T}s</typeparam>
+    /// <typeparam name="K">The key type</typeparam>
+    public interface IKeyedMultiQueryable<T, K> : IMultiQueryable
+    {
+        /// <summary>
+        /// Gets the IQueryable{T} associated with a specified key.
+        /// </summary>
+        /// <param name="key">A key</param>
+        /// <returns>The IQueryable{T} associated with the key</returns>
+        IQueryable<T> this[K key] { get; }
+
+        /// <summary>
+        /// Gets the keys.
+        /// </summary>
+        K[] Keys { get; }
+    }
+
+    internal class MultiQueryable<T, K> : IKeyedMultiQueryable<T, K>
     {
         private IQueryable<T> m_source;
         private Expression m_queryExpression;
@@ -141,14 +206,13 @@ namespace Microsoft.Research.DryadLinq
                     return this.ForkChoose<T>(index);
                 }
 
-                //@@TODO: throw ArgumentOutOfRangeException?
                 throw new DryadLinqException(DryadLinqErrorCode.MultiQueryableKeyOutOfRange,
                                              SR.MultiQueryableKeyOutOfRange);
             }
         }
     }
 
-    public class MultiQueryable<T, R1, R2> : IMultiQueryable<R1, R2>
+    internal class MultiQueryable<T, R1, R2> : IMultiQueryable<R1, R2>
     {
         private IQueryable<T> m_source;
         private Expression m_queryExpression;
@@ -180,7 +244,6 @@ namespace Microsoft.Research.DryadLinq
             }
             else
             {
-                //@@TODO: throw ArgumentOutOfRangeException?
                 throw new DryadLinqException(DryadLinqErrorCode.IndexOutOfRange,
                                              SR.IndexOutOfRange);
             }
@@ -228,7 +291,7 @@ namespace Microsoft.Research.DryadLinq
         }
     }
 
-    public class MultiQueryable<T, R1, R2, R3> : IMultiQueryable<R1, R2, R3>
+    internal class MultiQueryable<T, R1, R2, R3> : IMultiQueryable<R1, R2, R3>
     {
         private IQueryable<T> m_source;
         private Expression m_queryExpression;
@@ -264,7 +327,6 @@ namespace Microsoft.Research.DryadLinq
             }
             else
             {
-                //@@TODO: throw ArgumentOutOfRangeException?
                 throw new DryadLinqException(DryadLinqErrorCode.IndexOutOfRange,
                                              SR.IndexOutOfRange);
             }

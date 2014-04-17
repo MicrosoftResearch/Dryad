@@ -60,7 +60,6 @@ namespace Microsoft.Research.DryadLinq
         private DLinqQueryNode[] m_queryPlan3;
         private Uri[] m_outputTableUris;
         private bool[] m_isTempOutput;
-        private Uri[] m_outputDatapaths;
         private Type[] m_outputTypes;
         private QueryNodeInfo[] m_queryNodeInfos;
         private DryadLinqQuery[] m_outputTables;
@@ -82,8 +81,7 @@ namespace Microsoft.Research.DryadLinq
                                    bool isTempOutput)
         {
             this.m_queryExprs = new Expression[] { queryExpr };
-            Uri fullTableUri = tableUri;
-            this.m_outputTableUris = new Uri[] { fullTableUri };
+            this.m_outputTableUris = new Uri[] { tableUri };
             this.m_isTempOutput = new bool[] { isTempOutput };
             this.m_context = context;
             this.Initialize(vertexCodeGen);
@@ -137,7 +135,6 @@ namespace Microsoft.Research.DryadLinq
 
             // Initialize the data structures for the output tables
             this.m_outputTypes = new Type[this.m_queryExprs.Length];
-            this.m_outputDatapaths = new Uri[this.m_queryExprs.Length];
             this.m_queryNodeInfos = new QueryNodeInfo[this.m_queryExprs.Length];
             
             for (int i = 0; i < this.m_queryExprs.Length; i++)
@@ -145,9 +142,7 @@ namespace Microsoft.Research.DryadLinq
                 this.m_queryNodeInfos[i] = this.BuildNodeInfoGraph(this.m_queryExprs[i]);
                 this.m_queryNodeInfos[i] = new DummyQueryNodeInfo(this.m_queryExprs[i], false, this.m_queryNodeInfos[i]);
 
-                this.m_outputDatapaths[i] = this.m_outputTableUris[i];
-                
-                if (!DataPath.IsValidDataPath(this.m_outputDatapaths[i]))
+                if (!DataPath.IsValidDataPath(this.m_outputTableUris[i]))
                 {
                     throw new DryadLinqException(DryadLinqErrorCode.UnrecognizedDataSource,
                                                  String.Format(SR.UnrecognizedDataSource,
@@ -303,7 +298,7 @@ namespace Microsoft.Research.DryadLinq
 
             for (int i = 0; i < this.m_queryExprs.Length; i++)
             {
-                DryadLinqClientLog.Add("Query " + i + " Output: " + this.m_outputDatapaths[i]);
+                DryadLinqClientLog.Add("Query " + i + " Output: " + this.m_outputTableUris[i]);
 
                 DLinqQueryNode queryNode = this.m_queryPlan1[i];
                 if (TypeSystem.IsAnonymousType(queryNode.OutputTypes[0]))
@@ -334,7 +329,7 @@ namespace Microsoft.Research.DryadLinq
                 // Add the output node                
                 CompressionScheme outputScheme = this.m_context.OutputDataCompressionScheme;
                 DLinqOutputNode outputNode = new DLinqOutputNode(this.m_context,
-                                                                 this.m_outputDatapaths[i],
+                                                                 this.m_outputTableUris[i],
                                                                  this.m_isTempOutput[i],
                                                                  outputScheme,
                                                                  this.m_queryExprs[i],
@@ -342,13 +337,14 @@ namespace Microsoft.Research.DryadLinq
 
                 this.m_queryPlan1[i] = outputNode;
 
-                if (this.m_outputUriMap.ContainsKey(this.m_outputDatapaths[i].AbsoluteUri.ToLower()))
+                string outputUri = this.m_outputTableUris[i].AbsoluteUri.ToLower();
+                if (this.m_outputUriMap.ContainsKey(outputUri))
                 {
                     throw new DryadLinqException(DryadLinqErrorCode.MultipleOutputsWithSameDscUri,
-                                                 String.Format(SR.MultipleOutputsWithSameUri, this.m_outputDatapaths[i]));
+                                                 String.Format(SR.MultipleOutputsWithSameUri, this.m_outputTableUris[i]));
                 }
 
-                this.m_outputUriMap.Add(this.m_outputDatapaths[i].AbsoluteUri.ToLower(), outputNode);
+                this.m_outputUriMap.Add(outputUri, outputNode);
                 this.m_outputTypes[i] = this.m_queryPlan1[i].OutputTypes[0];
                     
                 // Remove useless Tees to make Dryad happy                
@@ -693,7 +689,7 @@ namespace Microsoft.Research.DryadLinq
         /// <param name="queryDoc">Document holding the xml plan.</param>
         /// <param name="parent">Parent node.</param>
         /// <param name="resource">Resource to add.</param>
-        /// <returns>Handle to the inserted node.</returns>
+        /// <param name="resourcesToExclude">The resources should be excluded.</param>
         private void AddResourceToPlan(XmlDocument queryDoc,
                                        XmlElement parent,
                                        string resource,
@@ -1139,9 +1135,10 @@ namespace Microsoft.Research.DryadLinq
             else if (expression.NodeType == ExpressionType.Constant)
             {
                 DLinqInputNode inputNode = new DLinqInputNode(this, (ConstantExpression)expression);
-                if (!this.m_inputUriMap.ContainsKey(inputNode.Table.DataSourceUri.AbsoluteUri.ToLower()))
+                string inputUri = inputNode.Table.DataSourceUri.AbsoluteUri.ToLower();
+                if (!this.m_inputUriMap.ContainsKey(inputUri))
                 {
-                    this.m_inputUriMap.Add(inputNode.Table.DataSourceUri.AbsoluteUri.ToLower(), inputNode);
+                    this.m_inputUriMap.Add(inputUri, inputNode);
                 }
                 return inputNode;
             }

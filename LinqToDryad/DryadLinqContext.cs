@@ -26,6 +26,8 @@ using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.IO;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using Microsoft.Research.DryadLinq.Internal;
 using Microsoft.Research.Peloponnese.ClusterUtils;
 using Microsoft.Research.Peloponnese.Storage;
@@ -33,10 +35,13 @@ using Microsoft.Research.Peloponnese.Storage;
 namespace Microsoft.Research.DryadLinq
 {
     /// <summary>
-    /// We currently support two schedulers.
+    /// The executor to run DryadLINQ jobs. The current release only supports Dryad.
     /// </summary>
     public enum ExecutorKind
     {
+        /// <summary>
+        /// Run DryadLINQ using Dryad.
+        /// </summary>
         DRYAD
     }
 
@@ -46,9 +51,277 @@ namespace Microsoft.Research.DryadLinq
     public enum PlatformKind
     {
         /// <summary>
-        /// run on a YARN cluster (not yet implemented)
+        /// run directly on a YARN cluster
         /// </summary>
-        YARN
+        YARN_NATIVE,
+
+        /// <summary>
+        /// run on a YARN cluster in Azure HDInsight
+        /// </summary>
+        YARN_AZURE,
+
+        /// <summary>
+        /// run locally at client side
+        /// </summary>
+        LOCAL
+    }
+
+    /// <summary>
+    /// Base interface for cluster types that the DryadLinqContext constructor can accept.
+    /// </summary>
+    public interface DryadLinqCluster
+    {
+        /// <summary>
+        /// Gets the service platform of this cluster.
+        /// </summary>
+        PlatformKind Kind { get; }
+        /// <summary>
+        /// Gets the hostname of the head node of the cluster.
+        /// </summary>
+        string HeadNode { get; }
+        /// <summary>
+        /// Gets the client DFS interface.
+        /// </summary>
+        IDfsClient DfsClient { get; }
+        /// <summary>
+        /// Gets the client cluster interface.
+        /// </summary>
+        /// <param name="context">An instnace of DryadLinqContext</param>
+        /// <returns>The client interface to the cluster</returns>
+        ClusterClient Client(DryadLinqContext context);
+        /// <summary>
+        /// Makes a new unique URI for storing a dataset in the DFS.
+        /// </summary>
+        /// <param name="path">A user provided local path</param>
+        /// <returns>A new unique URI that can be used to store a dataset</returns>
+        Uri MakeDefaultUri(string path);
+    }
+
+    /// <summary>
+    /// The interface for a YARN native cluster.
+    /// </summary>
+    internal class DryadLinqYarnCluster : DryadLinqCluster
+    {
+        /// <summary>
+        /// The hostname of the computer where the YarnLauncher program is running
+        /// </summary>
+        public string HeadNode { get; set; }
+        /// <summary>
+        /// The port where the YarnLauncher program is listening
+        /// </summary>
+        public int LauncherPort;
+        /// <summary>
+        /// The hostname of the computer where the default HDFS instance is running
+        /// </summary>
+        public string NameNode;
+        /// <summary>
+        /// The port that the Hdfs protocol is listening on
+        /// </summary>
+        public int HdfsPort;
+        /// <summary>
+        /// The port that the WebHdfs protocol is listening on
+        /// </summary>
+        public int WebHdfsPort;
+
+        private WebHdfsClient _dfsClient;
+        private NativeYarnClient _clusterClient;
+
+        /// <summary>
+        /// Make a new cluster object representing a YARN cluster with default ports
+        /// </summary>
+        /// <param name="headNode">The computer where the YarnLauncher is running</param>
+        public DryadLinqYarnCluster(string headNode)
+        {
+            HeadNode = headNode;
+            LauncherPort = 8471;
+
+            NameNode = headNode;
+            HdfsPort = 9000;
+            WebHdfsPort = 50070;
+
+            _dfsClient = null;
+            _clusterClient = null;
+        }
+
+        public PlatformKind Kind { get { return PlatformKind.YARN_NATIVE; } }
+        public IDfsClient DfsClient {
+            get
+            {
+                if (_dfsClient == null)
+                {
+                    _dfsClient = new WebHdfsClient(HeadNode, HdfsPort, WebHdfsPort);
+                }
+                return _dfsClient;
+            }
+        }
+
+        public ClusterClient Client(DryadLinqContext context)
+        {
+            if (_clusterClient == null)
+            {
+                _clusterClient = new NativeYarnClient(HeadNode, HdfsPort, LauncherPort);
+            }
+            return _clusterClient;
+        }
+
+        public Uri MakeDefaultUri(string path)
+        {
+            return _dfsClient.MakeDfsUri(path);
+        }
+    }
+
+    /// <summary>
+    /// The interface for a YARN Azure cluster.
+    /// </summary>
+    internal class DryadLinqAzureCluster : DryadLinqCluster
+    {
+        /// <summary>
+        /// The name of the HDInsight cluster
+        /// </summary>
+        public string HeadNode { get { return _cluster.Result.Name; } }
+
+        private readonly AzureSubscriptions _azureSubscriptions;
+        private readonly Task<AzureCluster> _cluster;
+        private readonly Task<AzureDfsClient> _dfsClient;
+        private Task<AzureYarnClient> _clusterClient;
+
+        /// <summary>
+        /// Make a new cluster object representing an Azure HDInsight cluster, reading the details
+        /// from a subscription stored in the Powershell defaults.
+        /// </summary>
+        /// <param name="clusterName">The name of the HDInsight cluster</param>
+        public DryadLinqAzureCluster(string clusterName)
+        {
+            // start fetching details about the subscriptions, available clusters, etc.
+            _azureSubscriptions = new AzureSubscriptions();
+            _cluster = _azureSubscriptions.GetClusterAsync(clusterName);
+            _dfsClient = _cluster.ContinueWith(c => new AzureDfsClient(c.Result.StorageAccount, c.Result.StorageKey, "staging"));
+        }
+
+        /// <summary>
+        /// Make a new cluster object representing an Azure HDInsight cluster, specifying the details
+        /// manually.
+        /// </summary>
+        /// <param name="clusterName">The name of the HDInsight cluster</param>
+        /// <param name="storageAccount">The storage account to use for staging job resources</param>
+        /// <param name="storageContainer">The storage account container to use for staging job resources</param>
+        /// <param name="storageKey">The storage account key, which will be looked up in the subscription if null</param>
+        public DryadLinqAzureCluster(string clusterName, string storageAccount, string storageContainer, string storageKey = null)
+        {
+            // start fetching details about the subscriptions, available clusters, etc.
+            _azureSubscriptions = new AzureSubscriptions();
+            if (storageKey != null)
+            {
+                _azureSubscriptions.AddAccount(storageAccount, storageKey);
+            }
+            _cluster = _azureSubscriptions.GetClusterAsync(clusterName)
+                                          .ContinueWith(t => { t.Result.SetStorageAccount(storageAccount, storageKey); return t.Result; });
+            _dfsClient = _cluster.ContinueWith(c => new AzureDfsClient(c.Result.StorageAccount, c.Result.StorageKey, storageContainer));
+        }
+
+        /// <summary>
+        /// Make a new cluster object representing an Azure HDInsight cluster, specifying the details
+        /// manually.
+        /// </summary>
+        /// <param name="clusterName">The name of the HDInsight cluster</param>
+        /// <param name="subscriptionId">The ID of the subscription to fetch cluster details from</param>
+        /// <param name="certificateThumbprint">The thumbprint of the certificate associated with the subscription</param>
+        public DryadLinqAzureCluster(string clusterName, string subscriptionId, string certificateThumbprint)
+        {
+            // start fetching details about the subscriptions, available clusters, etc.
+            _azureSubscriptions = new AzureSubscriptions();
+            _azureSubscriptions.AddSubscription(subscriptionId, certificateThumbprint);
+            _cluster = _azureSubscriptions.GetClusterAsync(clusterName);
+            _dfsClient = _cluster.ContinueWith(c => new AzureDfsClient(c.Result.StorageAccount, c.Result.StorageKey, "staging"));
+        }
+
+        /// <summary>
+        /// Make a new cluster object representing an Azure HDInsight cluster, specifying the details
+        /// manually.
+        /// </summary>
+        /// <param name="clusterName">The name of the HDInsight cluster</param>
+        /// <param name="subscriptionId">The ID of the subscription to fetch cluster details from</param>
+        /// <param name="certificate">The certificate associated with the subscription</param>
+        public DryadLinqAzureCluster(string clusterName, string subscriptionId, X509Certificate2 certificate)
+        {
+            // start fetching details about the subscriptions, available clusters, etc.
+            _azureSubscriptions = new AzureSubscriptions();
+            _azureSubscriptions.AddSubscription(subscriptionId, certificate);
+            _cluster = _azureSubscriptions.GetClusterAsync(clusterName);
+            _dfsClient = _cluster.ContinueWith(c => new AzureDfsClient(c.Result.StorageAccount, c.Result.StorageKey, "staging"));
+        }
+
+        /// <summary>
+        /// Make a new cluster object representing an Azure HDInsight cluster, specifying the details
+        /// manually.
+        /// </summary>
+        /// <param name="clusterName">The name of the HDInsight cluster</param>
+        /// <param name="subscriptionId">The ID of the subscription to fetch cluster details from</param>
+        /// <param name="certificateThumbprint">The thumbprint of the certificate associated with the subscription</param>
+        /// <param name="storageAccount">The storage account to use for staging job resources</param>
+        /// <param name="storageContainer">The storage account container to use for staging job resources</param>
+        /// <param name="storageKey">The storage account key, which will be looked up in the subscription if null</param>
+        public DryadLinqAzureCluster(string clusterName, string subscriptionId, string certificateThumbprint,
+                                     string storageAccount, string storageContainer, string storageKey = null)
+        {
+            // start fetching details about the subscriptions, available clusters, etc.
+            _azureSubscriptions = new AzureSubscriptions();
+            if (storageKey != null)
+            {
+                _azureSubscriptions.AddAccount(storageAccount, storageKey);
+            }
+            _azureSubscriptions.AddCluster(clusterName, storageAccount, storageKey, subscriptionId, certificateThumbprint);
+            _cluster = _azureSubscriptions.GetClusterAsync(clusterName);
+            _dfsClient = _cluster.ContinueWith(c => new AzureDfsClient(c.Result.StorageAccount, c.Result.StorageKey, storageContainer));
+        }
+
+        /// <summary>
+        /// Make a new cluster object representing an Azure HDInsight cluster, specifying the details
+        /// manually
+        /// </summary>
+        /// <param name="clusterName">The name of the HDInsight cluster</param>
+        /// <param name="subscriptionId">The ID of the subscription to fetch cluster details from</param>
+        /// <param name="certificate">The certificate associated with the subscription</param>
+        /// <param name="storageAccount">The storage account to use for staging job resources</param>
+        /// <param name="storageContainer">The storage account container to use for staging job resources</param>
+        /// <param name="storageKey">The storage account key, which will be looked up in the subscription if null</param>
+        public DryadLinqAzureCluster(string clusterName, string subscriptionId, X509Certificate2 certificate,
+                                     string storageAccount, string storageContainer, string storageKey = null)
+        {
+            // start fetching details about the subscriptions, available clusters, etc.
+            _azureSubscriptions = new AzureSubscriptions();
+            if (storageKey != null)
+            {
+                _azureSubscriptions.AddAccount(storageAccount, storageKey);
+            }
+            _azureSubscriptions.AddCluster(clusterName, storageAccount, storageKey, subscriptionId, certificate);
+            _cluster = _azureSubscriptions.GetClusterAsync(clusterName);
+            _dfsClient = _cluster.ContinueWith(
+                c => new AzureDfsClient(c.Result.StorageAccount, c.Result.StorageKey, storageContainer));
+        }
+
+        public PlatformKind Kind { get { return PlatformKind.YARN_AZURE; } }
+
+        internal AzureSubscriptions Subscriptions { get { return _azureSubscriptions; } }
+
+        public AzureCluster Cluster { get { return _cluster.Result; } }
+
+        public IDfsClient DfsClient { get { return _dfsClient.Result; } }
+
+        public ClusterClient Client(DryadLinqContext context)
+        {
+            if (_clusterClient == null)
+            {
+                _clusterClient = _dfsClient.ContinueWith(
+                    c => new AzureYarnClient(_azureSubscriptions, c.Result, context.PeloponneseHomeDirectory, Cluster.Name));
+            }
+            return _clusterClient.Result;
+        }
+
+        public Uri MakeDefaultUri(string path)
+        {
+            return AzureUtils.ToAzureUri(_dfsClient.Result.AccountName, _dfsClient.Result.ContainerName, path, null, _dfsClient.Result.AccountKey);
+        }
     }
 
     /// <summary>
@@ -70,28 +343,14 @@ namespace Microsoft.Research.DryadLinq
     /// </remarks>
     public class DryadLinqContext : IDisposable, IEquatable<DryadLinqContext>
     {
-        private const int DscNameNodeDataPort = 6498;   //TODO: Read Config
-        private const int HdfsNameNodeHttpPort = 8033;  //TODO: Read Config
-        private const int HdfsNameNodeDataPort = 9000;  //TODO: Read Config
-
         private ExecutorKind _executorKind = ExecutorKind.DRYAD;
-        private PlatformKind _platformKind = PlatformKind.YARN;
+        private PlatformKind _platformKind = PlatformKind.LOCAL;
 
         private string _headNode;
-        private string _dataNameNode;
-        private DryadLinqQueryRuntime _runtime;
-        private DscService _dscService;
-        private IDfsClient _dfsClient;
-        private ClusterClient _clusterClient;
-        private int _dataNameNodeDataPort;
-        private int _dataNameNodeHttpPort;
-
-        private string _azureAccountName;
-        private Dictionary<string, string> _azureAccountKeyDictionary;
-        private string _azureContainerName;
+        private DryadLinqCluster _clusterDetails;
+        private AzureSubscriptions _azureSubscriptions;
 
         private Version _clientVersion;
-        private Version _serverVersion;
 
         private CompressionScheme _intermediateDataCompressionScheme = CompressionScheme.None;
         private CompressionScheme _outputCompressionScheme = CompressionScheme.None;
@@ -117,7 +376,6 @@ namespace Microsoft.Research.DryadLinq
         private bool _multiThreading = true;
         private string _partitionUncPath = null;
         private string _storageSetScheme = null;
-        private Uri _tempDatasetDirectory = null;
         private DryadLinqStringDictionary _jobEnvironmentVariables = new DryadLinqStringDictionary();
         private DryadLinqStringList _resourcesToAdd = new DryadLinqStringList();
         private DryadLinqStringList _resourcesToRemove = new DryadLinqStringList();
@@ -127,132 +385,117 @@ namespace Microsoft.Research.DryadLinq
         private string _dryadHome;
         private string _peloponneseHome;
 
+        private static DryadLinqCluster MakeCluster(string clusterName, PlatformKind kind)
+        {
+            if (kind == PlatformKind.LOCAL)
+            {
+                throw new DryadLinqException("Can't make a cluster of kind LOCAL");
+            }
+            else if (kind == PlatformKind.YARN_NATIVE)
+            {
+                return new DryadLinqYarnCluster(clusterName);
+            }
+            else if (kind == PlatformKind.YARN_AZURE)
+            {
+                return new DryadLinqAzureCluster(clusterName);
+            }
+            else
+            {
+                throw new DryadLinqException("Unknown cluster kind " + kind);
+            }
+        }
+
         /// <summary>
         /// Initializes a new instance of the DryadLinqContext class for local execution.
         /// </summary>
         /// <param name="numProcesses">The number of local worker processes that should be started.</param>
+        /// <param name="storageSetScheme">The default scheme for storage. Defaults to partitioned file</param>
         public DryadLinqContext(int numProcesses, string storageSetScheme = null)
         {
-            this._platformKind = PlatformKind.YARN;
-            this._runtime = new DryadLinqQueryRuntime(this._headNode);
+            this.CommonInit();
+            this._platformKind = PlatformKind.LOCAL;
             this._localExecution = true;
-            this._headNode = String.Empty;
-            this._dataNameNode = null;
+            this._headNode = "LocalExecution";
             this._storageSetScheme = storageSetScheme;
             if (String.IsNullOrEmpty(this._storageSetScheme))
             {
                 this._storageSetScheme = DataPath.PARTFILE_URI_SCHEME;
             }
-            DataProvider dataProvider = DataProvider.GetDataProvider(_storageSetScheme);
-            this._tempDatasetDirectory = dataProvider.GetTempDirectory(this);
             this._jobMinNodes = numProcesses;
-            this._dataNameNodeDataPort = HdfsNameNodeDataPort;
-            this._dataNameNodeHttpPort = HdfsNameNodeHttpPort;
-            CommonInit();
+            // make an Azure subscriptions object just in case we want to access azure streams from local execution
+            this._azureSubscriptions = new AzureSubscriptions();
         }
 
         /// <summary>
         /// Initializes a new instance of the DryadLinqContext class for a YARN cluster.
         /// </summary>
-        /// <param name="headNode">The head node of the cluster and DFS.</param>
-        public DryadLinqContext(string headNode, PlatformKind platform = PlatformKind.YARN)
-            : this(headNode, headNode, platform)
+        /// <param name="clusterName">The head node of the cluster and DFS</param>
+        /// <param name="platform">The service platform to run DryadLINQ jobs. Defaults to YARN Azure</param>
+        public DryadLinqContext(string clusterName, PlatformKind platform = PlatformKind.YARN_AZURE)
+            : this(MakeCluster(clusterName, platform))
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the DryadLinqContext class for a YARN cluster.
+        /// Initializes a new instance of the DryadLinqContext class for a specified cluster.
         /// </summary>
-        /// <param name="headNode">The head node of YARN cluster used to execute LINQ queries.</param>
-        /// <param name="hdfsNameNode">The namenode for the HDFS.</param>
-        /// <param name="platform">The cluster platform</param>
-        public DryadLinqContext(string headNode, string hdfsNameNode, PlatformKind platform = PlatformKind.YARN)
+        /// <param name="cluster">The cluster to run DryadLINQ jobs</param>
+        public DryadLinqContext(DryadLinqCluster cluster)
         {
             // Verify that the head node is set
-            if (String.IsNullOrEmpty(headNode))
+            if (String.IsNullOrEmpty(cluster.HeadNode))
             {
                 throw new DryadLinqException(DryadLinqErrorCode.ClusterNameMustBeSpecified,
                                              SR.ClusterNameMustBeSpecified);
             }
-            CommonInit();
-            this._platformKind = platform;
-            this._runtime = new DryadLinqQueryRuntime(headNode);
-            this._headNode = headNode;
-            this._dataNameNode = hdfsNameNode;
-            this._dataNameNodeDataPort = HdfsNameNodeDataPort;
-            this._dataNameNodeHttpPort = HdfsNameNodeHttpPort;
-            this._storageSetScheme = DataPath.HDFS_URI_SCHEME;
-            DataProvider dataProvider = DataProvider.GetDataProvider(_storageSetScheme);
-            this._tempDatasetDirectory = dataProvider.GetTempDirectory(this);
-            this._dfsClient = new Peloponnese.Storage.WebHdfsClient(hdfsNameNode, this._dataNameNodeDataPort, 50070);
-            this._clusterClient = new Peloponnese.ClusterUtils.NativeYarnClient(
-                                          hdfsNameNode, this._dataNameNodeDataPort);
-        }
 
-        /// <summary>
-        /// Initializes a new instance of the DryadLinqContext class for Azure
-        /// </summary>
-        public DryadLinqContext(string accountName, string accountKey, string containerName,
-                                string clusterName = null, string subscriptionId = null, string certificateThumbprint = null)
-        {
-            // Verify that the head node is set
-            if (String.IsNullOrEmpty(containerName))
+            this.CommonInit();
+            this._platformKind = cluster.Kind;
+            this._headNode = cluster.HeadNode;
+            this._clusterDetails = cluster;
+
+            if (cluster.Kind == DryadLinq.PlatformKind.YARN_NATIVE)
             {
-                throw new DryadLinqException(DryadLinqErrorCode.ClusterNameMustBeSpecified,
-                                             SR.ClusterNameMustBeSpecified);
+                this._storageSetScheme = DataPath.HDFS_URI_SCHEME;
+                // make an Azure subscriptions object just in case we want to access azure streams from the native yarn cluster
+                this._azureSubscriptions = new AzureSubscriptions();
             }
-            CommonInit();
-            this._platformKind = PlatformKind.YARN;
-            this._runtime = new DryadLinqQueryRuntime(containerName);
-            this._headNode = string.Empty;
-            this._storageSetScheme = DataPath.AZUREBLOB_URI_SCHEME;
-            this._azureAccountName = accountName;
-            this._azureAccountKeyDictionary = new Dictionary<string, string>();
-            this._azureAccountKeyDictionary.Add(this._azureAccountName, accountKey);
-            this._azureContainerName = containerName;
-            DataProvider dataProvider = DataProvider.GetDataProvider(_storageSetScheme);
-            this._tempDatasetDirectory = dataProvider.GetTempDirectory(this);
-            AzureDfsClient dfsClient = new Peloponnese.Storage.AzureDfsClient(accountName, accountKey, containerName);
-            _dfsClient = dfsClient;
-            _clusterClient = new Peloponnese.ClusterUtils.AzureYarnClient(
-                                     dfsClient, this.PeloponneseHomeDirectory, clusterName,
-                                     subscriptionId, certificateThumbprint);
+            else if (cluster.Kind == DryadLinq.PlatformKind.YARN_AZURE)
+            {
+                this._storageSetScheme = DataPath.AZUREBLOB_URI_SCHEME;
+                DryadLinqAzureCluster azureCluster = cluster as DryadLinqAzureCluster;
+                this._azureSubscriptions = azureCluster.Subscriptions;
+            }
         }
 
         private void CommonInit()
         {
             this._peloponneseHome = Peloponnese.ClusterUtils.ConfigHelpers.GetPPMHome(null);
-            this._dryadHome = GetDryadHome();
-        }
-
-        private string GetDryadHome()
-        {
-            string dryadHome = Environment.GetEnvironmentVariable(StaticConfig.DryadHomeVar);
-
-            if (dryadHome == null)
+            if (Microsoft.Research.Peloponnese.ClusterUtils.ConfigHelpers.RunningFromNugetPackage)
             {
-                if (Microsoft.Research.Peloponnese.ClusterUtils.ConfigHelpers.RunningFromNugetPackage)
-                {
-                    dryadHome = Microsoft.Research.Peloponnese.ClusterUtils.ConfigHelpers.GetPPMHome(null);
-                }
-                else
-                {
-                    throw new ApplicationException("Cannot find Dryad home directory; must define " + StaticConfig.DryadHomeVar);
-                }
+                this._dryadHome = Microsoft.Research.Peloponnese.ClusterUtils.ConfigHelpers.GetPPMHome(null);
             }
-
-            return dryadHome;
+            else
+            {
+                this._dryadHome = Environment.GetEnvironmentVariable(StaticConfig.DryadHomeVar);
+            }
         }
 
+        /// <summary>
+        /// Gets and sets the job executor. The current release only supports Dryad.
+        /// </summary>
         public ExecutorKind ExecutorKind
         {
             get { return this._executorKind; }
             set { _executorKind = value; }
         }
 
+        /// <summary>
+        /// Gets or sets the service platform
+        /// </summary>
         public PlatformKind PlatformKind
         {
-            get { return this._platformKind; }
+            get { return _platformKind; }
             set { _platformKind = value; }
         }
 
@@ -323,113 +566,20 @@ namespace Microsoft.Research.DryadLinq
         }
 
         /// <summary>
-        /// Gets the DscService associated with this DryadLinqContext.
-        /// </summary>
-        public DscService DscService
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return _dscService;
-            }
-        }
-
-        /// <summary>
-        /// Gets the DfsClient associated with this HpcLinqContext.
-        /// </summary>
-        public IDfsClient DfsClient
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return _dfsClient;
-            }
-        }
-
-        /// <summary>
-        /// Gets the ClusterClient associated with this HpcLinqContext.
-        /// </summary>
-        public ClusterClient ClusterClient
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return _clusterClient;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the namenode for the data store.
-        /// </summary>
-        public string DataNameNode
-        {
-            get { return _dataNameNode; }
-            set { _dataNameNode = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the HTTP port used by the namenode for the HDFS.
-        /// </summary>
-        public int DataNameNodeDataPort
-        {
-            get { return _dataNameNodeDataPort; }
-            set { _dataNameNodeDataPort = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the HTTP port used by the namenode for the HDFS.
-        /// </summary>
-        public int DataNameNodeHttpPort
-        {
-            get { return _dataNameNodeHttpPort; }
-            set { _dataNameNodeHttpPort = value; }
-        }
-
-        /// <summary> 
-        /// Gets or sets the account name for Azure. 
-        /// </summary> 
-        public string AzureAccountName
-        {
-            get { return _azureAccountName; }
-            set { _azureAccountName = value; }
-        }
-
-        /// <summary> 
-        /// Registers a key for an Azure account
-        /// </summary> 
-        public void RegisterAzureAccountKey(string accountName, string accountKey)
-        {
-            _azureAccountKeyDictionary[accountName] = accountKey;
-        }
-
-        /// <summary> 
-        /// Retrieves the key for an azure account
-        /// </summary> 
-        public string AzureAccountKey(string accountName)
-        {
-            if (!_azureAccountKeyDictionary.ContainsKey(accountName))
-            {
-                return null;
-            }
-            return _azureAccountKeyDictionary[accountName];
-        }
-
-        /// <summary> 
-        /// Gets or sets the container name for Azure. 
-        /// </summary> 
-        public string AzureContainerName
-        {
-            get { return _azureContainerName; }
-            set { _azureContainerName = value; }
-        }
-
-        /// <summary>
         /// Gets or sets the partition UNC path used when constructing a partitioned table.
-        /// </summary>
+        /// </summary> 
         public string PartitionUncPath
         {
             get { return _partitionUncPath; }
             set { _partitionUncPath = value; }
+        }
+
+        /// <summary>
+        /// Gets the cluster object used to run the DryadLINQ query
+        /// </summary>
+        internal DryadLinqCluster Cluster
+        {
+            get { return _clusterDetails; }
         }
 
         /// <summary>
@@ -443,10 +593,6 @@ namespace Microsoft.Research.DryadLinq
         /// <summary>
         /// Gets or sets the descriptive name used to describe the DryadLINQ job.
         /// </summary>
-        /// <remarks>
-        /// <para>The default is null (no name). May be overriden by cluster settings such as node templates.</para>
-        /// <para>This property can be altered even when <see cref="IsReadOnly"/> is true.</para>
-        /// </remarks>
         public string JobFriendlyName
         {
             get { return _jobFriendlyName; }
@@ -553,34 +699,19 @@ namespace Microsoft.Research.DryadLinq
             set { _localExecution = value; }
         }
 
+        /// <summary>
+        /// Gets and sets the value specifying whether a vertex should break into the debugger
+        /// </summary>
         public bool DebugBreak
         {
-            get { return this.JobEnvironmentVariables.ContainsKey("DLINQ_DEBUGVERTEX"); }
+            get
+            {
+                return this.JobEnvironmentVariables.ContainsKey("DLINQ_DEBUGVERTEX");
+            }
             set
             {
                 this.JobEnvironmentVariables["DLINQ_DEBUGVERTEX"] = "BREAK";
             }
-        }
-
-        /// <summary>
-        /// Gets or sets the value specifying the platform for this query.
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// If YARN, the query will execute on a YARN cluster.
-        /// </para>
-        /// <para>
-        /// LOCAL mode is determined by the flag _localExecution, and is mutually exclusive 
-        /// with LocalDebug. If LOCAL, the query will execute with DryadLinq on processes 
-        /// spawned on the local machine. This mode is particularly useful for debugging
-        /// interactions between processes.
-        /// </para>
-        /// <para>The default is YARN.</para>
-        /// </remarks>
-        public PlatformKind Platform
-        {
-            get { return _platformKind; }
-            set { _platformKind = value; }
         }
 
         /// <summary>
@@ -722,19 +853,10 @@ namespace Microsoft.Research.DryadLinq
             set { _forceGC = value; }
         }
 
-        // internal: the runtime associated with this DryadLinqContext.
-        internal DryadLinqQueryRuntime Runtime
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return _runtime;
-            }
-        }
-
         /// <summary>
         /// Version of the DryadLinq client components
         /// </summary>
+        /// <returns>The version of the DryadLINQ DLL</returns>
         public Version ClientVersion()
         {
             ThrowIfDisposed();
@@ -754,28 +876,6 @@ namespace Microsoft.Research.DryadLinq
             return _clientVersion;
         }
 
-        /// <summary>
-        /// Version of the DryadLinq server components
-        /// </summary>
-        public Version ServerVersion()
-        {
-            ThrowIfDisposed();
-            if (_serverVersion == null)
-            {
-                try
-                {
-                    IServerVersion version = this.GetIScheduler().GetServerVersion();
-                    _serverVersion = new Version(version.Major, version.Minor, version.Build, version.Revision);
-                }
-                catch (Exception ex)
-                {
-                    throw new DryadLinqException(DryadLinqErrorCode.CouldNotGetServerVersion,
-                                                 SR.CouldNotGetServerVersion, ex);
-                }
-            }
-            return _serverVersion;
-        }
-
         internal DryadLinqJobExecutor MakeJobExecutor()
         {
             switch (this.ExecutorKind)
@@ -791,42 +891,43 @@ namespace Microsoft.Research.DryadLinq
             }
         }
 
-        public Uri MakeTemporaryStreamUri()
+        internal Uri MakeTemporaryStreamUri()
         {
             if (this._storageSetScheme == null)
             {
                 throw new DryadLinqException("The storage scheme for temporary streams must be specified.");
             }
-            return new Uri(this._tempDatasetDirectory, DryadLinqUtil.MakeUniqueName());
+            DataProvider dataProvider = DataProvider.GetDataProvider(this._storageSetScheme);
+            return dataProvider.GetTemporaryStreamUri(this, DryadLinqUtil.MakeUniqueName());
         }
 
         /// <summary>
-        /// Open a dataset as a DryadLinq's IQueryable<T>.
+        /// Open a dataset as a DryadLinq specialized IQueryable{T}.
         /// </summary>
         /// <typeparam name="T">The type of the records in the table.</typeparam>
-        /// <param name="fileSetName">The name of the dataset. </param>
+        /// <param name="dataSetUri">The name of the dataset. </param>
         /// <returns>An IQueryable{T} representing the data.</returns>
-        public IQueryable<T> FromStore<T>(string dataSetName)
+        public IQueryable<T> FromStore<T>(string dataSetUri)
         {
-            return FromStore<T>(new Uri(dataSetName));
+            return FromStore<T>(new Uri(dataSetUri));
         }
 
         /// <summary>
-        /// Open a dataset as a DryadLinq's IQueryable<T>.
+        /// Open a dataset as a DryadLinq specialized IQueryable{T}.
         /// </summary>
         /// <typeparam name="T">The type of the records in the table.</typeparam>
-        /// <param name="fileSetName">The name of the dataset. </param>
+        /// <param name="dataSetUri">The name of the dataset. </param>
         /// <returns>An IQueryable{T} representing the data.</returns>
-        public IQueryable<T> FromStore<T>(Uri dataSetName)
+        public IQueryable<T> FromStore<T>(Uri dataSetUri)
         {
             ThrowIfDisposed();
-            DryadLinqQuery<T> q = DataProvider.GetPartitionedTable<T>(this, dataSetName);
+            DryadLinqQuery<T> q = DataProvider.GetPartitionedTable<T>(this, dataSetUri);
             q.CheckAndInitialize();   // force the data-info checks.
             return q;
         }
 
         /// <summary>
-        /// Converts an IEnumerable{T} to a DryadLinq IQueryable{T}.
+        /// Converts an IEnumerable{T} to a DryadLinq specialized IQueryable{T}.
         /// </summary>
         /// <typeparam name="T">The type of the records in the table.</typeparam>
         /// <param name="data">The source data.</param>
@@ -838,9 +939,30 @@ namespace Microsoft.Research.DryadLinq
         public IQueryable<T> FromEnumerable<T>(IEnumerable<T> data)
         {
             Uri dataSetName = this.MakeTemporaryStreamUri();
-            CompressionScheme compressionScheme = this.IntermediateDataCompressionScheme;
+            CompressionScheme compressionScheme = this.OutputDataCompressionScheme;
             DryadLinqMetaData metadata = new DryadLinqMetaData(this, typeof(T), dataSetName, compressionScheme);
             return DataProvider.StoreData(this, data, dataSetName, metadata, compressionScheme, true);
+        }
+
+        /// <summary>
+        /// Register a named account with the specified storage key, so that key won't need to be specified in Azure blob URIs
+        /// </summary>
+        /// <param name="storageAccountName">The name of the storage account</param>
+        /// <param name="storageAccountKey">The account's key</param>
+        public void RegisterAzureAccount(string storageAccountName, string storageAccountKey)
+        {
+            _azureSubscriptions.AddAccount(storageAccountName, storageAccountKey);
+        }
+
+        /// <summary>
+        /// Get the key associated with a named account, or null if it is not registered or auto-detected from
+        /// the subscriptions
+        /// </summary>
+        /// <param name="storageAccountName">The name of the storage account</param>
+        /// <returns>The storage key, or null</returns>
+        public string AzureAccountKey(string storageAccountName)
+        {
+            return _azureSubscriptions.GetAccountKeyAsync(storageAccountName).Result;
         }
 
         internal static DryadLinqContext GetContext(IQueryProvider provider)
@@ -855,12 +977,6 @@ namespace Microsoft.Research.DryadLinq
             return context;
         }
 
-        // Return IScheduler reference for internal use
-        internal IScheduler GetIScheduler()
-        {
-            return this._runtime.GetIScheduler();
-        }
-
         /// <summary>
         /// Releases all resources used by the DryadLinqContext.
         /// </summary>
@@ -869,16 +985,6 @@ namespace Microsoft.Research.DryadLinq
             if (!_isDisposed)
             {
                 _isDisposed = true;
-                if (_runtime != null)
-                {
-                    _runtime.Dispose();
-                    _runtime = null;
-                }
-                if (_dscService != null)
-                {
-                    _dscService.Close();
-                    _dscService = null;
-                }
             }
         }
 
@@ -890,7 +996,12 @@ namespace Microsoft.Research.DryadLinq
             }
         }
 
-        // This is used to check if a DryadLINQ query is constructed using the same context. 
+        /// <summary>
+        /// Determines whether this instance of DryadLinqContext is equal to another instance 
+        /// of <see cref="DryadLinqContext"/>.
+        /// </summary>
+        /// <param name="context">The other DryadLinqContext instance</param>
+        /// <returns>true if the two instances are equal</returns>
         public virtual bool Equals(DryadLinqContext context)
         {
             return (this.IntermediateDataCompressionScheme == context.IntermediateDataCompressionScheme &&
@@ -899,11 +1010,7 @@ namespace Microsoft.Research.DryadLinq
                     this.DryadHomeDirectory == context.DryadHomeDirectory &&
                     this.PeloponneseHomeDirectory == context.PeloponneseHomeDirectory &&
                     this.HeadNode == context.HeadNode &&
-                    this.DataNameNode == context.DataNameNode &&
-                    this.DataNameNodeDataPort == context.DataNameNodeDataPort &&
-                    this.DataNameNodeHttpPort == context.DataNameNodeHttpPort &&
-                    this.AzureAccountName == context.AzureAccountName &&
-                    this.AzureContainerName == context.AzureContainerName &&
+                    this.Cluster == context.Cluster &&
                     this.PartitionUncPath == context.PartitionUncPath &&
                     this.JobMinNodes == context.JobMinNodes &&
                     this.JobMaxNodes == context.JobMaxNodes &&
@@ -912,7 +1019,7 @@ namespace Microsoft.Research.DryadLinq
                     this.EnableSpeculativeDuplication == context.EnableSpeculativeDuplication &&
                     this.LocalDebug == context.LocalDebug &&
                     this.LocalExecution == context.LocalExecution &&
-                    this.Platform == context.Platform &&
+                    this.PlatformKind == context.PlatformKind &&
                     this.JobUsername == context.JobUsername &&
                     this.JobPassword == context.JobPassword &&
                     this.RuntimeTraceLevel == context.RuntimeTraceLevel &&

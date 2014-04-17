@@ -31,8 +31,8 @@ using Microsoft.Research.DryadLinq.Internal;
 namespace Microsoft.Research.DryadLinq
 {
     /// <summary>
-    /// DryadLinqBinaryWriter is the main interface for user provided custom serializers
-    /// or DL-internal autoserialization codepaths to write primitive types from a partition file.
+    /// DryadLinqBinaryWriter is the main interface for user provided custom serializers.
+    /// It is also used for DryadLINQ internal autoserialization to write primitive types.
     /// </summary>
     public unsafe sealed class DryadLinqBinaryWriter
     {
@@ -45,8 +45,8 @@ namespace Microsoft.Research.DryadLinq
 
         private DataBlockInfo m_curDataBlockInfo;
         private byte* m_curDataBlock;   // The current write buffer. This is allocated from the native stream, 
-        // individual WriteXXX methods serialize primitives into this buffer,
-        // and it gets written out when it's full
+                                        // individual WriteXXX methods serialize primitives into this buffer,
+                                        // and it gets written out when it's full
         private Int32 m_curBlockSize;   // Size of the current write buffer.
         private Int32 m_curRecordStart;
         private Int32 m_curRecordEnd;
@@ -96,6 +96,9 @@ namespace Microsoft.Research.DryadLinq
         {
         }
 
+        /// <summary>
+        /// Frees native resources.
+        /// </summary>
         ~DryadLinqBinaryWriter()
         {
             if (!this.m_isClosed)
@@ -250,6 +253,10 @@ namespace Microsoft.Research.DryadLinq
         //
         // Public methods
         //
+        /// <summary>
+        /// Writes an unsigned byte to the current writer.
+        /// </summary>
+        /// <param name="b">The unsigned byte to be written.</param>
         public void Write(byte b)
         {
             if (this.m_curRecordEnd == this.m_curBlockSize)
@@ -259,6 +266,10 @@ namespace Microsoft.Research.DryadLinq
             this.m_curDataBlock[this.m_curRecordEnd++] = b;
         }
 
+        /// <summary>
+        /// Writes a signed byte to the current writer.
+        /// </summary>
+        /// <param name="b">The signed byte to be written.</param>
         public void Write(sbyte b)
         {
             if (this.m_curRecordEnd == this.m_curBlockSize)
@@ -268,6 +279,10 @@ namespace Microsoft.Research.DryadLinq
             this.m_curDataBlock[this.m_curRecordEnd++] = (byte)b;
         }
 
+        /// <summary>
+        /// Writes a boolean value to the current writer.
+        /// </summary>
+        /// <param name="b">The boolean value to be written.</param>
         public void Write(bool b)
         {
             if (this.m_curRecordEnd == this.m_curBlockSize)
@@ -277,6 +292,10 @@ namespace Microsoft.Research.DryadLinq
             this.m_curDataBlock[this.m_curRecordEnd++] = (byte)(b ? 1 : 0);
         }
 
+        /// <summary>
+        /// Writes a character to the current writer.
+        /// </summary>
+        /// <param name="ch">The character to be written.</param>
         public void Write(char ch)
         {
             if (this.m_curBlockSize - this.m_curRecordEnd < this.m_charMaxByteCount)
@@ -288,6 +307,10 @@ namespace Microsoft.Research.DryadLinq
             this.m_curRecordEnd += numBytes;
         }
 
+        /// <summary>
+        /// Writes a signed 16-bit integer to the current writer.
+        /// </summary>
+        /// <param name="val">The signed 16-bit integer to be written.</param>
         public void Write(short val)
         {
             if (this.m_curBlockSize - this.m_curRecordEnd < 2)
@@ -298,6 +321,10 @@ namespace Microsoft.Research.DryadLinq
             this.m_curDataBlock[this.m_curRecordEnd++] = (byte)(val >> 8);
         }
 
+        /// <summary>
+        /// Writes an unsigned 16-bit integer to the current writer.
+        /// </summary>
+        /// <param name="val">The unsigned 16-bit integer to be written.</param>
         public void Write(ushort val)
         {
             if (this.m_curBlockSize - this.m_curRecordEnd < 2)
@@ -308,6 +335,10 @@ namespace Microsoft.Research.DryadLinq
             this.m_curDataBlock[this.m_curRecordEnd++] = (byte)(val >> 8);
         }
 
+        /// <summary>
+        /// Writes a signed 32-bit integer to the current writer.
+        /// </summary>
+        /// <param name="val">The signed 32-bit integer to be written.</param>
         public void Write(int val)
         {
             if (this.m_curBlockSize - this.m_curRecordEnd < 4)
@@ -320,6 +351,11 @@ namespace Microsoft.Research.DryadLinq
             this.m_curDataBlock[this.m_curRecordEnd++] = (byte)(val >> 24);
         }
 
+        /// <summary>
+        /// Writes a 32-bit signed integer to the current writer. The integer
+        /// is written in a compact format.
+        /// </summary>
+        /// <param name="val">The integer to be written.</param>
         public void WriteCompact(int val)
         {
             if (this.m_curBlockSize - this.m_curRecordEnd < 4)
@@ -348,6 +384,7 @@ namespace Microsoft.Research.DryadLinq
         {
             this.m_curDataBlock[loc++] = (byte)val;
             this.m_curDataBlock[loc++] = (byte)(val >> 8);
+        
             this.m_curDataBlock[loc++] = (byte)(val >> 16);
             this.m_curDataBlock[loc++] = (byte)(val >> 24);
         }
@@ -367,6 +404,10 @@ namespace Microsoft.Research.DryadLinq
             }
         }
 
+        /// <summary>
+        /// writes an unsigned 32-bit integer to the current writer.
+        /// </summary>
+        /// <param name="val">The unsigned 32-bit integer to be written.</param>
         public void Write(uint val)
         {
             if (this.m_curBlockSize - this.m_curRecordEnd < 4)
@@ -379,6 +420,10 @@ namespace Microsoft.Research.DryadLinq
             this.m_curDataBlock[this.m_curRecordEnd++] = (byte)(val >> 24);
         }
 
+        /// <summary>
+        /// Writes a signed 64-bit integer to the current writer.
+        /// </summary>
+        /// <param name="val">The signed 64-bit integer to write.</param>
         public void Write(long val)
         {
             if (this.m_curBlockSize - this.m_curRecordEnd < 8)
@@ -395,6 +440,10 @@ namespace Microsoft.Research.DryadLinq
             this.m_curDataBlock[this.m_curRecordEnd++] = (byte)(val >> 56);
         }
 
+        /// <summary>
+        /// Writes a unsigned 64-bit integer to the current writer.
+        /// </summary>
+        /// <param name="val">The unsigned 64-bit integer to write.</param>
         public void Write(ulong val)
         {
             if (this.m_curBlockSize - this.m_curRecordEnd < 8)
@@ -411,42 +460,70 @@ namespace Microsoft.Research.DryadLinq
             this.m_curDataBlock[this.m_curRecordEnd++] = (byte)(val >> 56);
         }
 
-        public void Write(decimal val)
-        {
-            this.WriteRawBytes((byte*)&val, sizeof(decimal));
-        }
-
+        /// <summary>
+        /// Writes a 32-bit floating point number to the current writer.
+        /// </summary>
+        /// <param name="val">A 32-bit floating point number to write.</param>
         public void Write(float val)
         {
             uint tmpVal = *(uint*)&val;
             this.Write(tmpVal);
         }
 
+        /// <summary>
+        /// Writes a 64-bit floating point number to the current writer.
+        /// </summary>
+        /// <param name="val">A 64-bit floating point number to write.</param>
         public void Write(double val)
         {
             ulong tmpVal = *(ulong*)&val;
             this.Write(tmpVal);
         }
 
+        /// <summary>
+        /// Writes a decimal number to the current writer.
+        /// </summary>
+        /// <param name="val">A decimal value to write</param>
+        public void Write(decimal val)
+        {
+            this.WriteRawBytes((byte*)&val, sizeof(decimal));
+        }
+
         private const Int32 KindShift = 62;
 
+        /// <summary>
+        /// Writes a value of DateTime to the current writer.
+        /// </summary>
+        /// <param name="val">A value of DateTime to write.</param>
         public void Write(DateTime val)
         {
             UInt64 tempVal = (UInt64)val.Ticks | (((UInt64)val.Kind) << KindShift);
             this.Write(tempVal);
         }
 
+        /// <summary>
+        /// Writes a value of SqlDateTime to the current writer.
+        /// </summary>
+        /// <param name="val">A value of SqlDateTime to write.</param>
         public void Write(SqlDateTime val)
         {
             this.Write(val.DayTicks);
             this.Write(val.TimeTicks);
         }
 
+        /// <summary>
+        /// Writes a value of Guid to the current writer.
+        /// </summary>
+        /// <param name="guid">The value of Guid.</param>
         public void Write(Guid guid)
         {
             WriteRawBytes((byte*)&guid, sizeof(Guid));
         }
 
+        /// <summary>
+        /// Writes a string to the current writer.
+        /// </summary>
+        /// <param name="val">The string to write.</param>
         public void Write(string val)
         {
             Int32 len = val.Length;
@@ -472,6 +549,12 @@ namespace Microsoft.Research.DryadLinq
             this.WriteCompact(numBytes, compactSize, buffLoc);
         }
 
+        /// <summary>
+        /// Writes an array of characters to the current writer.
+        /// </summary>
+        /// <param name="charBuffer">The array of characters.</param>
+        /// <param name="offset">The starting index.</param>
+        /// <param name="charCount">The number of characters to write.</param>
         public void WriteChars(char[] charBuffer, int offset, int charCount)
         {
             if (charBuffer == null)
@@ -515,6 +598,12 @@ namespace Microsoft.Research.DryadLinq
             this.m_curRecordEnd += numBytes;
         }
 
+        /// <summary>
+        /// Writes an array of bytes to the current writer.
+        /// </summary>
+        /// <param name="byteBuffer">The byte array to write.</param>
+        /// <param name="offset">The starting index.</param>
+        /// <param name="byteCount">The number of bytes to write.</param>
         public void WriteBytes(byte[] byteBuffer, int offset, int byteCount)
         {
             if (byteBuffer == null)
@@ -551,6 +640,8 @@ namespace Microsoft.Research.DryadLinq
         /// Public helper to write from a caller provided byte* to the output stream.
         /// This is mainly used to read preallocated fixed size, non-integer types (Guid, decimal etc).
         /// </summary>
+        /// <param name="pBytes">A pointer to the byte array to write</param>
+        /// <param name="numBytes">The number of bytes to write</param>
         public void WriteRawBytes(byte* pBytes, Int32 numBytes)
         {
             while (this.m_curBlockSize - this.m_curRecordEnd < numBytes)
@@ -561,6 +652,10 @@ namespace Microsoft.Research.DryadLinq
             this.m_curRecordEnd += numBytes;
         }
 
+        /// <summary>
+        /// Returns a string that represents the current DryadLinqBinaryWriter object.
+        /// </summary>
+        /// <returns>The string representation of this writer</returns>
         public override string ToString()
         {
             return this.m_nativeStream.ToString();

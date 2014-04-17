@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<topic id="e203b95e-0737-40f6-9c16-fc84484a5bad" revisionNumber="1">
+	<developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
+		<introduction>
+      <para>Dryad is a distributed execution engine that provides fault-tolerant execution of computations on a
+      cluster of computers. The goal of DryadLINQ is to make distributed computing on large compute clusters simple.
+      DryadLINQ combines two important pieces of Microsoft technology: the Dryad distributed execution engine and the
+      .NET Language Integrated Query(<externalLink>
+        <linkText>LINQ</linkText>
+        <linkUri>http://msdn.microsoft.com/en-us/library/vstudio/bb397926.aspx</linkUri>
+        <linkTarget>_blank</linkTarget>
+      </externalLink>). The DryadLINQ job browser is a graphical user interface which provides a
+      unified view of a large part of the distributed state of a DryadLINQ job.</para>
+
+      <para>Dryad, DryadLINQ, and the JobBrowser have been released as open source under the Apache 2.0 license. The
+      source is hosted at the <externalLink>
+        <linkText>Dryad GitHub repository</linkText>
+        <linkUri>https://github.com/MicrosoftResearchSVC/Dryad</linkUri>
+        <linkTarget>_blank</linkTarget>
+      </externalLink>. There are also <externalLink>
+        <linkText>Dryad NuGet packages</linkText>
+        <linkUri>http://www.nuget.org/packages?q=dryadlinq</linkUri>
+        <linkTarget>_blank</linkTarget>
+      </externalLink> available built from the source, to make
+      it easy to develop applications using these tools.
+      </para>
+		</introduction>
+
+		<section>
+			<title>Getting Started</title>
+			<content>
+				<para>There are <link xlink:href="4a617e67-0920-46e4-9223-5effbac46b3d">Getting Started instructions</link> here.</para>
+			</content>
+		</section>
+
+    <section>
+      <title>Using the job browser</title>
+      <content>
+        <para>See details on <link xlink:href="91822db3-8a00-4307-ad8a-595c94f449b0">Building the job browser</link>. More documentation
+          is listed in the <externalLink>
+          <linkText>DryadLINQ job browser manual</linkText>
+          <linkUri>https://github.com/MicrosoftResearchSVC/Dryad/wiki/Using%20the%20DryadLINQ%20job%20browser</linkUri>
+          <linkTarget>_blank</linkTarget>
+        </externalLink>.</para>
+      </content>
+    </section>
+
+    <section>
+      <title>Resources</title>
+      <content>
+        <para>Reference documentation for the <codeEntityReference>N:Microsoft.Research.DryadLinq</codeEntityReference> namespace.
+      </para>
+        <para>What actually happens when a <link xlink:href="3596a79f-0714-43b0-b49a-ea9eeccb7326">DryadLINQ job runs on HDInsight</link>.
+        </para>
+      </content>
+    </section>
+
+    <relatedTopics>
+			<link xlink:href="a5d9b686-8282-4120-ae0e-5a9f11a2ac0b" />
+		</relatedTopics>
+	</developerConceptualDocument>
+</topic>

@@ -28,6 +28,8 @@ using System.Data.SqlTypes;
 using System.Diagnostics;
 using Microsoft.Research.DryadLinq;
 
+#pragma warning disable 1591
+
 namespace Microsoft.Research.DryadLinq.Internal
 {
     // This class defines the abstraction of writing DryadLinq records.

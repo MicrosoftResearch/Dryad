@@ -31,10 +31,11 @@ using Microsoft.Research.DryadLinq.Internal;
 
 namespace Microsoft.Research.DryadLinq
 {   
-    // This class introduces some new operators into the expression tree. So far,
-    // there are two classes of new operators:
-    //     1. HashPartition, RangePartition, Merge
-    //     2. Apply, ApplyPerPartition
+    /// <summary>
+    /// This class extends LINQ with a set of new operators that are specific to DryadLINQ.
+    /// The new operators includes partitioning operators (HashPartition and RangePartition)
+    /// and the Apply operator that enables stateful transformations on datasets.
+    /// </summary>
     public static class DryadLinqQueryable
     {
         internal static bool IsLocalDebugSource(IQueryable source)
@@ -42,6 +43,14 @@ namespace Microsoft.Research.DryadLinq
             return !(source.Provider is DryadLinqProvider);
         }
 
+        /// <summary>
+        /// Filters a sequence of values based on a predicate. Each element's index is used in 
+        /// the logic of the predicate function.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The sequence of elements to filter</param>
+        /// <param name="predicate">The filter predicate.</param>
+        /// <returns>The elements in the input that satisfy the predicate</returns>
         public static IQueryable<TSource>
             LongWhere<TSource>(this IQueryable<TSource> source,
                                Expression<Func<TSource, long, bool>> predicate)
@@ -68,6 +77,16 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Transforms each element of a sequence into a new form by applying a function of 
+        /// the element and its index.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <typeparam name="TResult">The type of the elements of the result</typeparam>
+        /// <param name="source">The sequence of input elements</param>
+        /// <param name="selector">A transform function to apply to each source element; 
+        /// the second parameter of the function represents the index of the source element.</param>
+        /// <returns>The sequence resulting from applying the transformation function on each input element</returns>
         public static IQueryable<TResult>
             LongSelect<TSource,TResult>(this IQueryable<TSource> source,
                                         Expression<Func<TSource, long, TResult>> selector)
@@ -94,6 +113,17 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Transforms each element of a sequence into an IEnumerable{T} by applying a function to the 
+        /// element and its index, and then flattens the resulting sequences into one sequence. 
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <typeparam name="TResult">The type of the elements of the result</typeparam>
+        /// <param name="source">The sequence of input elements</param>
+        /// <param name="selector">A transform function to apply to each source element; 
+        /// the second parameter of the function represents the index of the source element.</param>
+        /// <returns>The sequence resulting from applying the function on each input element and 
+        /// flattening the results</returns>
         public static IQueryable<TResult>
             LongSelectMany<TSource,TResult>(this IQueryable<TSource> source,
                                             Expression<Func<TSource, long, IEnumerable<TResult>>> selector)
@@ -120,6 +150,19 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Transforms each element of a sequence into an IEnumerable{T} by applying a function to the 
+        /// element and its index, and then flattens the resulting sequences into one sequence. 
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <typeparam name="TCollection">The type of the element in the intermediate IEnumerable sequences</typeparam>
+        /// <typeparam name="TResult">The type of the elements of the result</typeparam>
+        /// <param name="source">The sequence of input elements</param>
+        /// <param name="selector">A transform function to apply to each source element; 
+        /// the second parameter of the function represents the index of the source element.</param>
+        /// <param name="resultSelector">A transformation function to apply to each intermediate element</param>
+        /// <returns>The sequence resulting from applying <code>selector</code> to each input element and 
+        /// flattening and transforming the elements in the intermediate sequences</returns>
         public static IQueryable<TResult>
             LongSelectMany<TSource, TCollection, TResult>(this IQueryable<TSource> source,
                                                           Expression<Func<TSource, long, IEnumerable<TCollection>>> selector,
@@ -151,6 +194,13 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
         
+        /// <summary>
+        /// Returns the largest prefix of a sequence such that the elements satisfy a specified predicate.
+        /// </summary>
+        /// <typeparam name="TSource">The element type of the input sequence</typeparam>
+        /// <param name="source">The input sequence</param>
+        /// <param name="predicate">A predicate to test each element for a condition</param>
+        /// <returns>The largest prefix satisfying the predicate</returns>
         public static IQueryable<TSource>
             LongTakeWhile<TSource>(this IQueryable<TSource> source,
                                    Expression<Func<TSource, long, bool>> predicate)
@@ -177,6 +227,14 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Skips elements in a sequence as long as a specified condition is true and then returns the 
+        /// remaining elements. The predicate is a function of an element and its index.
+        /// </summary>
+        /// <typeparam name="TSource">The element type of the input sequence</typeparam>
+        /// <param name="source">The input sequence</param>
+        /// <param name="predicate">A predicate to test each element for a condition</param>
+        /// <returns>The remaining sequence by skipping the elements in the head that satisfy the predicate</returns>
         public static IQueryable<TSource>
             LongSkipWhile<TSource>(this IQueryable<TSource> source,
                                    Expression<Func<TSource, long, bool>> predicate)
@@ -212,7 +270,7 @@ namespace Microsoft.Research.DryadLinq
         /// <param name="keySelector">The function to extract the key from a record</param>
         /// <param name="comparer">An EqualityComparer on TKey to compare keys</param>
         /// <param name="partitionCount">The number of partitions to create</param>
-        /// <returns>An IQueryable partitioned according to a key</returns>
+        /// <returns>An IQueryable hash-partitioned according to a key</returns>
         public static IQueryable<TSource>
             HashPartition<TSource, TKey>(this IQueryable<TSource> source,
                                          Expression<Func<TSource, TKey>> keySelector,
@@ -255,7 +313,7 @@ namespace Microsoft.Research.DryadLinq
         /// <param name="source">the dataset to be partitioned</param>
         /// <param name="keySelector">The funtion to extract the key from a record</param>
         /// <param name="partitionCount">The number of partitioned to create</param>
-        /// <returns>An IQueryable partitioned according to a key</returns>
+        /// <returns>An IQueryable hash-partitioned according to a key</returns>
         public static IQueryable<TSource>
             HashPartition<TSource, TKey>(this IQueryable<TSource> source,
                                          Expression<Func<TSource, TKey>> keySelector,
@@ -295,7 +353,7 @@ namespace Microsoft.Research.DryadLinq
         /// <typeparam name="TKey">The type of the key on which the partition is based</typeparam>
         /// <param name="source">the dataset to be partitioned</param>
         /// <param name="keySelector">The function to extract the key from a record</param>
-        /// <returns>An IQueryable partitioned according to a key </returns>
+        /// <returns>An IQueryable hash-partitioned according to a key </returns>
         public static IQueryable<TSource>
             HashPartition<TSource, TKey>(this IQueryable<TSource> source,
                                          Expression<Func<TSource, TKey>> keySelector)
@@ -330,7 +388,7 @@ namespace Microsoft.Research.DryadLinq
         /// <param name="source">The dataset to be partitioned</param>
         /// <param name="keySelector">The function to extract the key from a record</param>
         /// <param name="comparer">An IComparer on TKey to compare keys</param>
-        /// <returns>An IQueryable partitioned according to a key</returns>
+        /// <returns>An IQueryable hash-partitioned according to a key</returns>
         public static IQueryable<TSource>
             HashPartition<TSource, TKey>(this IQueryable<TSource> source,
                                          Expression<Func<TSource, TKey>> keySelector,
@@ -364,10 +422,11 @@ namespace Microsoft.Research.DryadLinq
         /// </summary>
         /// <typeparam name="TSource">The type of the records in the dataset</typeparam>
         /// <typeparam name="TKey">The type of the key on which the partition is based</typeparam>
+        /// <typeparam name="TResult">The type of the records in the result dataset</typeparam>
         /// <param name="source">The dataset to be partitioned</param>
         /// <param name="keySelector">The function to extract the key from a record</param>
         /// <param name="resultSelector">The function to compute output record</param>
-        /// <returns>An IQueryable partitioned according to a key</returns>
+        /// <returns>An IQueryable hash-partitioned according to a key</returns>
         public static IQueryable<TResult>
             HashPartition<TSource, TKey, TResult>(this IQueryable<TSource> source,
                                                   Expression<Func<TSource, TKey>> keySelector,
@@ -406,11 +465,12 @@ namespace Microsoft.Research.DryadLinq
         /// </summary>
         /// <typeparam name="TSource">The type of the records in the dataset</typeparam>
         /// <typeparam name="TKey">The type of the key on which the partition is based</typeparam>
+        /// <typeparam name="TResult">The type of the records in the result dataset</typeparam>
         /// <param name="source">The dataset to be partitioned</param>
         /// <param name="keySelector">The function to extract the key from a record</param>
         /// <param name="comparer">An IComparer on TKey to compare keys</param>
         /// <param name="resultSelector">The function to compute output record</param>
-        /// <returns>An IQueryable partitioned according to a key</returns>
+        /// <returns>An IQueryable hash-partitioned according to a key</returns>
         public static IQueryable<TResult>
             HashPartition<TSource, TKey, TResult>(this IQueryable<TSource> source,
                                                   Expression<Func<TSource, TKey>> keySelector,
@@ -453,7 +513,7 @@ namespace Microsoft.Research.DryadLinq
         /// <typeparam name="TKey">The type of the key on which the partition is based</typeparam>
         /// <param name="source">The dataset to be partitioned</param>
         /// <param name="keySelector">The function to extract the key from a record</param>
-        /// <returns>An IQueryable partitioned according to a key</returns>
+        /// <returns>An IQueryable hash-partitioned according to a key</returns>
         public static IQueryable<TSource>
             RangePartition<TSource, TKey>(this IQueryable<TSource> source,
                                           Expression<Func<TSource, TKey>> keySelector)
@@ -487,8 +547,8 @@ namespace Microsoft.Research.DryadLinq
         /// <typeparam name="TKey">The type of the key on which the partition is based</typeparam>
         /// <param name="source">The dataset to be partitioned</param>
         /// <param name="keySelector">The function to extract the key from a record</param>
-        /// <param name="partitionCount">Number of partitions in the output dataset</param>
-        /// <returns>An IQueryable partitioned according to a key</returns>
+        /// <param name="partitionCount">The number of partitions in the output dataset</param>
+        /// <returns>An IQueryable partitioned according to a list of range keys determined at runtime</returns>
         public static IQueryable<TSource>
             RangePartition<TSource, TKey>(this IQueryable<TSource> source,
                                           Expression<Func<TSource, TKey>> keySelector,
@@ -529,7 +589,7 @@ namespace Microsoft.Research.DryadLinq
         /// <param name="source">The dataset to be partitioned</param>
         /// <param name="keySelector">The funtion to extract the key from a record</param>
         /// <param name="isDescending">true if the partition keys are descending</param>
-        /// <returns>An IQueryable partitioned according to a key</returns>
+        /// <returns>An IQueryable partitioned according to a list of range keys determined at runtime</returns>
         public static IQueryable<TSource>
             RangePartition<TSource, TKey>(this IQueryable<TSource> source,
                                           Expression<Func<TSource, TKey>> keySelector,
@@ -557,6 +617,15 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Range partition a dataset using an array of partition keys.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the records in the dataset</typeparam>
+        /// <typeparam name="TKey">The type of the key on which the partition is based</typeparam>
+        /// <param name="source">The dataset to be partitioned</param>
+        /// <param name="keySelector">The funtion to extract the key from a record</param>
+        /// <param name="rangeSeparators">An array of partition keys, either in ascending or descending order</param>
+        /// <returns>An IQueryable partitioned according to the specified range keys</returns>
         public static IQueryable<TSource>
             RangePartition<TSource, TKey>(this IQueryable<TSource> source,
                                           Expression<Func<TSource, TKey>> keySelector,
@@ -604,7 +673,7 @@ namespace Microsoft.Research.DryadLinq
         /// <param name="keySelector">The funtion to extract the key from a record</param>
         /// <param name="isDescending">true if the partition keys are descending</param>
         /// <param name="partitionCount">Number of partitions in the output dataset</param>
-        /// <returns>An IQueryable partitioned according to a key</returns>
+        /// <returns>An IQueryable partitioned according to a list of keys determined at runtime</returns>
         public static IQueryable<TSource>
             RangePartition<TSource, TKey>(this IQueryable<TSource> source,
                                           Expression<Func<TSource, TKey>> keySelector,
@@ -638,6 +707,16 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
         
+        /// <summary>
+        /// Range partition a dataset. The list of range keys are determined dynamically at runtime.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the records in the input dataset</typeparam>
+        /// <typeparam name="TKey">The type of the key on which the partition is based</typeparam>
+        /// <param name="source">The input dataset to be partitioned</param>
+        /// <param name="keySelector">The function to extract the key from a record</param>
+        /// <param name="comparer">An IComparer on TKey to compare keys</param>
+        /// <param name="isDescending">true if the generated keys must be descending; otherwise ascending</param>
+        /// <returns>An IQueryable partitioned according to a list of keys determined at runtime</returns>
         public static IQueryable<TSource>
             RangePartition<TSource, TKey>(this IQueryable<TSource> source,
                                           Expression<Func<TSource, TKey>> keySelector,
@@ -667,6 +746,16 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Range partition a dataset using a specified list of keys.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the records in the input dataset</typeparam>
+        /// <typeparam name="TKey">The type of the key on which the partition is based</typeparam>
+        /// <param name="source">The input dataset to be partitioned</param>
+        /// <param name="keySelector">The function to extract the key from a record</param>
+        /// <param name="rangeSeparators">The list of range keys</param>
+        /// <param name="comparer">An IComparer on TKey to compare keys</param>
+        /// <returns>An IQueryable partitioned according to a specified list of keys.</returns>
         public static IQueryable<TSource>
             RangePartition<TSource, TKey>(this IQueryable<TSource> source,
                                           Expression<Func<TSource, TKey>> keySelector,
@@ -713,6 +802,17 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Range partition a dataset. The list of range keys are determined dynamically at runtime.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the records in the input dataset</typeparam>
+        /// <typeparam name="TKey">The type of the key on which the partition is based</typeparam>
+        /// <param name="source">The input dataset to be partitioned</param>
+        /// <param name="keySelector">The function to extract the key from a record</param>
+        /// <param name="comparer">An IComparer on TKey to compare keys</param>
+        /// <param name="isDescending">true if the generated keys must be descending; otherwise ascending</param>
+        /// <param name="partitionCount">The number of partitions in the output dataset</param>
+        /// <returns>An IQueryable partitioned according to a list of keys determined at runtime</returns>
         public static IQueryable<TSource>
             RangePartition<TSource, TKey>(this IQueryable<TSource> source,
                                           Expression<Func<TSource, TKey>> keySelector,
@@ -749,6 +849,17 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Range partition a dataset using a specified list of keys.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the records in the input dataset</typeparam>
+        /// <typeparam name="TKey">The type of the key on which the partition is based</typeparam>
+        /// <param name="source">The input dataset to be partitioned</param>
+        /// <param name="keySelector">The function to extract the key from a record</param>
+        /// <param name="rangeSeparators">The list of range keys</param>
+        /// <param name="comparer">An IComparer on TKey to compare keys</param>
+        /// <param name="isDescending">true if the keys must be in descending order; otherwise false</param>
+        /// <returns>An IQueryable partitioned according to a specified list of keys</returns>
         public static IQueryable<TSource> 
             RangePartition<TSource, TKey>(this IQueryable<TSource> source,
                                           Expression<Func<TSource, TKey>> keySelector,
@@ -813,7 +924,7 @@ namespace Microsoft.Research.DryadLinq
         /// <typeparam name="T1">The type of the records of the input dataset</typeparam>
         /// <typeparam name="T2">The type of the records of the output dataset</typeparam>
         /// <param name="source">The input dataset</param>
-        /// <param name="applyFunc ">The function to be applied to the input dataset</param>
+        /// <param name="applyFunc">The function to be applied to the input dataset</param>
         /// <returns>The result of computing applyFunc(source)</returns>
         public static IQueryable<T2>
             Apply<T1, T2>(this IQueryable<T1> source,
@@ -845,7 +956,7 @@ namespace Microsoft.Research.DryadLinq
         /// <typeparam name="T3">he type of the records of the output dataset</typeparam>
         /// <param name="source1">The first input dataset</param>
         /// <param name="source2">The second input dataset</param>
-        /// <param name="applyFunc ">The function to be applied to the input datasets</param>
+        /// <param name="applyFunc">The function to be applied to the input datasets</param>
         /// <returns>The result of computing applyFunc(source1, source2)</returns>
         public static IQueryable<T3>
             Apply<T1, T2, T3>(this IQueryable<T1> source1,
@@ -967,7 +1078,7 @@ namespace Microsoft.Research.DryadLinq
         /// <typeparam name="T1">The type of the records of the input dataset</typeparam>
         /// <typeparam name="T2">The type of the records of the output dataset</typeparam>
         /// <param name="source">The input dataset</param>
-        /// <param name="applyFunc ">The function to be applied to the input dataset</param>
+        /// <param name="applyFunc">The function to be applied to the input dataset</param>
         /// <returns>The result of computing applyFunc(source)</returns>
         public static IQueryable<T2>
             ApplyPerPartition<T1, T2>(
@@ -1000,7 +1111,7 @@ namespace Microsoft.Research.DryadLinq
         /// <typeparam name="T3">he type of the records of the output dataset</typeparam>
         /// <param name="source1">The first input dataset</param>
         /// <param name="source2">The second input dataset</param>
-        /// <param name="applyFunc ">The function to be applied to the input datasets</param>
+        /// <param name="applyFunc">The function to be applied to the input datasets</param>
         /// <param name="isFirstOnly">True if only distributive over the first dataset</param>
         /// <returns>The result of computing applyFunc(source1, source2)</returns>
         public static IQueryable<T3>
@@ -1043,7 +1154,7 @@ namespace Microsoft.Research.DryadLinq
         /// <param name="otherSources">Other input datasets</param>  
         /// <param name="applyFunc">The function to be applied to the input datasets</param>
         /// <param name="isFirstOnly">True if only distributive over the first dataset</param>
-        /// <returns>The result of computing applyFunc(source,pieces)</returns>
+        /// <returns>The result of computing applyFunc(source, otherSources)</returns>
         public static IQueryable<T2>
             ApplyPerPartition<T1, T2>(
                           this IQueryable<T1> source,
@@ -1165,7 +1276,7 @@ namespace Microsoft.Research.DryadLinq
         /// <param name="source">The input dataset</param>
         /// <param name="body">The code body of the DoWhile loop</param>
         /// <param name="cond">The termination condition of the DoWhile loop</param>
-        /// <returns>The output dataset</returns>
+        /// <returns>The output dataset when the loop terminates</returns>
         public static IQueryable<T>
             DoWhile<T>(this IQueryable<T> source,
                        Func<IQueryable<T>, IQueryable<T>> body,
@@ -1202,7 +1313,7 @@ namespace Microsoft.Research.DryadLinq
         /// <param name="source">The input dataset</param>
         /// <param name="procFunc">The function to apply to every sliding window</param>
         /// <param name="windowSize">The size of the window</param>
-        /// <returns></returns>
+        /// <returns>An IQueryable formed by the results for each sliding window</returns>
         public static IQueryable<T2>
             SlidingWindow<T1, T2>(this IQueryable<T1> source,
                                   Expression<Func<IEnumerable<T1>, T2>> procFunc,
@@ -1231,6 +1342,16 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Computes a user-defined function on each partition of the input. The function takes a 
+        /// partition and its partition index as arguments.
+        /// </summary>
+        /// <typeparam name="T1">The type of the input records</typeparam>
+        /// <typeparam name="T2">The type of the output records </typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="procFunc">The function to apply to each partition</param>
+        /// <returns>An IQueryable formed by concatenating the results of applying the function
+        /// to each partition</returns>
         public static IQueryable<T2>
             ApplyWithPartitionIndex<T1, T2>(this IQueryable<T1> source,
                                             Expression<Func<IEnumerable<T1>, int, IEnumerable<T2>>> procFunc)
@@ -1253,6 +1374,13 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Any``1(System.Linq.IQueryable{``0})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Boolean"/>&gt;
+        /// containing a single element.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source.</typeparam>
+        /// <param name="source">The input sequence</param>
+        /// <returns>true iff the input sequence contains at least one element</returns>
         public static IQueryable<bool> AnyAsQuery<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
@@ -1272,6 +1400,15 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Any``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Boolean"/>&gt;
+        /// containing a single element.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source.</typeparam>
+        /// <param name="source">The input sequence</param>
+        /// <param name="predicate">A predicate to test each element for a condition.</param>
+        /// <returns>true iff the input sequence contains at least one element that satisfies 
+        /// the predicate</returns>
         public static IQueryable<bool> AnyAsQuery<TSource>(this IQueryable<TSource> source,
                                                            Expression<Func<TSource, bool>> predicate)
         {
@@ -1296,6 +1433,14 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.All``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Boolean"/>&gt;
+        /// containing a single element.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source.</typeparam>
+        /// <param name="source">The input sequence</param>
+        /// <param name="predicate">A predicate to test each element for a condition</param>
+        /// <returns>true iff every element in the input sequence satisfies the predicate</returns>
         public static IQueryable<bool> AllAsQuery<TSource>(this IQueryable<TSource> source,
                                                            Expression<Func<TSource, bool>> predicate)
         {
@@ -1320,6 +1465,13 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Count``1(System.Linq.IQueryable{``0})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Int32"/>&gt;
+        /// containing a single element.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input sequence</param>
+        /// <returns>The number of elements in the input sequence</returns>
         public static IQueryable<int> CountAsQuery<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
@@ -1339,6 +1491,14 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Count``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Int32"/>&gt;
+        /// containing a single element.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input sequence</param>
+        /// <param name="predicate">A predicate to test each element for a condition</param>
+        /// <returns>The number of elements in the input sequence satisfying the predicate</returns>
         public static IQueryable<int> CountAsQuery<TSource>(this IQueryable<TSource> source,
                                                             Expression<Func<TSource, bool>> predicate)
         {
@@ -1363,6 +1523,13 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.LongCount``1(System.Linq.IQueryable{``0})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Int64"/>&gt;
+        /// containing a single element.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input sequence</param>
+        /// <returns>The number of elements in the input sequence</returns>
         public static IQueryable<long> LongCountAsQuery<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
@@ -1382,6 +1549,14 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.LongCount``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Int64"/>&gt;
+        /// containing a single element.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input sequence</param>
+        /// <param name="predicate">A predicate to test each element for a condition</param>
+        /// <returns>The number of elements in the input sequence satisfying the predicate</returns>
         public static IQueryable<long> LongCountAsQuery<TSource>(this IQueryable<TSource> source,
                                                                  Expression<Func<TSource, bool>> predicate)
         {
@@ -1406,6 +1581,14 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Contains``1(System.Linq.IQueryable{``0},``0)"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Boolean"/>&gt;
+        /// containing a single element.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input sequence</param>
+        /// <param name="item">The value to locate in the sequence</param>
+        /// <returns>true iff the source sequence contains an element of the specified value</returns>
         public static IQueryable<bool>
             ContainsAsQuery<TSource>(this IQueryable<TSource> source, TSource item)
         {
@@ -1426,6 +1609,15 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Contains``1(System.Linq.IQueryable{``0},``0,System.Collections.Generic.IEqualityComparer{``0})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Boolean"/>&gt;
+        /// containing a single element.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input sequence</param>
+        /// <param name="item">The value to locate in the sequence</param>
+        /// <param name="comparer">The equality comparer to use</param>
+        /// <returns>true iff the source sequence contains an element of the specified value</returns>
         public static IQueryable<bool>
             ContainsAsQuery<TSource>(this IQueryable<TSource> source,
                                      TSource item,
@@ -1456,6 +1648,14 @@ namespace Microsoft.Research.DryadLinq
             return Expression.Constant(source.ToArray(), typeof(TSource[]));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.SequenceEqual``1(System.Linq.IQueryable{``0},System.Collections.Generic.IEnumerable{``0})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Boolean"/>&gt;
+        /// containing a single element.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source1">The first input sequence</param>
+        /// <param name="source2">The second input sequence</param>
+        /// <returns>true iff the two input sequences are equal</returns>
         public static IQueryable<bool>
             SequenceEqualAsQuery<TSource>(this IQueryable<TSource> source1,
                                           IEnumerable<TSource> source2)
@@ -1480,7 +1680,16 @@ namespace Microsoft.Research.DryadLinq
                     new Expression[] { source1.Expression, GetSourceExpression(source2) }
                     ));
         }
-        
+
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.SequenceEqual``1(System.Linq.IQueryable{``0},System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEqualityComparer{``0})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Boolean"/>&gt;
+        /// containing a single element.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source1">The first input sequence</param>
+        /// <param name="source2">The second input sequence</param>
+        /// <param name="comparer">The equality comparer to use</param>
+        /// <returns>true iff the two input sequences are equal</returns>
         public static IQueryable<bool>
             SequenceEqualAsQuery<TSource>(this IQueryable<TSource> source1,
                                           IEnumerable<TSource> source2,
@@ -1510,7 +1719,15 @@ namespace Microsoft.Research.DryadLinq
                         }
                     ));
         }
-        
+
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.First``1(System.Linq.IQueryable{``0})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<typeparamref name="TSource"/>&gt;
+        /// containing a single element.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input sequence</param>
+        /// <returns>The first element in the input sequence</returns>
+        /// <exception cref="DryadLinqException">The input sequence is empty</exception>
         public static IQueryable<TSource> FirstAsQuery<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
@@ -1530,6 +1747,15 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.First``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<typeparamref name="TSource"/>&gt;
+        /// containing a single element.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input sequence</param>
+        /// <param name="predicate">A predicate to test each element for a condition</param>
+        /// <returns>The first element in the input sequence that satisfies the predicate</returns>
+        /// <exception cref="DryadLinqException">No element in the input sequence satisfies the predicate</exception>
         public static IQueryable<TSource>
             FirstAsQuery<TSource>(this IQueryable<TSource> source,
                                   Expression<Func<TSource, bool>> predicate)
@@ -1555,6 +1781,13 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Last``1(System.Linq.IQueryable{``0})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<typeparamref name="TSource"/>&gt;
+        /// containing a single element.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input sequence</param>
+        /// <returns>The last element in the input sequence</returns>
         public static IQueryable<TSource> LastAsQuery<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
@@ -1574,6 +1807,14 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Last``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<typeparamref name="TSource"/>&gt;
+        /// containing a single element.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input sequence</param>
+        /// <param name="predicate">A predicate to test each element for a condition</param>
+        /// <returns>The last element in the input sequence that satisfies the predicate</returns>
         public static IQueryable<TSource>
             LastAsQuery<TSource>(this IQueryable<TSource> source,
                                  Expression<Func<TSource, bool>> predicate)
@@ -1599,6 +1840,13 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Single``1(System.Linq.IQueryable{``0})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<typeparamref name="TSource"/>&gt;
+        /// containing a single element.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input sequence</param>
+        /// <returns>The single element of the input sequence</returns>
         public static IQueryable<TSource> SingleAsQuery<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
@@ -1618,9 +1866,17 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Single``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<typeparamref name="TSource"/>&gt;
+        /// containing a single element.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input sequence</param>
+        /// <param name="predicate">A predicate to test each element for a condition</param>
+        /// <returns>The single element of the input sequence that satisfies the predicate</returns>
         public static IQueryable<TSource>
             SingleAsQuery<TSource>(this IQueryable<TSource> source,
-                                   Expression<Func<TSource,bool>> predicate)
+                                   Expression<Func<TSource, bool>> predicate)
         {
             if (source == null)
             {
@@ -1643,6 +1899,13 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Min``1(System.Linq.IQueryable{``0})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<typeparamref name="TSource"/>&gt;
+        /// containing a single element.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <returns>The minimum value in the input dataset</returns>
         public static IQueryable<TSource> MinAsQuery<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
@@ -1662,8 +1925,18 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Min``2(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,``1}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<typeparamref name="TResult"/>&gt;
+        /// containing a single element.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <typeparam name="TResult">The type of the result value</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="selector">A transformation function to apply to each element</param>
+        /// <returns>The minimum value in the transformed values</returns>
         public static IQueryable<TResult>
-            MinAsQuery<TSource,TResult>(this IQueryable<TSource> source, Expression<Func<TSource,TResult>> selector)
+            MinAsQuery<TSource, TResult>(this IQueryable<TSource> source, 
+                                         Expression<Func<TSource, TResult>> selector)
         {
             if (source == null)
             {
@@ -1686,6 +1959,13 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Max``1(System.Linq.IQueryable{``0})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<typeparamref name="TSource"/>&gt;
+        /// containing a single element.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <returns>The maximum value in the input dataset</returns>
         public static IQueryable<TSource> MaxAsQuery<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
@@ -1705,9 +1985,18 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Max``2(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,``1}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<typeparamref name="TResult"/>&gt;
+        /// containing a single element.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <typeparam name="TResult">The type of the result value</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="selector">A transformation function to apply to each element</param>
+        /// <returns>The maximum value in the transformed values</returns>
         public static IQueryable<TResult>
-            MaxAsQuery<TSource,TResult>(this IQueryable<TSource> source,
-                                        Expression<Func<TSource,TResult>> selector)
+            MaxAsQuery<TSource, TResult>(this IQueryable<TSource> source,
+                                         Expression<Func<TSource,TResult>> selector)
         {
             if (source == null)
             {
@@ -1730,6 +2019,12 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Sum(System.Linq.IQueryable{System.Int32})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Int32"/>&gt;
+        /// containing a single element. Computes the sum of a set of Int32 values.
+        /// </summary>
+        /// <param name="source">A dataset of Int32 values to calculate the sum of</param>
+        /// <returns>The sum of the values in the dataset</returns>
         public static IQueryable<int> SumAsQuery(this IQueryable<int> source)
         {
             if (source == null)
@@ -1749,6 +2044,12 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Sum(System.Linq.IQueryable{System.Nullable{System.Int32}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Nullable"/>&lt;<see cref="T:System.Int32"/>&gt;&gt;
+        /// containing a single element. Computes the sum of a set of nullable Int32 values.
+        /// </summary>
+        /// <param name="source">A dataset of nullable Int32 values to calculate the sum of</param>
+        /// <returns>The sum of the values in the dataset</returns>
         public static IQueryable<int?> SumAsQuery(this IQueryable<int?> source)
         {
             if (source == null)
@@ -1768,6 +2069,12 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Sum(System.Linq.IQueryable{System.Int64})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Int64"/>&gt;
+        /// containing a single element. Computes the sum of a set of Int64 values.
+        /// </summary>
+        /// <param name="source">A dataset of Int64 values to calculate the sum of</param>
+        /// <returns>The sum of the values in the dataset</returns>
         public static IQueryable<long> SumAsQuery(this IQueryable<long> source)
         {
             if (source == null)
@@ -1787,6 +2094,12 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Sum(System.Linq.IQueryable{System.Nullable{System.Int64}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Nullable"/>&lt;<see cref="T:System.Int64"/>&gt;&gt;
+        /// containing a single element. Computes the sum of a set of nullable Int64 values.
+        /// </summary>
+        /// <param name="source">A dataset of nullable Int64 values to calculate the sum of</param>
+        /// <returns>The sum of the values in the dataset</returns>
         public static IQueryable<long?> SumAsQuery(this IQueryable<long?> source)
         {
             if (source == null)
@@ -1806,6 +2119,12 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Sum(System.Linq.IQueryable{System.Single})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Single"/>&gt;
+        /// containing a single element. Computes the sum of a set of float values.
+        /// </summary>
+        /// <param name="source">A dataset of float values to calculate the sum of</param>
+        /// <returns>The sum of the values in the dataset</returns>
         public static IQueryable<float> SumAsQuery(this IQueryable<float> source)
         {
             if (source == null)
@@ -1825,6 +2144,12 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Sum(System.Linq.IQueryable{System.Nullable{System.Single}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Nullable"/>&lt;<see cref="T:System.Single"/>&gt;&gt;
+        /// containing a single element. Computes the sum of a set of nullable float values.
+        /// </summary>
+        /// <param name="source">A dataset of nullable float values to calculate the sum of</param>
+        /// <returns>The sum of the values in the dataset</returns>
         public static IQueryable<float?> SumAsQuery(this IQueryable<float?> source)
         {
             if (source == null)
@@ -1844,6 +2169,12 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Sum(System.Linq.IQueryable{System.Double})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Double"/>&gt;
+        /// containing a single element. Computes the sum of a set of double values.
+        /// </summary>
+        /// <param name="source">A dataset of double values to calculate the sum of</param>
+        /// <returns>The sum of the values in the dataset</returns>
         public static IQueryable<double> SumAsQuery(this IQueryable<double> source)
         {
             if (source == null)
@@ -1863,6 +2194,12 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Sum(System.Linq.IQueryable{System.Nullable{System.Double}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Nullable"/>&lt;<see cref="T:System.Double"/>&gt;&gt;
+        /// containing a single element. Computes the sum of a set of nullable double values.
+        /// </summary>
+        /// <param name="source">A dataset of nullable double values to calculate the sum of</param>
+        /// <returns>The sum of the values in the dataset</returns>
         public static IQueryable<double?> SumAsQuery(this IQueryable<double?> source)
         {
             if (source == null)
@@ -1882,6 +2219,12 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Sum(System.Linq.IQueryable{System.Decimal})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Decimal"/>&gt;
+        /// containing a single element. Computes the sum of a set of decimal values.
+        /// </summary>
+        /// <param name="source">A dataset of decimal values to calculate the sum of</param>
+        /// <returns>The sum of the values in the dataset</returns>
         public static IQueryable<decimal> SumAsQuery(this IQueryable<decimal> source)
         {
             if (source == null)
@@ -1901,6 +2244,12 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Sum(System.Linq.IQueryable{System.Nullable{System.Decimal}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Nullable"/>&lt;<see cref="T:System.Decimal"/>&gt;&gt;
+        /// containing a single element. Computes the sum of a set of nullable decimal values.
+        /// </summary>
+        /// <param name="source">A dataset of nullable decimal values to calculate the sum of</param>
+        /// <returns>The sum of the values in the dataset</returns>
         public static IQueryable<decimal?> SumAsQuery(this IQueryable<decimal?> source)
         {
             if (source == null)
@@ -1920,9 +2269,18 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Sum``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Int32}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Int32"/>&gt;
+        /// containing a single element. Computes the sum of a set of Int32 values that
+        /// is obtained by applying a function to each element of the input dataset.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="selector">A transformation function to apply to each element</param>
+        /// <returns>The sum of the values after applying the transformation function</returns>
         public static IQueryable<int>
             SumAsQuery<TSource>(this IQueryable<TSource> source,
-                                Expression<Func<TSource,int>> selector)
+                                Expression<Func<TSource, int>> selector)
         {
             if (source == null)
             {
@@ -1945,6 +2303,15 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Sum``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Nullable{System.Int32}}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Nullable"/>&lt;<see cref="T:System.Int32"/>&gt;&gt;
+        /// containing a single element. Computes the sum of a set of nullable Int32 values that
+        /// is obtained by applying a function to each element of the input dataset.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="selector">A transformation function to apply to each element</param>
+        /// <returns>The sum of the values after applying the transformation function</returns>
         public static IQueryable<int?>
             SumAsQuery<TSource>(this IQueryable<TSource> source,
                                 Expression<Func<TSource,int?>> selector)
@@ -1970,9 +2337,18 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Sum``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Int64}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Int64"/>&gt;
+        /// containing a single element. Computes the sum of a set of Int64 values that
+        /// is obtained by applying a function to each element of the input dataset.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="selector">A transformation function to apply to each element</param>
+        /// <returns>The sum of the values after applying the transformation function</returns>
         public static IQueryable<long>
             SumAsQuery<TSource>(this IQueryable<TSource> source,
-                                Expression<Func<TSource,long>> selector)
+                                Expression<Func<TSource, long>> selector)
         {
             if (source == null)
             {
@@ -1995,6 +2371,15 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Sum``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Nullable{System.Int64}}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Int64"/>&gt;
+        /// containing a single element. Computes the sum of a set of nullable Int64 values that
+        /// is obtained by applying a function to each element of the input dataset.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="selector">A transformation function to apply to each element</param>
+        /// <returns>The sum of the values after applying the transformation function</returns>
         public static IQueryable<long?>
             SumAsQuery<TSource>(this IQueryable<TSource> source,
                                 Expression<Func<TSource,long?>> selector)
@@ -2020,9 +2405,18 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Sum``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Single}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Single"/>&gt;
+        /// containing a single element. Computes the sum of a set of float values that
+        /// is obtained by applying a function to each element of the input dataset.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="selector">A transformation function to apply to each element</param>
+        /// <returns>The sum of the values after applying the transformation function</returns>
         public static IQueryable<float>
             SumAsQuery<TSource>(this IQueryable<TSource> source,
-                                Expression<Func<TSource,float>> selector)
+                                Expression<Func<TSource, float>> selector)
         {
             if (source == null)
             {
@@ -2045,6 +2439,15 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Sum``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Nullable{System.Single}}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Single"/>&gt;
+        /// containing a single element. Computes the sum of a set of nullable float values that
+        /// is obtained by applying a function to each element of the input dataset.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="selector">A transformation function to apply to each element</param>
+        /// <returns>The sum of the values after applying the transformation function</returns>
         public static IQueryable<float?>
             SumAsQuery<TSource>(this IQueryable<TSource> source,
                                 Expression<Func<TSource,float?>> selector)
@@ -2070,9 +2473,18 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Sum``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Double}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Double"/>&gt;
+        /// containing a single element. Computes the sum of a set of double values that
+        /// is obtained by applying a function to each element of the input dataset.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="selector">A transformation function to apply to each element</param>
+        /// <returns>The sum of the values after applying the transformation function</returns>
         public static IQueryable<double>
             SumAsQuery<TSource>(this IQueryable<TSource> source,
-                                Expression<Func<TSource,double>> selector)
+                                Expression<Func<TSource, double>> selector)
         {
             if (source == null)
             {
@@ -2095,6 +2507,15 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Sum``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Nullable{System.Double}}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Double"/>&gt;
+        /// containing a single element. Computes the sum of a set of nullable double values that
+        /// is obtained by applying a function to each element of the input dataset.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="selector">A transformation function to apply to each element</param>
+        /// <returns>The sum of the values after applying the transformation function</returns>
         public static IQueryable<double?>
             SumAsQuery<TSource>(this IQueryable<TSource> source,
                                 Expression<Func<TSource,double?>> selector)
@@ -2120,9 +2541,18 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Sum``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Decimal}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Decimal"/>&gt;
+        /// containing a single element. Computes the sum of a set of decimal values that
+        /// is obtained by applying a function to each element of the input dataset.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="selector">A transformation function to apply to each element</param>
+        /// <returns>The sum of the values after applying the transformation function</returns>
         public static IQueryable<decimal>
             SumAsQuery<TSource>(this IQueryable<TSource> source,
-                                Expression<Func<TSource,decimal>> selector)
+                                Expression<Func<TSource, decimal>> selector)
         {
             if (source == null)
             {
@@ -2145,9 +2575,18 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Sum``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Nullable{System.Decimal}}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Decimal"/>&gt;
+        /// containing a single element. Computes the sum of a set of nullable decimal values that
+        /// is obtained by applying a function to each element of the input dataset.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="selector">A transformation function to apply to each element</param>
+        /// <returns>The sum of the values after applying the transformation function</returns>
         public static IQueryable<decimal?>
             SumAsQuery<TSource>(this IQueryable<TSource> source,
-                                Expression<Func<TSource,decimal?>> selector)
+                                Expression<Func<TSource, decimal?>> selector)
         {
             if (source == null)
             {
@@ -2170,6 +2609,13 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Average(System.Linq.IQueryable{System.Int32})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Double"/>&gt;
+        /// containing a single element. Computes the average of a set of Int32 values in the input
+        /// dataset.
+        /// </summary>
+        /// <param name="source">A set of Int32 values to calculate the average of</param>
+        /// <returns>The average of the values in the input dataset</returns>
         public static IQueryable<double> AverageAsQuery(this IQueryable<int> source)
         {
             if (source == null)
@@ -2189,6 +2635,13 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Average(System.Linq.IQueryable{System.Nullable{System.Int32}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Nullable"/>&lt;<see cref="T:System.Double"/>&gt;&gt;
+        /// containing a single element. Computes the average of a set of nullable Int32 values in the input
+        /// dataset.
+        /// </summary>
+        /// <param name="source">A set of nullable Int32 values to calculate the average of</param>
+        /// <returns>The average of the values in the input dataset</returns>
         public static IQueryable<double?> AverageAsQuery(this IQueryable<int?> source)
         {
             if (source == null)
@@ -2208,6 +2661,13 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Average(System.Linq.IQueryable{System.Int64})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Double"/>&gt;
+        /// containing a single element. Computes the average of a set of Int64 values in the input
+        /// dataset.
+        /// </summary>
+        /// <param name="source">A set of Int64 values to calculate the average of</param>
+        /// <returns>The average of the values in the input dataset</returns>
         public static IQueryable<double> AverageAsQuery(this IQueryable<long> source)
         {
             if (source == null)
@@ -2227,6 +2687,13 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Average(System.Linq.IQueryable{System.Nullable{System.Int64}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Nullable"/>&lt;<see cref="T:System.Double"/>&gt;&gt;
+        /// containing a single element. Computes the average of a set of nullable Int64 values in the input
+        /// dataset.
+        /// </summary>
+        /// <param name="source">A set of nullable Int64 values to calculate the average of</param>
+        /// <returns>The average of the values in the input dataset</returns>
         public static IQueryable<double?> AverageAsQuery(this IQueryable<long?> source)
         {
             if (source == null)
@@ -2246,6 +2713,13 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Average(System.Linq.IQueryable{System.Single})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Single"/>&gt;
+        /// containing a single element. Computes the average of a set of float values in the input
+        /// dataset.
+        /// </summary>
+        /// <param name="source">A set of float values to calculate the average of</param>
+        /// <returns>The average of the values in the input dataset</returns>
         public static IQueryable<float> AverageAsQuery(this IQueryable<float> source)
         {
             if (source == null)
@@ -2265,6 +2739,13 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Average(System.Linq.IQueryable{System.Nullable{System.Single}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Nullable"/>&lt;<see cref="T:System.Single"/>&gt;&gt;
+        /// containing a single element. Computes the average of a set of nullable float values in the input
+        /// dataset.
+        /// </summary>
+        /// <param name="source">A set of nullable float values to calculate the average of</param>
+        /// <returns>The average of the values in the input dataset</returns>
         public static IQueryable<float?> AverageAsQuery(this IQueryable<float?> source)
         {
             if (source == null)
@@ -2284,6 +2765,13 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Average(System.Linq.IQueryable{System.Double})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Double"/>&gt;
+        /// containing a single element. Computes the average of a set of double values in the input
+        /// dataset.
+        /// </summary>
+        /// <param name="source">A set of double values to calculate the average of</param>
+        /// <returns>The average of the values in the input dataset</returns>
         public static IQueryable<double> AverageAsQuery(this IQueryable<double> source)
         {
             if (source == null)
@@ -2303,6 +2791,13 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Average(System.Linq.IQueryable{System.Nullable{System.Double}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Nullable"/>&lt;<see cref="T:System.Double"/>&gt;&gt;
+        /// containing a single element. Computes the average of a set of nullable double values in the input
+        /// dataset.
+        /// </summary>
+        /// <param name="source">A set of nullable double values to calculate the average of</param>
+        /// <returns>The average of the values in the input dataset</returns>
         public static IQueryable<double?> AverageAsQuery(this IQueryable<double?> source)
         {
             if (source == null)
@@ -2322,6 +2817,13 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Average(System.Linq.IQueryable{System.Decimal})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Decimal"/>&gt;
+        /// containing a single element. Computes the average of a set of decimal values in the input
+        /// dataset.
+        /// </summary>
+        /// <param name="source">A set of decimal values to calculate the average of</param>
+        /// <returns>The average of the values in the input dataset</returns>
         public static IQueryable<decimal> AverageAsQuery(this IQueryable<decimal> source)
         {
             if (source == null)
@@ -2341,6 +2843,13 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Average(System.Linq.IQueryable{System.Nullable{System.Decimal}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Nullable"/>&lt;<see cref="T:System.Decimal"/>&gt;&gt;
+        /// containing a single element. Computes the average of a set of nullable decimal values in the input
+        /// dataset.
+        /// </summary>
+        /// <param name="source">A set of nullable decimal values to calculate the average of</param>
+        /// <returns>The average of the values in the input dataset</returns>
         public static IQueryable<decimal?> AverageAsQuery(this IQueryable<decimal?> source)
         {
             if (source == null)
@@ -2360,9 +2869,18 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Average``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Int32}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Double"/>&gt;
+        /// containing a single element. Computes the average of a set of Int32 values that
+        /// is obtained by applying a function to each element of the input dataset.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="selector">A transformation function to apply to each element</param>
+        /// <returns>The average of the values after applying the transformation function</returns>
         public static IQueryable<double>
             AverageAsQuery<TSource>(this IQueryable<TSource> source,
-                                    Expression<Func<TSource,int>> selector)
+                                    Expression<Func<TSource, int>> selector)
         {
             if (source == null)
             {
@@ -2385,6 +2903,15 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Average``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Nullable{System.Int32}}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Nullable"/>&lt;<see cref="T:System.Double"/>&gt;&gt;
+        /// containing a single element. Computes the average of a set of nullable Int32 values that
+        /// is obtained by applying a function to each element of the input dataset.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="selector">A transformation function to apply to each element</param>
+        /// <returns>The average of the values after applying the transformation function</returns>
         public static IQueryable<double?>
             AverageAsQuery<TSource>(this IQueryable<TSource> source,
                                     Expression<Func<TSource,int?>> selector)
@@ -2410,6 +2937,15 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Average``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Single}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Single"/>&gt;
+        /// containing a single element. Computes the average of a set of float values that
+        /// is obtained by applying a function to each element of the input dataset.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="selector">A transformation function to apply to each element</param>
+        /// <returns>The average of the values after applying the transformation function</returns>
         public static IQueryable<float>
             AverageAsQuery<TSource>(this IQueryable<TSource> source,
                                     Expression<Func<TSource, float>> selector)
@@ -2435,6 +2971,15 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Average``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Nullable{System.Single}}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Nullable"/>&lt;<see cref="T:System.Single"/>&gt;&gt;
+        /// containing a single element. Computes the average of a set of nullable float values that
+        /// is obtained by applying a function to each element of the input dataset.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="selector">A transformation function to apply to each element</param>
+        /// <returns>The average of the values after applying the transformation function</returns>
         public static IQueryable<float?>
             AverageAsQuery<TSource>(this IQueryable<TSource> source,
                                     Expression<Func<TSource, float?>> selector)
@@ -2460,9 +3005,18 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Average``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Int64}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Double"/>&gt;
+        /// containing a single element. Computes the average of a set of Int64 values that
+        /// is obtained by applying a function to each element of the input dataset.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="selector">A transformation function to apply to each element</param>
+        /// <returns>The average of the values after applying the transformation function</returns>
         public static IQueryable<double>
             AverageAsQuery<TSource>(this IQueryable<TSource> source,
-                                    Expression<Func<TSource,long>> selector)
+                                    Expression<Func<TSource, long>> selector)
         {
             if (source == null)
             {
@@ -2485,9 +3039,18 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Average``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Nullable{System.Int64}}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Nullable"/>&lt;<see cref="T:System.Double"/>&gt;&gt;
+        /// containing a single element. Computes the average of a set of nullable Int64 values that
+        /// is obtained by applying a function to each element of the input dataset.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="selector">A transformation function to apply to each element</param>
+        /// <returns>The average of the values after applying the transformation function</returns>        
         public static IQueryable<double?>
             AverageAsQuery<TSource>(this IQueryable<TSource> source,
-                                    Expression<Func<TSource,long?>> selector)
+                                    Expression<Func<TSource, long?>> selector)
         {
             if (source == null)
             {
@@ -2510,6 +3073,15 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Average``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Double}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Double"/>&gt;
+        /// containing a single element. Computes the average of a set of double values that
+        /// is obtained by applying a function to each element of the input dataset.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="selector">A transformation function to apply to each element</param>
+        /// <returns>The average of the values after applying the transformation function</returns>
         public static IQueryable<double>
             AverageAsQuery<TSource>(this IQueryable<TSource> source,
                                     Expression<Func<TSource,double>> selector)
@@ -2535,6 +3107,15 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Average``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Nullable{System.Double}}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Nullable"/>&lt;<see cref="T:System.Double"/>&gt;&gt;
+        /// containing a single element. Computes the average of a set of nullable double values that
+        /// is obtained by applying a function to each element of the input dataset.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="selector">A transformation function to apply to each element</param>
+        /// <returns>The average of the values after applying the transformation function</returns>        
         public static IQueryable<double?>
             AverageAsQuery<TSource>(this IQueryable<TSource> source,
                                     Expression<Func<TSource,double?>> selector) {
@@ -2559,6 +3140,15 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Average``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Decimal}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Decimal"/>&gt;
+        /// containing a single element. Computes the average of a set of decimal values that
+        /// is obtained by applying a function to each element of the input dataset.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="selector">A transformation function to apply to each element</param>
+        /// <returns>The average of the values after applying the transformation function</returns>
         public static IQueryable<decimal>
             AverageAsQuery<TSource>(this IQueryable<TSource> source,
                                     Expression<Func<TSource,decimal>> selector)
@@ -2584,6 +3174,15 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Average``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,System.Nullable{System.Decimal}}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<see cref="T:System.Nullable"/>&lt;<see cref="T:System.Decimal"/>&gt;&gt;
+        /// containing a single element. Computes the average of a set of nullable decimal values that
+        /// is obtained by applying a function to each element of the input dataset.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="selector">A transformation function to apply to each element</param>
+        /// <returns>The average of the values after applying the transformation function</returns>
         public static IQueryable<decimal?>
             AverageAsQuery<TSource>(this IQueryable<TSource> source,
                                     Expression<Func<TSource,decimal?>> selector)
@@ -2609,6 +3208,15 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Applies an aggregator function over a sequence.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <typeparam name="TAccumulate">The type of the accumulator value</typeparam>
+        /// <param name="source">The input sequence</param>
+        /// <param name="seedFunc">The function that creates the initial accumulator value </param>
+        /// <param name="func">An accumualator function to apply to each element</param>
+        /// <returns>The final accumulator value</returns>
         public static TAccumulate
             Aggregate<TSource, TAccumulate>(this IQueryable<TSource> source,
                                             Expression<Func<TAccumulate>> seedFunc,
@@ -2634,7 +3242,17 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
-
+        /// <summary>
+        /// Applies an aggregator function over a sequence.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <typeparam name="TAccumulate">The type of the accumulator value</typeparam>
+        /// <typeparam name="TResult">The type of final result</typeparam>
+        /// <param name="source">The input sequence</param>
+        /// <param name="seedFunc">The function that creates the initial accumulator value </param>
+        /// <param name="func">An accumualator function to apply to each element</param>
+        /// <param name="selector">A function to transform the final accumulator value into the result value</param>
+        /// <returns>The result of applying selector to the accumulator value</returns>
         public static TResult
             Aggregate<TSource, TAccumulate, TResult>(
                         this IQueryable<TSource> source,
@@ -2666,6 +3284,14 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Aggregate``1(System.Linq.IQueryable{``0},System.Linq.Expressions.Expression{System.Func{``0,``0,``0}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<typeparamref name="TSource"/>&gt;
+        /// containing a single element.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <param name="source">The input sequence</param>
+        /// <param name="func">An accumualator function to apply to each element</param>
+        /// <returns>The final accumulator value</returns>
         public static IQueryable<TSource>
             AggregateAsQuery<TSource>(this IQueryable<TSource> source,
                                       Expression<Func<TSource,TSource,TSource>> func)
@@ -2691,6 +3317,16 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Aggregate``2(System.Linq.IQueryable{``0},``1,System.Linq.Expressions.Expression{System.Func{``1,``0,``1}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<typeparamref name="TAccumulate"/>&gt;
+        /// containing a single element.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <typeparam name="TAccumulate">The type of the accumulator value</typeparam>
+        /// <param name="source">The input sequence</param>
+        /// <param name="seed">The initial accumulator value</param>
+        /// <param name="func">An accumualator function to apply to each element</param>
+        /// <returns>The final accumulator value</returns>
         public static IQueryable<TAccumulate>
             AggregateAsQuery<TSource,TAccumulate>(this IQueryable<TSource> source,
                                                   TAccumulate seed,
@@ -2717,6 +3353,18 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Same as <see cref="M:System.Linq.Queryable.Aggregate``3(System.Linq.IQueryable{``0},``1,System.Linq.Expressions.Expression{System.Func{``1,``0,``1}},System.Linq.Expressions.Expression{System.Func{``1,``2}})"/>, but returns an <see cref="T:System.Linq.IQueryable"/>&lt;<typeparamref name="TResult"/>&gt;
+        /// containing a single element.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the elements of source</typeparam>
+        /// <typeparam name="TAccumulate">The type of the accumulator value</typeparam>
+        /// <typeparam name="TResult">The type of the final result</typeparam>
+        /// <param name="source">The input sequence</param>
+        /// <param name="seed">The initial accumulator value</param>
+        /// <param name="func">An accumualator function to apply to each element</param>
+        /// <param name="selector">A function to transform the final accumulator value into the result value</param>
+        /// <returns>The result of applying selector to the accumulator value</returns>
         public static IQueryable<TResult>
             AggregateAsQuery<TSource,TAccumulate,TResult>(this IQueryable<TSource> source,
                                                           TAccumulate seed,
@@ -2753,7 +3401,7 @@ namespace Microsoft.Research.DryadLinq
         /// </summary>
         /// <typeparam name="TSource">The type of the records of the dataset</typeparam>
         /// <typeparam name="TKey">The type of the keys on which the partition is based</typeparam>
-        /// <param name="source">The dataset</param>
+        /// <param name="source">The input dataset</param>
         /// <param name="keySelector">The function to extract the key from a record</param>
         /// <returns>The same dataset as input</returns>
         public static IQueryable<TSource>
@@ -2781,6 +3429,15 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Instructs DryadLINQ to assume that the dataset is hash partitioned.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the records of the dataset</typeparam>
+        /// <typeparam name="TKey">The type of the key on which partition is based</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="keySelector">The function to extract the key from a record</param>
+        /// <param name="comparer">An equality comparer to compute the hash code of a key</param>
+        /// <returns>The same dataset as input</returns>
         public static IQueryable<TSource>
             AssumeHashPartition<TSource, TKey>(this IQueryable<TSource> source,
                                                Expression<Func<TSource, TKey>> keySelector,
@@ -2809,13 +3466,13 @@ namespace Microsoft.Research.DryadLinq
         }
 
         /// <summary>
-        /// Instruct DryadLINQ to assume that the dataset is range partitioned.
+        /// Instructs DryadLINQ to assume that the dataset is range partitioned.
         /// </summary>
         /// <typeparam name="TSource">The type of the records of the dataset</typeparam>
         /// <typeparam name="TKey">The type of the key on which partition is based</typeparam>
-        /// <param name="source">The dataset</param>
+        /// <param name="source">The input dataset</param>
         /// <param name="keySelector">The function to extract the key from a record</param>
-        /// <param name="isDescending">true if the partition keys are ordered descendingly</param>
+        /// <param name="isDescending">true to assume the partition keys are ordered descendingly</param>
         /// <returns>The same dataset as input</returns>
         public static IQueryable<TSource>
             AssumeRangePartition<TSource, TKey>(this IQueryable<TSource> source,
@@ -2843,7 +3500,17 @@ namespace Microsoft.Research.DryadLinq
                                        Expression.Constant(isDescending) }
                     ));
         }
-        
+
+        /// <summary>
+        /// Instructs DryadLINQ to assume that the dataset is range partitioned.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the records of the dataset</typeparam>
+        /// <typeparam name="TKey">The type of the key on which partition is based</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="keySelector">The function to extract the key from a record</param>
+        /// <param name="comparer">An IComparer on TKey to compare keys</param>
+        /// <param name="isDescending">true to assume that the partition keys are descending</param>
+        /// <returns>The same dataset as input</returns>
         public static IQueryable<TSource>
             AssumeRangePartition<TSource, TKey>(this IQueryable<TSource> source,
                                                 Expression<Func<TSource, TKey>> keySelector,
@@ -2873,6 +3540,15 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Instructs DryadLINQ to assume that the dataset is range partitioned by a specified list of keys.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the records of the dataset</typeparam>
+        /// <typeparam name="TKey">The type of the key on which partition is based</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="keySelector">The function to extract the key from a record</param>
+        /// <param name="rangeSeparators">A list of partition keys</param>
+        /// <returns>The same dataset as input</returns>
         public static IQueryable<TSource>
             AssumeRangePartition<TSource, TKey>(this IQueryable<TSource> source,
                                                 Expression<Func<TSource, TKey>> keySelector,
@@ -2905,6 +3581,16 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Instructs DryadLINQ to assume that the dataset is range partitioned by a specified list of keys.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the records of the dataset</typeparam>
+        /// <typeparam name="TKey">The type of the key on which partition is based</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="keySelector">The function to extract the key from a record</param>
+        /// <param name="comparer">An IComparer on TKey to compare keys</param>
+        /// <param name="rangeSeparators">A list of partition keys</param>
+        /// <returns>The same dataset as input</returns>
         public static IQueryable<TSource>
             AssumeRangePartition<TSource, TKey>(this IQueryable<TSource> source,
                                                 Expression<Func<TSource, TKey>> keySelector,
@@ -2939,7 +3625,7 @@ namespace Microsoft.Research.DryadLinq
         }
         
         /// <summary>
-        /// Instruct DryadLINQ to assume that each partition of the dataset is ordered. A dataset
+        /// Instructs DryadLINQ to assume that each partition of the dataset is ordered. A dataset
         /// is ordered if it is range partitioned and each partition of it is ordered on the same
         /// key. 
         /// </summary>
@@ -2947,7 +3633,7 @@ namespace Microsoft.Research.DryadLinq
         /// <typeparam name="TKey">The type of the key on which partition is based</typeparam>
         /// <param name="source">The dataset</param>
         /// <param name="keySelector">The function to extract the key from a record</param>
-        /// <param name="isDescending">true if the order is descending</param>
+        /// <param name="isDescending">true to assume the order is descending</param>
         /// <returns>The same dataset as input</returns>
         public static IQueryable<TSource>
             AssumeOrderBy<TSource, TKey>(this IQueryable<TSource> source,
@@ -2975,7 +3661,19 @@ namespace Microsoft.Research.DryadLinq
                                        Expression.Constant(isDescending) }
                     ));
         }
-        
+
+        /// <summary>
+        /// Instructs DryadLINQ to assume that each partition of the dataset is ordered. A dataset
+        /// is ordered if it is range partitioned and each partition of it is ordered on the same
+        /// key. 
+        /// </summary>
+        /// <typeparam name="TSource">The type of the recrods of the dataset</typeparam>
+        /// <typeparam name="TKey">The type of the key on which partition is based</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="keySelector">The function to extract the key from a record</param>
+        /// <param name="comparer">An IComparer on TKey to compare keys</param>
+        /// <param name="isDescending">true to assume the order is descending</param>
+        /// <returns>The same dataset as input</returns>
         public static IQueryable<TSource>
             AssumeOrderBy<TSource, TKey>(this IQueryable<TSource> source,
                                          Expression<Func<TSource, TKey>> keySelector,
@@ -3005,6 +3703,16 @@ namespace Microsoft.Research.DryadLinq
                     ));
         }
 
+        /// <summary>
+        /// Forks a specified input dataset into two datasets. A specified user-defined function is
+        /// applied to each partition of the input dataset to produce a sequence of ForkTuples.
+        /// </summary>
+        /// <typeparam name="T">The type of the elements of source</typeparam>
+        /// <typeparam name="R1">The element type of the first output dataset</typeparam>
+        /// <typeparam name="R2">The element type of the second output dataset</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="mapper">The function to apply to each partition of the input dataset</param>
+        /// <returns>An IMultiQueryable exposing two output datasets</returns>
         public static IMultiQueryable<R1, R2>
             Fork<T, R1, R2>(this IQueryable<T> source,
                             Expression<Func<IEnumerable<T>, IEnumerable<ForkTuple<R1, R2>>>> mapper)
@@ -3027,7 +3735,18 @@ namespace Microsoft.Research.DryadLinq
                 );
             return new MultiQueryable<T, R1, R2>(source, expr);
         }
-        
+
+        /// <summary>
+        /// Forks a specified input dataset into three datasets. A specified user-defined function is
+        /// applied to each partition of the input dataset to produce a sequence of ForkTuples.
+        /// </summary>
+        /// <typeparam name="T">The type of the elements of source</typeparam>
+        /// <typeparam name="R1">The element type of the first output dataset</typeparam>
+        /// <typeparam name="R2">The element type of the second output dataset</typeparam>
+        /// <typeparam name="R3">The element type of the third output dataset</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="mapper">The function to apply to each partition of the input dataset</param>
+        /// <returns>An IMultiQueryable exposing three output datasets</returns>
         public static IMultiQueryable<R1, R2, R3>
             Fork<T, R1, R2, R3>(this IQueryable<T> source,
                                 Expression<Func<IEnumerable<T>, IEnumerable<ForkTuple<R1, R2, R3>>>> mapper)
@@ -3052,14 +3771,15 @@ namespace Microsoft.Research.DryadLinq
         }
         
         /// <summary>
-        /// Compute two output datasets from one input dataset.
+        /// Compute two output datasets from one input dataset.  A specified user-defined function is
+        /// applied to each input element to produce zero or one element for each output dataset.
         /// </summary>
         /// <typeparam name="T">The type of records of input dataset</typeparam>
         /// <typeparam name="R1">The type of records of first output dataset</typeparam>
         /// <typeparam name="R2">The type of records of second output dataset</typeparam>
         /// <param name="source">The input dataset</param>
         /// <param name="mapper">The function applied to each record of the input</param>
-        /// <returns>An IMultiQueryable for the two output dataset</returns>
+        /// <returns>An IMultiQueryable for the two output datasets</returns>
         public static IMultiQueryable<R1, R2>
             Fork<T, R1, R2>(this IQueryable<T> source,
                             Expression<Func<T, ForkTuple<R1, R2>>> mapper)
@@ -3082,7 +3802,18 @@ namespace Microsoft.Research.DryadLinq
                 );
             return new MultiQueryable<T, R1, R2>(source, expr);
         }
-        
+
+        /// <summary>
+        /// Forks one input dataset into three output datasets.  A specified user-defined function is
+        /// applied to each input element to produce zero or one element for each output dataset.
+        /// </summary>
+        /// <typeparam name="T">The type of records of input dataset</typeparam>
+        /// <typeparam name="R1">The type of records of the first output dataset</typeparam>
+        /// <typeparam name="R2">The type of records of the second output dataset</typeparam>
+        /// <typeparam name="R3">The type of records of the third output dataset</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="mapper">The function applied to each record of the input</param>
+        /// <returns>An IMultiQueryable for the three output datasets</returns>
         public static IMultiQueryable<R1, R2, R3>
             Fork<T, R1, R2, R3>(this IQueryable<T> source,
                                 Expression<Func<T, ForkTuple<R1, R2, R3>>> mapper)
@@ -3106,6 +3837,17 @@ namespace Microsoft.Research.DryadLinq
             return new MultiQueryable<T, R1, R2, R3>(source, expr);
         }
         
+        /// <summary>
+        /// Divides the input dataset into a collection of datasets based on the keys of the records.
+        /// The method produces one output dataset for each key in the specified key array. Input 
+        /// records that don't match any of the keys are dropped.
+        /// </summary>
+        /// <typeparam name="TSource">The type of records of input dataset</typeparam>
+        /// <typeparam name="TKey">The type of the keys of the input records</typeparam>
+        /// <param name="source">The input dataset</param>
+        /// <param name="keySelector">The function to extract the key from a record</param>
+        /// <param name="keys">A list of the partition keys</param>
+        /// <returns>An IKeyedMultiQueryable for the output datasets.</returns>
         public static IKeyedMultiQueryable<TSource, TKey>
             Fork<TSource, TKey>(this IQueryable<TSource> source,
                                 Expression<Func<TSource, TKey>> keySelector,
@@ -3153,16 +3895,14 @@ namespace Microsoft.Research.DryadLinq
         }
 
         /// <summary>
-        /// Specifies a stream URI to be populated with data during query execution. 
+        /// Specifies a stream URI to be populated with the result of a specified DryadLINQ query. 
         /// </summary>
         /// <typeparam name="TSource">The type of the records of the table</typeparam>
         /// <param name="source">The data source</param>
-        /// <param name="streamName">A DSC stream name</param>
+        /// <param name="streamName">A stream name</param>
+        /// <param name="deleteIfExists">If this flag is true, delete the output stream 
+        /// if it already exisit before execution</param>
         /// <returns>A query representing the output data.</returns>
-        
-        // Note: for both cluster&LocalDebug, we add a node to the query-tree
-        //       Submit/Materialize will process the ToDsc call in both cases.
-        //       This is good for consistency of LocalDebug & Cluser modes -- ie ToDsc is lazy in both cases.
         public static IQueryable<TSource>
             ToStore<TSource>(this IQueryable<TSource> source, string streamName, bool deleteIfExists = false)
         {  
@@ -3170,21 +3910,20 @@ namespace Microsoft.Research.DryadLinq
         }
 
         /// <summary>
-        /// Specifies a stream URI to be populated with data during query execution. 
+        /// Specifies a stream URI to be populated with the result of a specified DryadLINQ query.
         /// </summary>
         /// <typeparam name="TSource">The type of the records of the table</typeparam>
         /// <param name="source">The data source</param>
-        /// <param name="streamName">A DSC stream name</param>
+        /// <param name="streamName">The stream name to store the result</param>
+        /// <param name="deleteIfExists">If this flag is true, delete the output stream 
+        /// if it already exisit before execution</param>
         /// <returns>A query representing the output data.</returns>
-
-        // Note: for both cluster&LocalDebug, we add a node to the query-tree
-        //       Submit/Materialize will process the ToDsc call in both cases.
-        //       This is good for consistency of LocalDebug & Cluser modes -- ie ToDsc is lazy in both cases.
         public static IQueryable<TSource>
             ToStore<TSource>(this IQueryable<TSource> source, Uri streamName, bool deleteIfExists = false)
         {
             DryadLinqContext context = DryadLinqContext.GetContext(source.Provider);
             DataProvider dataProvider = DataProvider.GetDataProvider(streamName.Scheme);
+            streamName = dataProvider.RewriteUri<TSource>(context, streamName, FileAccess.Write);
             dataProvider.CheckExistence(context, streamName, deleteIfExists);
             return ToStoreInternal(source, streamName, false);
         }
@@ -3215,9 +3954,6 @@ namespace Microsoft.Research.DryadLinq
             }
 
             DryadLinqContext context = DryadLinqContext.GetContext(source.Provider);
-            string prefix = DataPath.GetScheme(streamName);
-            DataProvider dataProvider = DataProvider.GetDataProvider(prefix);
-            streamName = dataProvider.RewriteUri(context, streamName);
             IQueryable<TSource> result = source.Provider.CreateQuery<TSource>(
                                             Expression.Call(
                                                 null,
@@ -3230,7 +3966,7 @@ namespace Microsoft.Research.DryadLinq
         }
 
         /// <summary>
-        /// Submits the query for asynchronous execution.
+        /// Submits a specified query for asynchronous execution.
         /// </summary>
         /// <typeparam name="TSource">The type of the records of the table</typeparam>
         /// <param name="source">The data source</param>
@@ -3267,7 +4003,7 @@ namespace Microsoft.Research.DryadLinq
                     }
                     else
                     {
-                        // visited by LocalDebug: q-nonToDsc.Submit();
+                        // visited by LocalDebug: q-nonToStore.Submit();
                         Uri dataSetUri = context.MakeTemporaryStreamUri();
                         CompressionScheme compressionScheme = context.IntermediateDataCompressionScheme;
                         DryadLinqMetaData metadata
@@ -3358,7 +4094,7 @@ namespace Microsoft.Research.DryadLinq
         }
         
         /// <summary>
-        /// Submits the query and then waits for the job to complete
+        /// Submits a specified query and then waits for the job to complete
         /// </summary>
         /// <exception cref="DryadLinqException">If the job completes in error or is cancelled.</exception>
         /// <exception cref="DryadLinqException">If repeated errors occur while polling for status.</exception>
@@ -3373,14 +4109,10 @@ namespace Microsoft.Research.DryadLinq
         }
 
         /// <summary>
-        /// Submits a collection of DryadLINQ queries for execution.  
+        /// Submits a list of DryadLINQ queries for asynchronous execution.
         /// </summary>
         /// <param name="sources">Queries to execute.</param>
         /// <returns>Job information for tracking the execution.</returns>
-        /// <remarks>
-        /// Every item in sources must be an DryadLINQ IQueryable object that terminates with ToDsc()
-        /// Only one job will be executed, but the job will produce the output associated with each item in sources.
-        /// </remarks>
         public static DryadLinqJobInfo Submit(params IQueryable[] sources)
         {
             if (sources == null)
@@ -3526,13 +4258,12 @@ namespace Microsoft.Research.DryadLinq
         }
 
         /// <summary>
-        /// Submits a collection of DryadLinq queries for execution and waits for the job to complete/
+        /// Submits a list of DryadLinq queries for execution and waits for the job to complete
         /// </summary>
         /// <exception cref="DryadLinqException">If the job completes in error or is cancelled.</exception>
         /// <exception cref="DryadLinqException">If repeated errors occur while polling for status.</exception>
-        /// <typeparam name="TSource">The type of the records of the table</typeparam>
-        /// <param name="source">The data source</param>
-        /// <returns>Information about the execution job.</returns>
+        /// <param name="sources">A set of DryadLINQ queries to execute</param>
+        /// <returns>Information about the job being submitted for execution.</returns>
         /// <remarks>
         /// Every item in sources must be an DryadLinq IQueryable object that terminates with ToStore()
         /// Only one job will be executed, but the job will produce the output associated with each item in sources.

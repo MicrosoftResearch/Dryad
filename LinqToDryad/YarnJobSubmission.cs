@@ -45,19 +45,19 @@ namespace Microsoft.Research.DryadLinq
 
         private string DryadDfs
         {
-            get { return Context.DfsClient.Combine("staging", "dryad"); }
+            get { return Context.Cluster.DfsClient.Combine("staging", "dryad"); }
         }
 
         private string UserDfs
         {
-            get { return Context.DfsClient.Combine("user", Environment.UserName, "staging"); }
+            get { return Context.Cluster.DfsClient.Combine("user", Environment.UserName, "staging"); }
         }
 
         protected override XElement MakeJMConfig()
         {
             var qpPath = Path.Combine("..", "..", Path.GetFileName(QueryPlan));
             var jmPath = Path.Combine("..", "..", "DryadLinqGraphManager.exe");
-            string jobDirectoryTemplate = Context.ClusterClient.JobDirectoryTemplate.Replace("_BASELOCATION_", "dryad-jobs");
+            string jobDirectoryTemplate = Context.Cluster.Client(Context).JobDirectoryTemplate.Replace("_BASELOCATION_", "dryad-jobs");
             string logDirParam = Microsoft.Research.Peloponnese.Storage.AzureUtils.CmdLineEncode(jobDirectoryTemplate);
             string[] jmArgs = {"--dfs=" + logDirParam, "VertexHost.exe", qpPath }; // +" --break";
             return ConfigHelpers.MakeProcessGroup(
@@ -88,20 +88,13 @@ namespace Microsoft.Research.DryadLinq
 
             dryadFiles = dryadFiles.Select(x => Path.Combine(Context.DryadHomeDirectory, x));
 
-            waiters.Add(ConfigHelpers.MakeResourceGroupAsync(Context.DfsClient, DryadDfs, true, dryadFiles));
+            waiters.Add(ConfigHelpers.MakeResourceGroupAsync(Context.Cluster.DfsClient, DryadDfs, true, dryadFiles));
 
             // add job-local resources to each worker directory, using public versions of the standard Dryad files
             foreach (var rg in LocalResources)
             {
                 IEnumerable<string> files = rg.Value.Select(x => Path.Combine(rg.Key, x));
-                if (rg.Key == Context.DryadHomeDirectory)
-                {
-                    waiters.Add(ConfigHelpers.MakeResourceGroupAsync(Context.DfsClient, DryadDfs, true, files));
-                }
-                else
-                {
-                    waiters.Add(ConfigHelpers.MakeResourceGroupAsync(Context.DfsClient, UserDfs, false, files));
-                }
+                waiters.Add(ConfigHelpers.MakeResourceGroupAsync(Context.Cluster.DfsClient, UserDfs, false, files));
             }
 
             try
@@ -166,19 +159,19 @@ namespace Microsoft.Research.DryadLinq
             {
                 IEnumerable<string> dryadFiles = new[]
                 {
-                "DryadLinqGraphManager.exe",
-                "DryadLinqGraphManager.exe.config",
-                "Microsoft.Research.Dryad.dll",
-                "DryadHttpClusterInterface.dll",
-                "DryadLocalScheduler.dll"
+                    "DryadLinqGraphManager.exe",
+                    "DryadLinqGraphManager.exe.config",
+                    "Microsoft.Research.Dryad.dll",
+                    "DryadHttpClusterInterface.dll",
+                    "DryadLocalScheduler.dll"
                 };
                 dryadFiles = dryadFiles.Select(x => Path.Combine(Context.DryadHomeDirectory, x));
 
-                waiters.Add(ConfigHelpers.MakeResourceGroupAsync(Context.DfsClient, DryadDfs, true, dryadFiles));
+                waiters.Add(ConfigHelpers.MakeResourceGroupAsync(Context.Cluster.DfsClient, DryadDfs, true, dryadFiles));
             }
             IEnumerable<string> userFiles = new[] { configPath, QueryPlan };
 
-            waiters.Add(ConfigHelpers.MakeResourceGroupAsync(Context.DfsClient, UserDfs, false, userFiles));
+            waiters.Add(ConfigHelpers.MakeResourceGroupAsync(Context.Cluster.DfsClient, UserDfs, false, userFiles));
 
             try
             {
@@ -196,14 +189,10 @@ namespace Microsoft.Research.DryadLinq
                 resources.Add(t.Result);
             }
 
-            string appName;
-            if (Context.JobFriendlyName == null)
+            string appName = Context.JobFriendlyName;
+            if (String.IsNullOrEmpty(appName))
             {
                 appName = "DryadLINQ.App";
-            }
-            else
-            {
-                appName = Context.JobFriendlyName;
             }
 
             return ConfigHelpers.MakeLauncherConfig(appName, Path.GetFileName(configPath), resources, JobDirectory);
@@ -212,7 +201,7 @@ namespace Microsoft.Research.DryadLinq
         private XDocument GenerateConfig()
         {
             XElement peloponneseResource = ConfigHelpers.MakePeloponneseResourceGroup(
-                Context.DfsClient, Context.PeloponneseHomeDirectory);
+                Context.Cluster.DfsClient, Context.PeloponneseHomeDirectory);
 
             string psConfigPath = MakeProcessServiceConfig();
 
@@ -231,14 +220,11 @@ namespace Microsoft.Research.DryadLinq
         {
             get 
             {
-                if (m_job != null)
-                {
-                    return m_job.ErrorMsg;
-                }
-                else
+                if (m_job == null)
                 {
                     return null;
                 }
+                return m_job.ErrorMsg;
             }
         }
 
@@ -275,15 +261,28 @@ namespace Microsoft.Research.DryadLinq
             }
         }
 
-        public string JobDirectory { get { return Context.ClusterClient.JobDirectoryTemplate.Replace("_BASELOCATION_", "dryad-jobs"); } }
+        public string JobDirectory { get { return Context.Cluster.Client(Context).JobDirectoryTemplate.Replace("_BASELOCATION_", "dryad-jobs"); } }
 
         public override void SubmitJob()
         {
+            if (Context.PeloponneseHomeDirectory == null)
+            {
+                throw new ApplicationException("No Peloponnese home directory is set");
+            }
+            if (Context.DryadHomeDirectory == null)
+            {
+                throw new ApplicationException("No Dryad home directory is set");
+            }
+            if (!IsValidDryadDirectory(Context.DryadHomeDirectory))
+            {
+                throw new ApplicationException("Dryad home directory " + Context.DryadHomeDirectory + " is missing some required files");
+            }
+
             XDocument config = GenerateConfig();
 
             try
             {
-                m_job = Context.ClusterClient.Submit(config, JobDirectory);
+                m_job = Context.Cluster.Client(Context).Submit(config, JobDirectory);
             }
             catch (Exception e)
             {
@@ -307,11 +306,6 @@ namespace Microsoft.Research.DryadLinq
             {
                 return m_job.Id;
             }
-        }
-
-        internal void Initialize()
-        {
-            // nothing needed for now
         }
     }
 }

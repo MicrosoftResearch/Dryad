@@ -19,15 +19,15 @@ limitations under the License.
 
 */
 
-using Microsoft.Research.Calypso.JobObjectModel;
-using Microsoft.Research.Calypso.Tools;
 using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Microsoft.Research.JobObjectModel;
+using Microsoft.Research.Tools;
 
-namespace Microsoft.Research.Calypso.DryadAnalysis
+namespace Microsoft.Research.DryadAnalysis
 {
     /// <summary>
     /// The result of a decision (ternary booleans?)
@@ -236,30 +236,24 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         /// </summary>
         public DryadLinqJobInfo Job { get; protected set; }
         /// <summary>
-        /// Delegate used to report erorrs.
+        /// Communication manager.
         /// </summary>
-        public StatusReporter Reporter { get; protected set; }
+        public CommManager Manager { get; protected set; }
         /// <summary>
         /// Plan of the job.
         /// </summary>
         public DryadJobStaticPlan StaticPlan { get; protected set; }
         /// <summary>
-        /// Delegate used to report progress.
-        /// </summary>
-        public Action<int> ProgressReporter { get; protected set; }
-        /// <summary>
         /// Create a FailureDiagnosis object.
         /// </summary>
         /// <param name="job">Job being diagnosed.</param>
         /// <param name="plan">Static plan of the job.</param>
-        /// <param name="reporter">Delegate used to report errors.</param>
-        /// <param name="progressReporter">Delegate used to report progress.</param>
-        protected FailureDiagnosis(DryadLinqJobInfo job, DryadJobStaticPlan plan, StatusReporter reporter, Action<int> progressReporter)
+        /// <param name="manager">Communication manager.</param>
+        protected FailureDiagnosis(DryadLinqJobInfo job, DryadJobStaticPlan plan, CommManager manager)
         {
             this.Job = job;
             this.StaticPlan = plan;
-            this.Reporter = reporter;
-            this.ProgressReporter = progressReporter;
+            this.Manager = manager;
             this.Summary = job.Summary;
             this.cluster = job.ClusterConfiguration;
         }
@@ -267,19 +261,18 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         /// <summary>
         /// Try to find the job information from cluster and summary.
         /// </summary>
-        /// <param name="status">Delegate used to report status.</param>
-        /// <param name="progress">Delegate used to report progress.</param>
-        protected void FindJobInfo(StatusReporter status, Action<int> progress)
+        /// <param name="manager">Communication manager.</param>
+        protected void FindJobInfo(CommManager manager)
         {
-            DryadLinqJobInfo jobinfo = DryadLinqJobInfo.CreateDryadLinqJobInfo(this.cluster, this.Summary, true, status, progress);
+            DryadLinqJobInfo jobinfo = DryadLinqJobInfo.CreateDryadLinqJobInfo(this.cluster, this.Summary, true, manager);
             if (jobinfo == null)
             {
-                status("Cannot collect information for " + Summary.ShortName() + " to diagnose", StatusKind.Error);
+                manager.Status("Cannot collect information for " + Summary.ShortName() + " to diagnose", StatusKind.Error);
                 return;
             }
 
             this.Job = jobinfo;
-            this.StaticPlan = JobObjectModel.DryadJobStaticPlan.CreatePlan(jobinfo, status);
+            this.StaticPlan = JobObjectModel.DryadJobStaticPlan.CreatePlan(jobinfo, manager);
         }
 
         /// <summary>
@@ -287,15 +280,13 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         /// </summary>
         /// <param name="config">Cluster where job resides.</param>
         /// <param name="summary">Job summary.</param>
-        /// <param name="reporter">Delegate used to report errors.</param>
-        /// <param name="progressReporter">Delegate used to report progress.</param>
-        protected FailureDiagnosis(ClusterConfiguration config, DryadLinqJobSummary summary, StatusReporter reporter, Action<int> progressReporter)
+        /// <param name="manager">Communication manager.</param>
+        protected FailureDiagnosis(ClusterConfiguration config, DryadLinqJobSummary summary, CommManager manager)
         {
             this.cluster = config;
             this.Summary = summary;
-            this.Reporter = reporter;
-            this.ProgressReporter = progressReporter;
-            this.FindJobInfo(reporter, progressReporter);
+            this.Manager = manager;
+            this.FindJobInfo(manager);
         }
 
         /// <summary>
@@ -327,11 +318,10 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         /// </summary>
         /// <param name="vertex">Vertex to diagnose.</param>
         /// <param name="job">Job containing the vertex.</param>
-        /// <param name="progressReporter">Delegate used to report progress.</param>
-        /// <param name="reporter">Delegate used to report status.</param>
         /// <param name="plan">Plan of the executed job.</param>
-        protected VertexFailureDiagnosis(DryadLinqJobInfo job, DryadJobStaticPlan plan, ExecutedVertexInstance vertex, StatusReporter reporter, Action<int> progressReporter)
-            : base(job, plan, reporter, progressReporter)
+        /// <param name="manager">Communication manager.</param>
+        protected VertexFailureDiagnosis(DryadLinqJobInfo job, DryadJobStaticPlan plan, ExecutedVertexInstance vertex, CommManager manager)
+            : base(job, plan, manager)
         {
             this.Job = job;
             this.Vertex = vertex;
@@ -344,15 +334,13 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         /// </summary>
         /// <param name="vertex">Vertex to diagnose.</param>
         /// <param name="job">Job containing the vertex.</param>
-        /// <param name="progressReporter">Delegate used to report progress.</param>
-        /// <param name="reporter">Delegate used to report status.</param>
+        /// <param name="manager">Communication manager.</param>
         /// <returns>A subclass of VertexFailureDiagnosis.</returns>
         /// <param name="plan">Plan of the executed job.</param>
         public static VertexFailureDiagnosis CreateVertexFailureDiagnosis(DryadLinqJobInfo job, 
             DryadJobStaticPlan plan, 
-            ExecutedVertexInstance vertex, 
-            StatusReporter reporter, 
-            Action<int> progressReporter)
+            ExecutedVertexInstance vertex,
+            CommManager manager)
         {
             ClusterConfiguration config = job.ClusterConfiguration;
             if (config is CacheClusterConfiguration)
@@ -381,7 +369,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             DiagnosisLog log = new DiagnosisLog(this.Job, this.Summary);
             log.AddMessage(new DiagnosisMessage(DiagnosisMessage.Importance.Final, "Diagnostic for " + this.VertexName, "Vertex state is " + this.Vertex.State));
             this.Diagnose(log);
-            this.Reporter("Vertex diagnosis complete", StatusKind.OK);
+            this.Manager.Status("Vertex diagnosis complete", StatusKind.OK);
             return log;
         }
 
@@ -409,7 +397,8 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         /// Detect whether the vertex had problems reading a particular channel.
         /// </summary>
         /// <returns>The channel that cannot be read, or null if that's not the problem.</returns>
-        public virtual ChannelEndpointDescription ChannelReadFailure()
+        /// <param name="manager">Communication manager.</param>
+        public virtual ChannelEndpointDescription ChannelReadFailure(CommManager manager)
         {
             List<string> stack = this.StackTrace().ToList();
             if (stack.Count == 0)
@@ -424,7 +413,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             bool success = int.TryParse(m.Groups[3].Value, out channelNo);
             if (!success)
                 return null;
-            this.Vertex.DiscoverChannels(true, false, true, this.Reporter, null);
+            this.Vertex.DiscoverChannels(true, false, true, manager);
             var channels = this.Vertex.InputChannels;
             if (channels == null)
                 return null;
@@ -604,11 +593,10 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         /// Create a class to diagnose the problems of a job.
         /// </summary>
         /// <param name="job">Job to diagnose.</param>
-        /// <param name="progress">Delegate used to report progress.</param>
-        /// <param name="status">Delegate used to report status.</param>
         /// <param name="plan">Plan of the diagnosed job.</param>
-        protected JobFailureDiagnosis(DryadLinqJobInfo job, DryadJobStaticPlan plan, StatusReporter status, Action<int> progress)
-            : base(job, plan, status, progress)
+        /// <param name="manager">Communication manager.</param>
+        protected JobFailureDiagnosis(DryadLinqJobInfo job, DryadJobStaticPlan plan, CommManager manager)
+            : base(job, plan, manager)
         {
             this.diagnosisLog = new DiagnosisLog(job, job.Summary);
             this.jobManager = this.Job.ManagerVertex;
@@ -617,12 +605,11 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         /// <summary>
         /// Create a class to diagnose the problems of a job.
         /// </summary>
-        /// <param name="progress">Delegate used to report progress.</param>
-        /// <param name="status">Delegate used to report status.</param>
         /// <param name="config">Cluster where job resides.</param>
+        /// <param name="manager">Communication manager.</param>
         /// <param name="summary">Job summary.</param>
-        protected JobFailureDiagnosis(ClusterConfiguration config, DryadLinqJobSummary summary, StatusReporter status, Action<int> progress)
-            : base(config, summary, status, progress)
+        protected JobFailureDiagnosis(ClusterConfiguration config, DryadLinqJobSummary summary, CommManager manager)
+            : base(config, summary, manager)
         {
             this.diagnosisLog = new DiagnosisLog(this.Job, summary);
             if (this.Job != null)
@@ -825,11 +812,10 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         /// Create a suitable Job Failure diagnosis object for the job being analyzed.
         /// </summary>
         /// <param name="job">Job to diagnose.</param>
-        /// <param name="status">Delegate used to report errors.</param>
-        /// <param name="progress">Delegate used to report progress.</param>
+        /// <param name="manager">Communication manager.</param>
         /// <returns>A subclass of JobFailureDiagnosis with the type appropriate for the job.</returns>
         /// <param name="plan">Plan of the job being diagnosed.</param>
-        public static JobFailureDiagnosis CreateJobFailureDiagnosis(DryadLinqJobInfo job, DryadJobStaticPlan plan, StatusReporter status, Action<int> progress)
+        public static JobFailureDiagnosis CreateJobFailureDiagnosis(DryadLinqJobInfo job, DryadJobStaticPlan plan, CommManager manager)
         {
             ClusterConfiguration config = job.ClusterConfiguration;
             if (config is CacheClusterConfiguration)
@@ -843,11 +829,10 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         /// Create a suitable Job Failure diagnosis object for the job being analyzed.
         /// </summary>
         /// <param name="summary">Job to diagnose.</param>
-        /// <param name="status">Delegate used to report errors.</param>
-        /// <param name="progress">Delegate used to report progress.</param>
         /// <param name="config">Cluster where job resides.</param>
+        /// <param name="manager">Communication manager.</param>
         /// <returns>A subclass of JobFailureDiagnosis with the type appropriate for the job.</returns>
-        public static JobFailureDiagnosis CreateJobFailureDiagnosis(ClusterConfiguration config, DryadLinqJobSummary summary, StatusReporter status, Action<int> progress)
+        public static JobFailureDiagnosis CreateJobFailureDiagnosis(ClusterConfiguration config, DryadLinqJobSummary summary, CommManager manager)
         {
             if (config is CacheClusterConfiguration)
                 config = (config as CacheClusterConfiguration).ActualConfig(summary);
@@ -860,7 +845,8 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         /// This is incomplete: e.g., it does not work for tidyfs streams.
         /// </summary>
         /// <returns>Yes if there were correlated failures.</returns>
-        protected Decision LookForCorrelatedReadFailures()
+        /// <param name="manager">Communication manager.</param>
+        protected Decision LookForCorrelatedReadFailures(CommManager manager)
         {
             // if we have more than this many failures we start to worry
             const int maxFailures = 5;
@@ -876,13 +862,13 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             int verticesDone = 0;
             foreach (ExecutedVertexInstance v in failures)
             {
-                var crf = VertexFailureDiagnosis.CreateVertexFailureDiagnosis(this.Job, this.StaticPlan, v, null, null).ChannelReadFailure();
+                var crf = VertexFailureDiagnosis.CreateVertexFailureDiagnosis(this.Job, this.StaticPlan, v, manager).ChannelReadFailure(manager);
                 if (crf != null)
                 {
                     channelsFailed.Add(crf);
                 }
                 verticesDone++;
-                this.ProgressReporter(verticesDone * 100 / totalFailures);
+                manager.Progress(verticesDone * 100 / totalFailures);
             }
             if (channelsFailed.Count() < maxFailures)
                 return Decision.No;

@@ -34,10 +34,10 @@ using System.Threading;
 using System.Windows.Forms;
 using Microsoft.Msagl.GraphViewerGdi;
 using Microsoft.Msagl.Splines;
-using Microsoft.Research.Calypso.JobObjectModel;
-using Microsoft.Research.Calypso.Tools;
+using Microsoft.Research.JobObjectModel;
+using Microsoft.Research.Tools;
 
-namespace Microsoft.Research.Calypso.DryadAnalysis
+namespace Microsoft.Research.DryadAnalysis
 {
     /// <summary>
     /// A form to display information about a DryadLinq job.
@@ -66,40 +66,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         /// </summary>
         private BackgroundWorkQueue queue;
 
-        /// <summary>
-        /// Activity to perform by the backgroundWorker.
-        /// </summary>
-        class BackgroundWorkInfo
-        {
-            public enum WorkKind
-            {
-                LoadJobInfo,
-            };
-
-            public WorkKind Work; // kind of operation to perform in the background
-            public bool Success; // if true the work succeeded
-            public DateTime workStartTime; // when work is started
-            
-            public override string ToString()
-            {
-                return this.Work.ToString();
-            }
-
-            /// <summary>
-            /// Add yourself to the list of pending work.
-            /// </summary>
-            /// <param name="list">List of pending work.</param>
-            internal void AddTo(List<BackgroundWorkInfo> list)
-            {
-                list.Add(this);
-            }
-        }
-
-        /// <summary>
-        /// List of work activities to perform.
-        /// </summary>
-        readonly List<BackgroundWorkInfo> pendingWork;
-
+       
         // window regions starting from left-top in order going down
         #region JOB_HEADER
         /// <summary>
@@ -352,10 +319,9 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             this.InitializeComponent();
 
             this.queueWorker = new BackgroundWorker();
-            this.queue = new BackgroundWorkQueue(this.queueWorker);
+            this.queue = new BackgroundWorkQueue(this.queueWorker, this.toolStripStatusLabel_currentWork, this.toolStripStatusLabel_backgroundWork);
 
             this.WarnedAboutDebugging = false;
-            this.pendingWork = new List<BackgroundWorkInfo>();
             this.status = new StatusWriter(this.toolStripStatusLabel, this.statusStrip, this.Status);
 
             this.refreshTimer = new System.Windows.Forms.Timer();
@@ -556,16 +522,6 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         {
             if (! this.IsDisposed)
                 this.RefreshDisplay();
-        }
-
-        /// <summary>
-        /// Load information about the current job.
-        /// </summary>
-        private void LoadJobDetails()
-        {
-            BackgroundWorkInfo work = new BackgroundWorkInfo();
-            work.Work = BackgroundWorkInfo.WorkKind.LoadJobInfo;
-            this.StartBackgroundWork(work);
         }
 
         /// <summary>
@@ -857,7 +813,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
                 case ExecutedVertexInstance.VertexState.Failed:
                     return Color.Tomato;
                 default:
-                    throw new CalypsoDryadException("Unexpected vertex state " + state);
+                    throw new DryadException("Unexpected vertex state " + state);
             }
         }
 
@@ -986,22 +942,6 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             yield return new Tuple<double, Color>(unknown, VertexStateColor(ExecutedVertexInstance.VertexState.Unknown));
         }
 
-        private static DryadJobStaticPlan CreatePlan(DryadLinqJobInfo job, StatusReporter status)
-        {
-            status("Constructing static plan", StatusKind.LongOp);
-            try
-            {
-                var result = JobObjectModel.DryadJobStaticPlan.CreatePlan(job, status);
-                return result;
-            }
-            catch (Exception ex)
-            {
-                status("Exception during building of static plan: " + ex.Message, StatusKind.Error);
-                Trace.TraceInformation(ex.ToString());
-                return null;
-            }
-        }
-
         /// <summary>
         /// Refresh and redisplay the query plan.
         /// </summary>
@@ -1010,7 +950,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             this.richTextBox_file.Text = "";
 
             var item = new BackgroundWorkItem<DryadJobStaticPlan>(
-                (s, p) => JobObjectModel.DryadJobStaticPlan.CreatePlan(this.Job, this.Status),
+                m => JobObjectModel.DryadJobStaticPlan.CreatePlan(this.Job, m),
                 this.PlanComputed,
                 "refresh plan");
             this.Queue(item);
@@ -1455,7 +1395,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             this.EnableStageFiltering(true);
             this.stageHeaderData.RaiseListChangedEvents = false;
             this.currentStage = stage;
-            this.currentTable = null;            
+            this.currentTable = null;
 
             // stageData is populated by the selectionChanged event handler for the stageHeader
             if (this.ShowingStageOrTable != KindOfStageShown.Stage)
@@ -1677,10 +1617,9 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         /// </summary>
         /// <param name="path">Cluster object whose contents is read.</param>
         /// <param name="pattern">Pattern to filter contents, for folders.</param>
-        /// <param name="status">Used to report status.</param>
         /// <returns>The file contents.</returns>
-        /// <param name="progress">Progress reporter.</param>
-        private static FileContents GetContents(StatusReporter status, Action<int> progress, IClusterResidentObject path, string pattern)
+        /// <param name="manager">Communication manager.</param>
+        private static FileContents GetContents(CommManager manager, IClusterResidentObject path, string pattern)
         {
             if (path == null)
             {
@@ -1705,6 +1644,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
                 int displayed = 0;
                 foreach (IClusterResidentObject d in dirs)
                 {
+                    manager.Token.ThrowIfCancellationRequested();
                     if (d.Exception != null)
                     {
                         error += " [Error " + d.Exception.Message + "]";
@@ -1730,7 +1670,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             }
             else
             {
-                status("Extracting contents of " + path, StatusKind.LongOp);
+                manager.Status("Extracting contents of " + path, StatusKind.LongOp);
                 ISharedStreamReader sr = path.GetStream();
                 if (sr.Exception != null)
                 {
@@ -1741,7 +1681,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
                 {
                     if (path.Size == 0)
                         error += "[empty]";
-                    var contents = sr.ReadToEnd();
+                    var contents = sr.ReadToEnd(manager.Token);
                     return new FileContents(contents, error, linkCache);
                 }
             }
@@ -1756,7 +1696,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         private void DisplayContents1(IClusterResidentObject path, string pattern)
         {
             var item = new BackgroundWorkItem<FileContents>(
-                (s, p) => GetContents(s, p, path, pattern),
+                m => GetContents(m, path, pattern),
                 this.ShowContents,
                 "Read file");
             this.Queue(item);
@@ -1892,7 +1832,9 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
                             {
                                 this.label_title.Text = "Inputs";
                                 this.Status("Discovering vertex channel information", StatusKind.LongOp);
-                                bool found = this.currentVertex.DiscoverChannels(true, false, false, this.Status, this.UpdateProgress);
+                                // TODO: this should run in the background
+                                CommManager manager = new CommManager(this.Status, this.UpdateProgress, new CancellationTokenSource().Token);
+                                bool found = this.currentVertex.DiscoverChannels(true, false, false, manager);
                                 if (found)
                                 {
                                     this.richTextBox_file.SuspendLayout();
@@ -1922,7 +1864,9 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
                             {
                                 this.label_title.Text = "Outputs";
                                 this.Status("Discovering vertex channel information", StatusKind.LongOp);
-                                bool found = this.currentVertex.DiscoverChannels(false, true, false, this.Status, this.UpdateProgress);
+                                // TODO: this should run in the background
+                                CommManager manager = new CommManager(this.Status, this.UpdateProgress, new CancellationTokenSource().Token);
+                                bool found = this.currentVertex.DiscoverChannels(false, true, false, manager);
                                 if (found)
                                 {
                                     this.richTextBox_file.SuspendLayout();
@@ -2319,7 +2263,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             this.Status("Refreshing...", StatusKind.LongOp);
             this.Job.InvalidateCaches();
             this.stageColorMap = null; // force recomputation
-            this.LoadJobDetails();
+            this.RefreshJob();
         }
 
         /// <summary>
@@ -2340,8 +2284,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         private void JobBrowser_FormClosing(object sender, FormClosingEventArgs e)
         {
             this.refreshTimer.Stop();
-            this.pendingWork.Clear();
-
+            this.queue.Stop();
             this.formSettings.WarnedAboutDebugging = this.WarnedAboutDebugging;
             this.formSettings.WarnedAboutProfiling = this.WarnedAboutProfiling;
             this.formSettings.Location = this.Location;
@@ -2496,107 +2439,37 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         /// <param name="e">Unused.</param>
         private void JobBrowser_Shown(object sender, EventArgs e)
         {
-            this.LoadJobDetails();
-        }
-
-        #region BACKGROUND_WORK
-        /// <summary>
-        /// Start performing a piece of background work.
-        /// </summary>
-        /// <param name="work">Work to perform.</param>
-        private void StartBackgroundWork(BackgroundWorkInfo work)
-        {
-            if (this.backgroundWorker.IsBusy)
-            {
-                work.AddTo(this.pendingWork);
-                this.toolStripStatusLabel_backgroundWork.Text = this.pendingWork.Count() + " tasks pending.";
-                this.Status("Queued task for execution", StatusKind.OK);
-                return;
-            }
-
-            backgroundWorker.RunWorkerAsync(work);
+            this.RefreshJob();
         }
 
         /// <summary>
-        /// Show the work currently being done.
+        /// Refresh the job details.
         /// </summary>
-        /// <param name="msg">Message to display (work description).</param>
-        private void ShowCurrentWork(string msg)
+        private void RefreshJob()
         {
-            if (this.InvokeRequired)
-                this.Invoke(new Action<string>(this.ShowCurrentWork), msg);
-            else
-                this.toolStripStatusLabel_currentWork.Text = msg;
-        }
-
-        /// <summary>
-        /// Perform some background work.
-        /// </summary>
-        /// <param name="sender">Unused.</param>
-        /// <param name="e">Event describing the work to perform.</param>
-        private void backgroundWorker_DoWork(object sender, DoWorkEventArgs e)
-        {
-            BackgroundWorkInfo work = (BackgroundWorkInfo)e.Argument;
-            work.workStartTime = DateTime.Now;
-            this.ShowCurrentWork("Doing " + work + ".");
-
-            switch (work.Work)
-            {
-                case BackgroundWorkInfo.WorkKind.LoadJobInfo:
-                    {
-                        work.Success = this.Job.CollectEssentialInformation(this.Status, this.UpdateProgress);                        
-                        break;
-                    }
-            }
-            e.Result = work;
-        }
-
-        /// <summary>
-        /// Background work has terminated.
-        /// </summary>
-        /// <param name="sender">Unused.</param>
-        /// <param name="e">Event describing the result.</param>
-        private void backgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            this.ShowCurrentWork("Doing nothing.");
-            if (e.Cancelled)
-            {
-                this.Status("Background work was cancelled", StatusKind.OK);
-                goto end;
-            }
-            else if (e.Error != null)
-            {
-                this.Status("Exception during background work: " + e.Error.Message, StatusKind.Error);
-                Trace.TraceInformation(e.ToString());
-                goto end;
-            }
-
-            if (e.Result == null)
-            {
-                Trace.TraceInformation("Null result from background work!");
-                // I don't know why this happens
-                goto end;
-            }
-            BackgroundWorkInfo result = (BackgroundWorkInfo)e.Result;
-            if (result.Success)
-            {
-                switch (result.Work)
+            DryadLinqJobInfo job = this.Job;
+            DateTime start = DateTime.Now;
+            var item = new BackgroundWorkItem<TimeSpan>(
+                m =>
                 {
-                    case BackgroundWorkInfo.WorkKind.LoadJobInfo:
-                        this.LoadJobCompleted(DateTime.Now - result.workStartTime);
-                        break;
-                }
-                this.Status("Completed " + result, StatusKind.OK);
-            }
-            else
-            {
-                // failed in background work
-                goto end;
-            }
+                    job.CollectEssentialInformation(m);
+                    return DateTime.Now - start;
+                },
+                this.JobInfoLoaded,
+                "refreshJob");
+            this.Queue(item);
+        }
 
-            // do not overwrite the error message if the job did not succeed
+        /// <summary>
+        /// Called after a job has been loaded.
+        /// </summary>
+        /// <param name="cancelled">If true the loading has been cancelled.</param>
+        /// <param name="loadTime">Time to load job.</param>
+        private void JobInfoLoaded(bool cancelled, TimeSpan loadTime)
+        {
+            if (cancelled) return;
 
-            // refresh the stage view too
+            this.LoadJobCompleted(loadTime);
             string s = this.currentStage != null ? this.currentStage.Name : null;
             if (this.doingStartup && string.IsNullOrEmpty(s))
             {
@@ -2613,17 +2486,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             {
                 this.SetTable(this.currentTable.Refresh(this.Job, this.Status, !this.hideCancelledVerticesToolStripMenuItem.Checked));
             }
-
-         end:
-            if (this.pendingWork.Any())
-            {
-                BackgroundWorkInfo work = this.pendingWork[0];
-                this.pendingWork.RemoveAt(0);
-                this.toolStripStatusLabel_backgroundWork.Text = this.pendingWork.Count() + " tasks pending.";
-                this.StartBackgroundWork(work);
-            }
         }
-        #endregion
 
         #region MOUSE_DYNAMIC_VIEWS
         /// <summary>
@@ -2879,7 +2742,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             lv.Show();
 
             var item = new BackgroundWorkItem<bool>(
-                (s, p) => ScanJMStdout(this.currentVertex, this.Job.ManagerVertex.StdoutFile, lv),
+                m => ScanJMStdout(this.currentVertex, this.Job.ManagerVertex.StdoutFile, lv),
                 (c, b) => { },
                 "findStdout");
             this.Queue(item);
@@ -2936,7 +2799,8 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         /// <param name="e">Unused.</param>
         private void diagnoseToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            JobFailureDiagnosis diagnosis = JobFailureDiagnosis.CreateJobFailureDiagnosis(this.Job, this.staticPlan, this.Status, this.UpdateProgress);
+            CommManager manager = new CommManager(this.Status, this.UpdateProgress, new CancellationToken());
+            JobFailureDiagnosis diagnosis = JobFailureDiagnosis.CreateJobFailureDiagnosis(this.Job, this.staticPlan, manager);
             DiagnosisLog log = diagnosis.Diagnose();
             this.DisplayDiagnosis(log);
         }
@@ -3328,7 +3192,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             ClusterStatus clusterStatus = this.Job.ClusterConfiguration.CreateClusterStatus();
 
             var item = new BackgroundWorkItem<bool>(
-                (s, p) => ClusterWork.CancelJobs(job, clusterStatus, s, p),
+                m => ClusterWork.CancelJobs(job, clusterStatus, m),
                 (c, b) => { },
                 "cancel");
             this.Queue(item);
@@ -3344,7 +3208,9 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             if (this.currentVertex == null)
                 return;
 
-            VertexFailureDiagnosis vfd = VertexFailureDiagnosis.CreateVertexFailureDiagnosis(this.Job, this.staticPlan, this.currentVertex, this.Status, this.UpdateProgress);
+            // TODO: this should run in the background
+            CommManager manager = new CommManager(this.Status, this.UpdateProgress, new CancellationToken());
+            VertexFailureDiagnosis vfd = VertexFailureDiagnosis.CreateVertexFailureDiagnosis(this.Job, this.staticPlan, this.currentVertex, manager);
             DiagnosisLog log = vfd.Diagnose();
             this.DisplayDiagnosis(log);
         }
@@ -3387,16 +3253,6 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         /// <param name="e">Unused.</param>
         private void dataGridView_Scroll(object sender, ScrollEventArgs e)
         {
-            if (e.Type == ScrollEventType.EndScroll)
-            {
-                VScrollBar scrollbar = sender as VScrollBar;
-                if (scrollbar == null)
-                    return;
-                DataGridView view = scrollbar.Parent as DataGridView;
-                if (view == null)
-                    return;
-                view.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.DisplayedCells);
-            }
         }
 
         /// <summary>
@@ -3427,9 +3283,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         /// <param name="e">Unused.</param>
         private void cacheAllLogsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            BackgroundWorkInfo work = new BackgroundWorkInfo();
-            work.Work = BackgroundWorkInfo.WorkKind.LoadJobInfo;
-            this.StartBackgroundWork(work);
+            this.RefreshJob();
 
             IClusterResidentObject folder = this.richtextBoxShownFile;
             if (folder == null || folder.Exception != null || !folder.RepresentsAFolder)
@@ -3518,7 +3372,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             List<ExecutedVertexInstance> vertices = this.stageData.ToList();
 
             var item = new BackgroundWorkItem<bool>(
-                (s, p) => CacheAllVertices(this.Job.ClusterConfiguration, this.Job.Summary, vertices, s, p),
+                m => CacheAllVertices(this.Job.ClusterConfiguration, this.Job.Summary, vertices, m),
                 (c, b) => { },
                 "cacheAll");
             this.Queue(item);
@@ -3528,23 +3382,27 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         /// Cache the vertices in the list; executed on the background thread.
         /// </summary>
         /// <returns>True: success.</returns>
+        /// <param name="manager">Communication manager.</param>
+        /// <param name="config">Cluster configuration.</param>
+        /// <param name="summary">Job to cache.</param>
+        /// <param name="vertices">Vertices to cache.</param>
         private static bool CacheAllVertices(
             ClusterConfiguration config, DryadLinqJobSummary summary, List<ExecutedVertexInstance> vertices,
-            StatusReporter status, Action<int> progress)
+            CommManager manager)
         {
             int done = 0;
             int todo = vertices.Count;
             int files = 0;
-            status("Caching data for " + todo + " vertices", StatusKind.LongOp);
+            manager.Status("Caching data for " + todo + " vertices", StatusKind.LongOp);
             foreach (ExecutedVertexInstance v in vertices)
             {
                 files += CacheVertexInfo(config, summary, v);
                 done++;
-                progress(done / todo);
+                manager.Progress(done / todo);
             }
 
-            progress(100);
-            status("Cached " + files + " files", StatusKind.OK);
+            manager.Progress(100);
+            manager.Status("Cached " + files + " files", StatusKind.OK);
             return true;
         }
 
@@ -3576,6 +3434,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
                 }
 
                 ISharedStreamReader reader = file.GetStream();
+                // ReSharper disable once UnusedVariable
                 foreach (string line in reader.ReadAllLines())
                 {
                     // discard; causes caching
@@ -3583,6 +3442,11 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
                 cached++;
             }
             return cached;
+        }
+
+        private void cancelCurrentWorkToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.queue.CancelCurrentWork();
         }
     }
 

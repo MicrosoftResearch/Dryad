@@ -29,8 +29,10 @@ using Microsoft.Research.DryadLinq;
 
 namespace Microsoft.Research.DryadLinq.Internal
 {
-    // The class encapsulates the external environment in which a
-    // managed query operator executes.
+    /// <summary>
+    /// Exposes the execution environment for managed vertex code.
+    /// </summary>
+    /// <remarks>A DryadLINQ user should not need to use this class directly.</remarks>
     public class VertexEnv
     {
         private const string VERTEX_EXCEPTION_FILENAME = @"VertexException.txt";
@@ -46,6 +48,11 @@ namespace Microsoft.Research.DryadLinq.Internal
         private bool m_useLargeBuffer;
         private bool m_multiThreading;
 
+        /// <summary>
+        /// Initializes an instnace of VertexEnv. This is called in auto-generated code.
+        /// </summary>
+        /// <param name="args"></param>
+        /// <param name="vertexParams"></param>
         public VertexEnv(string args, DryadLinqVertexParams vertexParams)
         {
             this.m_argList = args.Split('|');
@@ -67,6 +74,9 @@ namespace Microsoft.Research.DryadLinq.Internal
             Debug.Assert(vertexParams.OutputArity <= this.m_numberOfOutputs);
         }
 
+        /// <summary>
+        /// Determines whether to run the DryadLINQ local vertex runtime in multi-threaded mode.
+        /// </summary>
         public bool MultiThreading
         {
             get { return m_multiThreading; }
@@ -78,21 +88,35 @@ namespace Microsoft.Research.DryadLinq.Internal
             get { return this.m_nativeHandle; }
         }
 
+        /// <summary>
+        /// The number of inputs of the vertex.
+        /// </summary>
         public UInt32 NumberOfInputs
         {
             get { return this.m_numberOfInputs; }
         }        
 
+        /// <summary>
+        /// The number of outputs of the vertex.
+        /// </summary>
         public UInt32 NumberOfOutputs
         {
             get { return this.m_numberOfOutputs; }
         }
 
+        /// <summary>
+        /// The number of command-line arguments of the vertex. 
+        /// </summary>
         public Int32 NumberOfArguments
         {
             get { return this.m_argList.Length; }
         }
         
+        /// <summary>
+        /// Gets the argument at the specified index.
+        /// </summary>
+        /// <param name="idx"></param>
+        /// <returns></returns>
         public string GetArgument(Int32 idx)
         {
             return this.m_argList[idx];
@@ -103,6 +127,9 @@ namespace Microsoft.Research.DryadLinq.Internal
             get { return this.m_useLargeBuffer; }
         }
 
+        /// <summary>
+        /// Gets the vertex id.
+        /// </summary>
         public Int64 VertexId
         {
             get {
@@ -110,6 +137,12 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
         
+        /// <summary>
+        /// Makes a reader for the current input.
+        /// </summary>
+        /// <typeparam name="T">The record type of the input.</typeparam>
+        /// <param name="readerFactory">The reader factory.</param>
+        /// <returns>A reader for the current input.</returns>
         public DryadLinqVertexReader<T> MakeReader<T>(DryadLinqFactory<T> readerFactory)
         {
             bool keepPortOrder = this.m_vertexParams.KeepInputPortOrder(this.m_nextInput);
@@ -120,6 +153,12 @@ namespace Microsoft.Research.DryadLinq.Internal
             return new DryadLinqVertexReader<T>(this, readerFactory, startPort, endPort, keepPortOrder);
         }
 
+        /// <summary>
+        /// Make a writer for the current output.
+        /// </summary>
+        /// <typeparam name="T">The record type of the output.</typeparam>
+        /// <param name="writerFactory">The writer factory.</param>
+        /// <returns>A writer for the current output.</returns>
         public DryadLinqVertexWriter<T> MakeWriter<T>(DryadLinqFactory<T> writerFactory)
         {
             if (this.m_nextOutputPort + 1 < this.m_vertexParams.OutputArity)
@@ -135,21 +174,44 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
+        /// <summary>
+        /// Make a binary reader from a native stream.  Used only by auto-generated code.
+        /// </summary>
+        /// <param name="nativeStream">A native stream</param>
+        /// <returns>A binary reader</returns>
         public static DryadLinqBinaryReader MakeBinaryReader(NativeBlockStream nativeStream)
         {
             return new DryadLinqBinaryReader(nativeStream);
         }
 
+        /// <summary>
+        /// Make a binary reader from a native handle and a port number. Used only by auto-generated code.
+        /// </summary>
+        /// <param name="handle">The native handle</param>
+        /// <param name="port">The port number</param>
+        /// <returns>A binary reader</returns>
         public static DryadLinqBinaryReader MakeBinaryReader(IntPtr handle, UInt32 port)
         {
             return new DryadLinqBinaryReader(handle, port);
         }
 
+        /// <summary>
+        /// Make a binary writer from a native stream. Used only by auto-generated code.
+        /// </summary>
+        /// <param name="nativeStream">A native stream</param>
+        /// <returns>A binary writer</returns>
         public static DryadLinqBinaryWriter MakeBinaryWriter(NativeBlockStream nativeStream)
         {
             return new DryadLinqBinaryWriter(nativeStream);
         }
 
+        /// <summary>
+        /// Make a binary writer from a native handle and a port number. Used only by auto-generated code.
+        /// </summary>
+        /// <param name="handle">The native handle</param>
+        /// <param name="port">The port number</param>
+        /// <param name="buffSize">A hint of the size of write buffer</param>
+        /// <returns>A binary writer</returns>
         public static DryadLinqBinaryWriter MakeBinaryWriter(IntPtr handle, UInt32 port, Int32 buffSize)
         {
             return new DryadLinqBinaryWriter(handle, port, buffSize);
@@ -158,9 +220,12 @@ namespace Microsoft.Research.DryadLinq.Internal
         private static Exception s_lastReportedException;
         internal static int ErrorCode { get; set; }
 
-        // This method gets called by the generated vertex code, as well as VertexBridge
-        // to report exceptions. The exception will be dumped to "VertexException.txt"
-        // in the working directory.
+        /// <summary>
+        /// This method is called by the generated vertex code, as well as VertexBridge
+        /// to report exceptions. The exception will be dumped to "VertexException.txt"
+        /// in the working directory.
+        /// </summary>
+        /// <param name="e">The exception that triggers to call this method.</param>
         public static void ReportVertexError(Exception e)
         {
             // We first need to check whether the same exception object was already

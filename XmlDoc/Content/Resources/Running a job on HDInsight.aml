@@ -1,0 +1,174 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<topic id="3596a79f-0714-43b0-b49a-ea9eeccb7326" revisionNumber="1">
+  <developerWalkthroughDocument
+    xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+
+    <!--
+    <summary>
+      <para>Optional summary abstract</para>
+    </summary>
+    -->
+
+    <introduction>
+      <!-- Uncomment this to generate an outline of the section and sub-section
+           titles.  Specify a numeric value as the inner text to limit it to
+           a specific number of sub-topics when creating the outline.  Specify
+           zero (0) to limit it to top-level sections only.  -->
+      <!-- <autoOutline /> -->
+
+      <para>The process for running a DryadLINQ application on HDInsight 3.0 is a bit complicated. This is because
+      HDInsight does not expose all of the "raw" Hadoop 2.2 protocols to clients outside the cluster. In particular,
+      the only way to launch a job on a cluster is using the <externalLink>
+        <linkText>Templeton</linkText>
+        <linkUri>http://people.apache.org/~thejas/templeton_doc_latest/index.html</linkUri>
+        <linkTarget>_blank</linkTarget>
+      </externalLink> REST APIs, as nicely wrapped up in the <externalLink>
+        <linkText>Microsoft .NET SDK for Hadoop</linkText>
+        <linkAlternateText>Optional alternate text</linkAlternateText>
+        <linkUri>http://hadoopsdk.codeplex.com/</linkUri>
+        <linkTarget>_blank</linkTarget>
+      </externalLink>. Unfortunately, right now Templeton does not support native YARN applications like DryadLINQ, and so
+      the only jobs that may be launched from outside the cluster are Hadoop 1 jobs (MapReduce, HIVE, Pig, and so on).
+      </para>
+    </introduction>
+
+    <!-- <prerequisites><content>Optional prerequisites info</content></prerequisites> -->
+
+    <!-- One or more procedure or section with procedure -->
+    <procedure>
+      <title>What happens when your client program runs a job</title>
+      <steps class="ordered">
+        <step>
+          <content>
+            <para>The client DryadLINQ program determines all of the resources that will be needed in the job. It
+            checks to see if they are already present on the cluster (using a hash of the binary) and uploads any that
+            are not present. They are uploaded to the default cluster storage account, so that Hadoop 2.2 services like
+            YARN will be able to read them using wasb. (See <externalLink>
+              <linkText>Using Azure Blob storage with HDInsight</linkText>
+              <linkAlternateText>Optional alternate text</linkAlternateText>
+              <linkUri>http://azure.microsoft.com/en-us/documentation/articles/hdinsight-use-blob-storage/</linkUri>
+              <linkTarget>_blank</linkTarget>
+            </externalLink> for an explanation of how wasb/hdfs interacts with Azure blob storage.)</para>
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>The client serializes a description of the DryadLINQ YARN application into an XML file. This file contains
+            a list of the resources that the DryadLINQ Application Master needs in order to run, and a command line for the
+            application master. (See <externalLink>
+              <linkText>YARN concepts</linkText>
+              <linkUri>http://hortonworks.com/blog/apache-hadoop-yarn-concepts-and-applications/</linkUri>
+              <linkTarget>_blank</linkTarget>
+            </externalLink> for an explanation of application masters.) This XML file is uploaded to the cluster's
+            default container as <localUri>user/&lt;yourUserName&gt;/staging/&lt;jobGuid&gt;.xml.&lt;hash&gt;</localUri>.</para>
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>The client calls the .NET Hadoop SDK to run a Hadoop Streaming job using the above XML file as input.</para>
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>The .NET SDK calls the Templeton REST API on your cluster.</para>
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>The Templeton REST server launches a MapReduce job called <command>TempletonControllerJob</command> on
+            your cluster.</para>
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>The controller job launches a second MapReduce job called <command>streamjob&lt;someNumber&gt;.jar</command>
+            on your cluster.</para>
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>The streaming job reads the XML serialized above, and launches the DryadLINQ YARN application master, which
+            then actually runs your program. The title of the DryadLINQ application is <command>DryadLINQ.App</command> by
+            default, but you can set it to something more friendly using the <codeInline>JobFriendlyName</codeInline> property
+            of the <codeInline>DryadLinqContext</codeInline>.</para>
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>The streaming job writes the YARN application Id for the DryadLINQ application back to the cluster's default
+            container as <localUri>user/&lt;yourUserName&gt;/staging/&lt;jobGuid&gt;/part.00000</localUri>.</para>
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>The DryadLINQ application writes heartbeat, logging and status information into a container called
+            <localUri>dryad-jobs/&lt;yarn-application-id&gt;</localUri> in the cluster's default storage account.</para>
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>The client code reads the application id from <localUri>user/&lt;yourUserName&gt;/staging/&lt;jobGuid&gt;/part.00000</localUri>
+            and then monitors <localUri>dryad-jobs/&lt;yarn-application-id&gt;</localUri> to get updates on the progress of the job.
+            This is also where the job browser gets its information about the job.</para>
+          </content>
+        </step>
+      </steps>
+      <conclusion>
+        <content>
+          <para>If you <externalLink>
+            <linkText>Enable Remote Desktop on your HDInsight cluster</linkText>
+            <linkUri>http://azure.microsoft.com/en-us/documentation/articles/hdinsight-administer-use-management-portal/</linkUri>
+            <linkTarget>_blank</linkTarget>
+          </externalLink>, and click on the <command>Hadoop YARN Status</command> shortcut link on the desktop, you can see all these
+          jobs running.</para>
+          <para>Unfortunately because of the current configuration of HDInsight clusters, all DryadLINQ logs are deleted immediately
+          when the application exits, and you will get a "Failed redirect for container" error if you try to navigate to the logs of
+          a completed application. We have tried to report errors in user application code back so that they are visible in the
+          <link xlink:href="91822db3-8a00-4307-ad8a-595c94f449b0">DryadLINQ Job Browser</link> to avoid the need to consult
+          the logs.</para>
+        </content>
+      </conclusion>
+    </procedure>
+
+    <!-- Optional next steps info
+    <nextSteps>
+      <content><para>Next steps info goes here</para></content>
+    </nextSteps>
+    -->
+
+    <relatedTopics>
+      <!-- One or more of the following:
+           - A local link
+           - An external link
+           - A code entity reference
+
+      <link xlink:href="Other Topic's ID">Link text</link>
+      <externalLink>
+          <linkText>Link text</linkText>
+          <linkAlternateText>Optional alternate link text</linkAlternateText>
+          <linkUri>URI</linkUri>
+      </externalLink>
+      <codeEntityReference>API member ID</codeEntityReference>
+
+      Examples:
+
+      <link xlink:href="00e97994-e9e6-46e0-b420-5be86b2f8278">Some other topic</link>
+
+      <externalLink>
+          <linkText>SHFB on CodePlex</linkText>
+          <linkAlternateText>Go to CodePlex</linkAlternateText>
+          <linkUri>http://shfb.codeplex.com</linkUri>
+      </externalLink>
+
+      <codeEntityReference>T:TestDoc.TestClass</codeEntityReference>
+      <codeEntityReference>P:TestDoc.TestClass.SomeProperty</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.#ctor</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.#ctor(System.String,System.Int32)</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.ToString</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.FirstMethod</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.SecondMethod(System.Int32,System.String)</codeEntityReference>
+      -->
+    </relatedTopics>
+  </developerWalkthroughDocument>
+</topic>

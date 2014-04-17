@@ -19,17 +19,17 @@ limitations under the License.
 
 */
 
-namespace Microsoft.Research.Calypso.JobObjectModel
+namespace Microsoft.Research.JobObjectModel
 {
     using System.Text.RegularExpressions;
     using System;
     using System.Diagnostics;
 
     /// <summary>
-    /// Information about a standard Cosmos log entry.
+    /// Information about a standard Dryad log entry.
     /// </summary>
     [Serializable]
-    public class CosmosLogEntry : IParse
+    public class DryadLogEntry : IParse
     {
         /// <summary>
         /// Message severity.
@@ -98,7 +98,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// <summary>
         /// Allocate an empty log entry
         /// </summary>
-        public CosmosLogEntry()
+        public DryadLogEntry()
         {
             this.Malformed = true;
         }
@@ -107,7 +107,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// Allocate a log entry from a given string.
         /// </summary>
         /// <param name="line">String to initialize the log entry.</param>
-        public CosmosLogEntry(string line)
+        public DryadLogEntry(string line)
         {
             this.Malformed = true;
             // ReSharper disable once DoNotCallOverridableMethodsInConstructor
@@ -167,7 +167,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
     /// An extended log entry is like a cosmos log entry, but it has a prefix: GUID,Machine
     /// </summary>
     [Serializable]
-    public class ExtendedLogEntry : CosmosLogEntry
+    public class ExtendedLogEntry : DryadLogEntry
     {
         static Regex loglineregex =
             new Regex(@"([-0-9A-F]+), # 1 guid, inserted by reader

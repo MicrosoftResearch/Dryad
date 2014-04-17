@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Topics>
+  <Topic id="e203b95e-0737-40f6-9c16-fc84484a5bad" visible="True" isDefault="true" title="Welcome to the DryadLINQ help page">
+    <HelpKeywords>
+      <HelpKeyword index="K" term="Welcome" />
+    </HelpKeywords>
+  </Topic>
+  <Topic id="4a617e67-0920-46e4-9223-5effbac46b3d" visible="True" title="Getting Started">
+    <Topic id="e992fd94-c956-481d-82e6-dbdf45daa722" visible="True" title="Quick Start" />
+    <Topic id="4aefe670-7b2b-4c05-9a65-6c60ff13c3b5" visible="True" title="Setting up an HDInsight 3.0 cluster" />
+    <Topic id="91822db3-8a00-4307-ad8a-595c94f449b0" visible="True" />
+  </Topic>
+  <Topic id="1ef96122-dbe3-4815-a81f-7b5a72bf9f4f" visible="True" isExpanded="true" title="Resources">
+    <Topic id="3596a79f-0714-43b0-b49a-ea9eeccb7326" visible="True" title="Running a DryadLINQ job on HDInsight" />
+  </Topic>
+  <Topic id="a5d9b686-8282-4120-ae0e-5a9f11a2ac0b" visible="True" isExpanded="true" title="Version History">
+    <HelpKeywords>
+      <HelpKeyword index="K" term="version, history" />
+    </HelpKeywords>
+    <Topic id="a2eaaf5d-f1d8-4319-844e-a458cc72e4db" visible="True" isSelected="true" title="Version 0.1.2">
+      <HelpKeywords>
+        <HelpKeyword index="K" term="version, 1.0.0.0" />
+      </HelpKeywords>
+    </Topic>
+  </Topic>
+</Topics>

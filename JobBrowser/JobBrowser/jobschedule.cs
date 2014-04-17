@@ -19,13 +19,13 @@ limitations under the License.
 
 */
 
-using Microsoft.Research.Calypso.Tools;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using Microsoft.Research.Tools;
 
-namespace Microsoft.Research.Calypso.JobObjectModel
+namespace Microsoft.Research.JobObjectModel
 {
     /// <summary>
     /// Information about the dynamic execution schedule of a job.

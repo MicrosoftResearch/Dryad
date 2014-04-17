@@ -27,10 +27,10 @@ using System.Linq.Expressions;
 using System.Diagnostics;
 using Microsoft.Research.DryadLinq;
 
+#pragma warning disable 1591
+
 namespace Microsoft.Research.DryadLinq.Internal
 {
-    //these are involved in generated code for member lookup 
-    //eg for direct access to fields of IndexedValue.  and probably other situations too.
     public delegate S GetObjFieldDelegate<T, S>(T obj);
     public delegate void SetObjFieldDelegate<T, S>(T obj, S value);
 

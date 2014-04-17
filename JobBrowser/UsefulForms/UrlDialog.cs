@@ -19,7 +19,7 @@ limitations under the License.
 
 */
 
-namespace Microsoft.Research.Calypso.UsefulForms
+namespace Microsoft.Research.UsefulForms
 {
     using System.Windows.Forms;
 

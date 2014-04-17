@@ -21,18 +21,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Diagnostics;
+using System.IO;
+using System.Net;
+using System.Xml.Linq;
+using Microsoft.Research.DryadLinq.Internal;
 
 namespace Microsoft.Research.DryadLinq
 {
-    using System;
-    using System.Diagnostics;
-    using System.IO;
-    using System.Net;
-    using System.Xml.Linq;
-    using System.Linq;
-    using System.Text;
-    using Microsoft.Research.DryadLinq.Internal;
-
     abstract class PeloponneseJobSubmission : IDryadLinqJobSubmission
     {
         private DryadLinqContext m_context;
@@ -50,10 +46,48 @@ namespace Microsoft.Research.DryadLinq
         abstract public JobStatus GetStatus();
         abstract public JobStatus TerminateJob();
 
+        static private string[] sharedDryadFiles =
+        {
+            "DryadLinqGraphManager.exe",
+            "DryadLinqGraphManager.exe.config",
+            "Microsoft.Research.Dryad.dll",
+            "DryadHttpClusterInterface.dll",
+            "DryadLocalScheduler.dll",
+
+            "ProcessService.exe",
+            "ProcessService.pdb",
+            "VertexHost.exe",
+            "VertexHost.pdb",
+            "VertexHost.exe.config",
+            "Microsoft.Research.DryadLinq.dll",
+            "Microsoft.Research.DryadLinq.pdb",
+            "DryadLinqNativeChannels.dll",
+            "DryadLinqNativeChannels.pdb",
+            "DryadManagedChannel.dll",
+            "DryadManagedChannel.pdb"
+        };
+
         public PeloponneseJobSubmission(DryadLinqContext context)
         {
             m_context = context;
             m_localResources = new Dictionary<string, HashSet<string>>();
+        }
+
+        static protected bool IsValidDryadDirectory(string directory)
+        {
+            IEnumerable<string> filesPresent =
+                Directory.EnumerateFiles(directory, "*", SearchOption.TopDirectoryOnly)
+                .Select(x => Path.GetFileName(x).ToLower());
+
+            IEnumerable<string> filesNeeded = sharedDryadFiles.Select(x => x.ToLower());
+
+            return (filesPresent.Intersect(filesNeeded).Count() == sharedDryadFiles.Length);
+        }
+
+        static private bool IsSharedDryadFile(string fileName)
+        {
+            IEnumerable<string> sharedFiles = sharedDryadFiles.Select(x => x.ToLower());
+            return sharedDryadFiles.Contains(fileName.ToLower());
         }
 
         public void AddJobOption(string fieldName, string fieldVal)
@@ -72,7 +106,7 @@ namespace Microsoft.Research.DryadLinq
             var fileName = Path.GetFileName(pathName);
             var directory = Path.GetDirectoryName(pathName);
 
-            if (directory == Context.DryadHomeDirectory)
+            if (directory == Context.DryadHomeDirectory && IsSharedDryadFile(fileName))
             {
                 // we deal with these resources elsewhere
                 return;

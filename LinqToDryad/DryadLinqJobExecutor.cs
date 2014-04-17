@@ -57,21 +57,13 @@ namespace Microsoft.Research.DryadLinq
             // use a new job submission object for each query
             this.m_context = context;
             this.m_currentStatus = JobStatus.NotSubmitted;
-            if (context.Runtime is DryadLinqQueryRuntime)
+            if (context.LocalExecution)
             {
-                if (context.LocalExecution)
-                {
-                    this.m_jobSubmission = new LocalJobSubmission(context);
-                }
-                else
-                {
-                    this.m_jobSubmission = new YarnJobSubmission(context);
-                }
+                this.m_jobSubmission = new LocalJobSubmission(context);
             }
             else
             {
-                throw new DryadLinqException(DryadLinqErrorCode.UnsupportedSchedulerType,
-                                             String.Format(SR.UnsupportedSchedulerType, context.Runtime));
+                this.m_jobSubmission = new YarnJobSubmission(context);
             }
         }
 
@@ -109,7 +101,7 @@ namespace Microsoft.Research.DryadLinq
             {
                 // Consturct the Graph Manager cmd line.
                 // string queryPlanFileName = Path.GetFileName(queryPlanPath);
-                this.m_jobSubmission.AddJobOption("cmdline", "DryadLinqGraphManager.exe" + " " + queryPlanPath);                                
+                this.m_jobSubmission.AddJobOption("cmdline", "DryadLinqGraphManager.exe" + " " + queryPlanPath);
                 
                 AddResource(this.m_jobSubmission, queryPlanPath);
 
@@ -194,7 +186,7 @@ namespace Microsoft.Research.DryadLinq
         /// <summary>
         /// True if the background execution has terminated.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>true iff the job has terminated</returns>
         public bool Terminated()
         {
             // First check whether the status is finalized
@@ -262,10 +254,7 @@ namespace Microsoft.Research.DryadLinq
         /// </summary>
         internal string ErrorMsg
         {
-            get
-            {
-                return this.m_jobSubmission.ErrorMsg;
-            }
+            get { return this.m_jobSubmission.ErrorMsg; }
         }
 
         public string GetJobId()

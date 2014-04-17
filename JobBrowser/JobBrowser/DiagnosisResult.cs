@@ -20,11 +20,11 @@ limitations under the License.
 */
 
 using System.Collections.Generic;
-using Microsoft.Research.Calypso.JobObjectModel;
 using System;
 using System.Windows.Forms;
+using Microsoft.Research.JobObjectModel;
 
-namespace Microsoft.Research.Calypso.DryadAnalysis
+namespace Microsoft.Research.DryadAnalysis
 {
     /// <summary>
     /// Display the diagnosis results.

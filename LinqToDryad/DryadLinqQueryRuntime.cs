@@ -26,6 +26,11 @@ using System.Text;
 
 namespace Microsoft.Research.DryadLinq
 {
+    /// <summary>
+    /// Represents the current state of a set of DryadLINQ jobs that have already been
+    /// submitted for execution.  A DryadLinqJobInfo object is returned after a job is
+    /// submitted for execution. 
+    /// </summary>
     public sealed class DryadLinqJobInfo
     {
         internal const string JOBID_NOJOB = "NoJob";
@@ -52,16 +57,22 @@ namespace Microsoft.Research.DryadLinq
             _jobExecutors = Array.AsReadOnly(jobExecutors);
         }
 
+        /// <summary>
+        /// Gets the job ids of the DryadLINQ jobs.
+        /// </summary>
         public ReadOnlyCollection<string> JobIds
         {
             get { return _jobIds; }
         }
 
-        public ReadOnlyCollection<string> HeadNodes
+        internal ReadOnlyCollection<string> HeadNodes
         {
             get { return _headNodes; }
         }
 
+        /// <summary>
+        /// Blocks until all the DryadLINQ jobs terminate.
+        /// </summary>
         public void Wait()
         {
             foreach (var jobExecutor in _jobExecutors)
@@ -82,6 +93,9 @@ namespace Microsoft.Research.DryadLinq
             }
         }
 
+        /// <summary>
+        /// Cancels all the unfinished jobs.
+        /// </summary>
         public void CancelJob()
         {
             foreach (var jobExecutor in _jobExecutors)
@@ -91,42 +105,6 @@ namespace Microsoft.Research.DryadLinq
                     jobExecutor.Cancel();
                 }
             }
-        }
-    }
-    
-    /// <summary>
-    /// Represents a connection to a cluster service that can execute DryadLinq jobs.
-    /// </summary>
-    /// <remarks>
-    /// A DryadLinqQueryRuntime holds an IScheduler object that is used to submit
-    /// a DryadLINQ job.
-    /// </remarks>
-    internal sealed class DryadLinqQueryRuntime : IDisposable
-    {
-        private string m_headNode;
-        private IScheduler m_scheduler;
-
-        public DryadLinqQueryRuntime(string headNode)
-        {
-            this.m_headNode = headNode;
-            this.m_scheduler = new YarnScheduler();
-            this.m_scheduler.Connect(m_headNode);
-        }
-
-        public string HostName
-        {
-            get { return this.m_headNode; }
-        }
-
-        public void Dispose()
-        {
-            this.m_scheduler.Dispose();
-        }
-
-        // Return IScheduler reference for internal use
-        internal IScheduler GetIScheduler()
-        {
-            return this.m_scheduler;
         }
     }
 }

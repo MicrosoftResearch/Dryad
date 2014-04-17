@@ -24,7 +24,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
-namespace Microsoft.Research.Calypso.Tools
+namespace Microsoft.Research.Tools
 {
     /// <summary>
     /// Deals with the plane representation of a graph.

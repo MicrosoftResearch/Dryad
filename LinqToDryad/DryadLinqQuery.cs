@@ -434,7 +434,7 @@ namespace Microsoft.Research.DryadLinq
                 return this.m_isDynamic;
             }
         }
-                
+
         internal override DataSetInfo DataSetInfo
         {
             get
@@ -450,7 +450,7 @@ namespace Microsoft.Research.DryadLinq
                 }
                 this.CheckAndInitialize();
                 return this.m_dataSetInfo;
-        }
+            }
         }
 
         internal void CheckAndInitialize()
@@ -481,18 +481,15 @@ namespace Microsoft.Research.DryadLinq
         {
             if (this.IsPlainData && this.m_tableEnumerable == null)
             {
-                DryadLinqStreamInfo streamInfo = this.DataProvider.GetStreamInfo(this.Context, this.m_dataSourceUri);
+                DryadLinqStreamInfo
+                    streamInfo = this.DataProvider.GetStreamInfo(this.Context, this.m_dataSourceUri);
                 Int32 parCount = streamInfo.PartitionCount;
                 Int64 estSize = streamInfo.DataSize;
                 this.m_isDynamic = false;
 
                 // Finally load any stored metadata to check settings, extract compression-setting
                 // and initialize the DataInfo for this Query. It is uri.. have to convert to stream-name.
-                DryadLinqMetaData meta = null;
-                if (DataPath.IsDsc(this.m_dataSourceUri))
-                {
-                    meta = DryadLinqMetaData.Get(Context, this.m_dataSourceUri);
-                }
+                DryadLinqMetaData meta = DryadLinqMetaData.Get(Context, this.m_dataSourceUri);
                 if (meta != null)
                 {
                     //check the record-type matches meta-data. (disabled until final API is determined)
@@ -510,10 +507,10 @@ namespace Microsoft.Research.DryadLinq
                     //    StaticConfig.AllowNullRecords != meta.AllowNullRecords)
                     //{
                     //    DryadLinqClientLog.Add("Warning: Table was generated with AllowNullFields=" +
-                    //                                 meta.AllowNullFields +
-                    //                                 ", AllowNullRecords=" + meta.AllowNullRecords +
-                    //                                 ", and AllowNullArrayElements=" +
-                    //                                 meta.AllowNullArrayElements);
+                    //                           meta.AllowNullFields +
+                    //                           ", AllowNullRecords=" + meta.AllowNullRecords +
+                    //                           ", and AllowNullArrayElements=" +
+                    //                           meta.AllowNullArrayElements);
                     //}
                 }
 
@@ -523,7 +520,8 @@ namespace Microsoft.Research.DryadLinq
                 DistinctInfo dinfo = DataSetInfo.NoDistinct;
                 this.m_dataSetInfo = new DataSetInfo(pinfo, oinfo, dinfo);
 
-                this.m_tableEnumerable = new DryadLinqQueryEnumerable<T>(this.DataProvider, this.Context, this.m_dataSourceUri);
+                this.m_tableEnumerable
+                    = new DryadLinqQueryEnumerable<T>(this.Context, this.DataProvider, this.m_dataSourceUri);
 
                 // YY: query expression and provider are at least set consistently
                 if (Context.LocalDebug)
@@ -587,12 +585,14 @@ namespace Microsoft.Research.DryadLinq
     internal class DryadLinqQueryEnumerable<T> : IEnumerable<T>, IEnumerable
     {
         private DryadLinqContext m_context;
-        private Stream m_stream;
+        private DataProvider m_dataProvider;
+        private Uri m_dataSetUri;
 
-        public DryadLinqQueryEnumerable(DataProvider dataProvider, DryadLinqContext context, Uri dataSetUri)
+        public DryadLinqQueryEnumerable(DryadLinqContext context, DataProvider dataProvider, Uri dataSetUri)
         {
             this.m_context = context;
-            this.m_stream = dataProvider.Egress(context, dataSetUri);
+            this.m_dataProvider = dataProvider;
+            this.m_dataSetUri = dataSetUri;
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -602,7 +602,7 @@ namespace Microsoft.Research.DryadLinq
 
         public IEnumerator<T> GetEnumerator()
         {
-            return new TableEnumerator(this.m_context, this.m_stream);
+            return new TableEnumerator(this.m_context, this.m_dataProvider, this.m_dataSetUri);
         }
 
         // Internal enumerator class
@@ -612,18 +612,19 @@ namespace Microsoft.Research.DryadLinq
             private DryadLinqFactory<T> m_factory;
             private DryadLinqRecordReader<T> m_reader;
 
-            internal TableEnumerator(DryadLinqContext context, Stream stream)
+            internal TableEnumerator(DryadLinqContext context, DataProvider dataProvider, Uri dataSetUri)
             {
                 this.m_current = default(T);
                 this.m_factory = (DryadLinqFactory<T>)DryadLinqCodeGen.GetFactory(context, typeof(T));
+                Stream stream = dataProvider.Egress(context, dataSetUri);
                 DryadLinqBlockStream nativeStream = new DryadLinqBlockStream(stream);
                 this.m_reader = this.m_factory.MakeReader(nativeStream);
-                // this.m_reader.StartWorker();
+                this.m_reader.StartWorker();
             }
 
             public bool MoveNext()
             {
-                return this.m_reader.ReadRecordSync(ref this.m_current);
+                return this.m_reader.ReadRecordAsync(ref this.m_current);
             }
 
             object IEnumerator.Current

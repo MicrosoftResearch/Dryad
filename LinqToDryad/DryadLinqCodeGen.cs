@@ -38,13 +38,16 @@ namespace Microsoft.Research.DryadLinq.Internal
 {
     using CodeStmtPair = Pair<CodeStatement[], CodeStatement[]>;
 
-    // This class generates and compiles the managed code executed by DryadLinq.
-    // It creates a managed library (DLL) that gets used by DryadLinq vertices.
-    //
-    // For each type of DryadLinq vertex node, we need to call
-    //    AddDryadCodeForType(node.OutputType);
-    //    AddVertexMethod(node);
-    // This should generate all the code described in the note.
+    /// <summary>
+    /// This class generates and compiles the managed code executed by DryadLinq.
+    /// It creates a managed library (DLL) that contains the entry method for each
+    /// DryadLINQ vertex.
+    ///
+    /// For each type of DryadLINQ vertex node, we need to call
+    ///    AddDryadCodeForType(node.OutputType);
+    ///    AddVertexMethod(node);
+    /// </summary>
+    /// <remarks>A DryadLINQ user should not use this class directly.</remarks>
     public class DryadLinqCodeGen
     {
         private const BindingFlags FieldFlags = BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic;
@@ -54,7 +57,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         private const string TargetDllName = "Microsoft.Research.DryadLinq_.dll";
         private const string VertexSourceFile = "Microsoft.Research.DryadLinq_.cs";
         private const string DummyExtensionSourceFile = "DryadLinqExtensionBase.cs";
-        private const string VertexParamName = "vertexparam";
+        private const string VertexParamName = "vertexParams";
         private const string HelperClassName = "DryadLinqHelper";
         private const string DebugHelperMethodName = "CheckVertexDebugRequest";
         private const string CopyResourcesMethodName = "CopyResources";
@@ -2308,6 +2311,13 @@ namespace Microsoft.Research.DryadLinq.Internal
             this.GenerateCodeAndCompile(dummyFile, srcFile, targetName, loadGeneratedAssembly);
         }
 
+        /// <summary>
+        /// Gets the <see cref="DryadLinqFactory{T}"/> for a specified type. If a factory doesn't exist,
+        /// the method generates the serialization code and creates a new factory for the type.
+        /// </summary>
+        /// <param name="context">An instnance of <see cref="DryadLinqContext"/></param>
+        /// <param name="type">A specified type</param>
+        /// <returns>A <see cref="DryadLinqFactory{T}"/> for the type</returns>
         public static object GetFactory(DryadLinqContext context, Type type)
         {
             lock (s_codeGenLock)

@@ -32,8 +32,8 @@ using Microsoft.Research.DryadLinq.Internal;
 namespace Microsoft.Research.DryadLinq
 {
     /// <summary>
-    /// DryadLinqBinaryReader is the main interface for user provided custom serializers
-    /// or DL-internal autoserialization codepaths to read primitive types from a partition file.
+    /// DryadLinqBinaryReader is the main interface for user provided custom serializers.
+    /// It is also used for DryadLINQ internal autoserialization to read primitive types.
     /// </summary>
     public unsafe sealed class DryadLinqBinaryReader
     {
@@ -79,6 +79,9 @@ namespace Microsoft.Research.DryadLinq
         {
         }
 
+        /// <summary>
+        /// The finalizer that frees native resources.
+        /// </summary>
         ~DryadLinqBinaryReader()
         {
             if (!this.m_isClosed)
@@ -141,6 +144,10 @@ namespace Microsoft.Research.DryadLinq
         //
         // Public methods
         //
+        /// <summary>
+        /// Returns a string that represents this DryadLinqBinaryReader object.
+        /// </summary>
+        /// <returns>The string representation of this reader</returns>
         public override string ToString()
         {
             return this.m_nativeStream.ToString();
@@ -171,7 +178,7 @@ namespace Microsoft.Research.DryadLinq
         }
         
         /// <summary>
-        /// Read a byte from the current reader and advances the current position of the
+        /// Reads a byte from the current reader and advances the current position of the
         /// reader by one byte.
         /// </summary>
         /// <returns>The next byte read from the current reader.</returns>
@@ -191,7 +198,7 @@ namespace Microsoft.Research.DryadLinq
         }
 
         /// <summary>
-        /// Read a signed byte from the current reader and advances the current
+        /// Reads a signed byte from the current reader and advances the current
         /// position of the reader by one byte.
         /// </summary>
         /// <returns>The next signed byte read from the current reader.</returns>
@@ -211,7 +218,7 @@ namespace Microsoft.Research.DryadLinq
         }
 
         /// <summary>
-        /// Read a boolean value from the current reader and advances the current
+        /// Reads a boolean value from the current reader and advances the current
         /// position of the reader by one byte.
         /// </summary>
         /// <returns>true iff the byte is nonzero.</returns>
@@ -232,7 +239,7 @@ namespace Microsoft.Research.DryadLinq
         }
 
         /// <summary>
-        /// Read a character from the current reader and advances the current position of the reader
+        /// Reads a character from the current reader and advances the current position of the reader
         /// according to the encoding and the character.
         /// </summary>
         /// <returns>A character read from the current reader.</returns>
@@ -262,6 +269,10 @@ namespace Microsoft.Research.DryadLinq
             }
         }
         
+        /// <summary>
+        /// Reads a 16-bit signed integer from the current reader.
+        /// </summary>
+        /// <returns>A 16-bit signed integer.</returns>
         public short ReadInt16()
         {
             ushort low, high;
@@ -278,6 +289,10 @@ namespace Microsoft.Research.DryadLinq
             return (short)(low | (high << 8));
         }
 
+        /// <summary>
+        /// Reads a 16-bit unsigned integer from the current reader.
+        /// </summary>
+        /// <returns>A 16-bit unsigned integer.</returns>
         public ushort ReadUInt16()
         {
             ushort low, high;
@@ -294,6 +309,10 @@ namespace Microsoft.Research.DryadLinq
             return (ushort)(low | (high << 8));
         }
 
+        /// <summary>
+        /// Reads a 32-bit signed integer from the current reader.
+        /// </summary>
+        /// <returns>A 32-bit signed integer.</returns>
         public int ReadInt32()
         {
             int b1, b2, b3, b4;
@@ -314,6 +333,11 @@ namespace Microsoft.Research.DryadLinq
             return (int)(b1 | b2 | b3 | b4);
         }
 
+        /// <summary>
+        /// Reads a 32-bit signed integer from the current reader. Assumes that the integer
+        /// is represented in the compact format as written by WriteCompact of a DryadLinqBinaryWriter.
+        /// </summary>
+        /// <returns>A 32-bit signed integer.</returns>
         public unsafe int ReadCompactInt32()
         {
             int b1, b2, b3, b4;
@@ -341,6 +365,10 @@ namespace Microsoft.Research.DryadLinq
             }
         }
         
+        /// <summary>
+        /// Reads a 32-bit unsigned integer from the current reader.
+        /// </summary>
+        /// <returns>A 32-bit unsigned integer.</returns>
         public uint ReadUInt32()
         {
             int b1, b2, b3, b4;
@@ -361,6 +389,10 @@ namespace Microsoft.Research.DryadLinq
             return (uint)(b1 | b2 | b3 | b4);
         }
 
+        /// <summary>
+        /// Reads a 64-bit signed integer from the current reader.
+        /// </summary>
+        /// <returns>A 64-bit signed integer.</returns>
         public long ReadInt64()
         {
             uint lo, hi;
@@ -383,6 +415,10 @@ namespace Microsoft.Research.DryadLinq
             return (long)(((ulong)hi) << 32 | lo);
         }
 
+        /// <summary>
+        /// Reads a 64-bit unsigned integer from the current reader.
+        /// </summary>
+        /// <returns>A 64-bit unsigned integer.</returns>
         public ulong ReadUInt64()
         {
             uint lo, hi;
@@ -405,12 +441,20 @@ namespace Microsoft.Research.DryadLinq
             return ((ulong)hi) << 32 | lo;
         }
 
+        /// <summary>
+        /// Reads a 32-bit floating point number from the current reader.
+        /// </summary>
+        /// <returns>A 32-bit floating point number.</returns>
         public float ReadSingle()
         {
             int tmp = this.ReadInt32();
             return *((float*)&tmp);
         }
         
+        /// <summary>
+        /// Reads a decimal number from the current reader.
+        /// </summary>
+        /// <returns>A decimal number.</returns>
         public decimal ReadDecimal()
         {
             decimal val;
@@ -418,6 +462,10 @@ namespace Microsoft.Research.DryadLinq
             return val;
         }
 
+        /// <summary>
+        /// Reads a 64-bit floating point number from the current reader.
+        /// </summary>
+        /// <returns>A 64-bit floating point number.</returns>
         public double ReadDouble()
         {
             ulong tmp = this.ReadUInt64();
@@ -427,12 +475,20 @@ namespace Microsoft.Research.DryadLinq
         private const Int64 TicksMask = 0x3FFFFFFFFFFFFFFF;
         private const Int32 KindShift  = 62;    
 
+        /// <summary>
+        /// Reads a value of DateTime from the current reader.
+        /// </summary>
+        /// <returns>A value of DateTime.</returns>
         public DateTime ReadDateTime()
         {
             UInt64 value = this.ReadUInt64();
             return new DateTime((Int64)(value & TicksMask), (DateTimeKind)(value >> KindShift));
         }
 
+        /// <summary>
+        /// Reads a value of SqlDateTime from the current reader.
+        /// </summary>
+        /// <returns>A value of SqlDateTime.</returns>
         public SqlDateTime ReadSqlDateTime()
         {
             int dayTicks = this.ReadInt32();
@@ -440,6 +496,10 @@ namespace Microsoft.Research.DryadLinq
             return new SqlDateTime(dayTicks, timeTicks);
         }
 
+        /// <summary>
+        /// Reads a value of Guid from the current reader.
+        /// </summary>
+        /// <returns>A value of Guid.</returns>
         public Guid ReadGuid()
         {
             Guid guid;
@@ -453,7 +513,7 @@ namespace Microsoft.Research.DryadLinq
         /// </summary>
         /// <param name="destBuffer">The pre-allocated char array to read data into.</param>
         /// <param name="offset">The starting offset at which to begin reading chars into <paramref name="destBuffer"/>.</param>
-        /// <param name="charCount">The maximum number of chars to read. Must be smaller than or equal to (<paramref name="destArray.Length"/> - <paramref name="offset"/>). </param>
+        /// <param name="charCount">The maximum number of chars to read. </param>
         /// <returns>The number of chars that was actually read.</returns>
         public unsafe int ReadChars(char[] destBuffer, int offset, int charCount)
         {
@@ -561,6 +621,10 @@ namespace Microsoft.Research.DryadLinq
             return numCharsDecoded;
         }
 
+        /// <summary>
+        /// Reads a string value from the current reader.
+        /// </summary>
+        /// <returns>A string.</returns>
         public string ReadString()
         {
             // First read the length of the string and the number of bytes needed
@@ -627,7 +691,7 @@ namespace Microsoft.Research.DryadLinq
         /// </summary>
         /// <param name="destBuffer">The pre-allocated byte array to read data into.</param>
         /// <param name="offset">The starting offset at which to begin reading bytes into <paramref name="destBuffer"/>.</param>
-        /// <param name="byteCount">The maximum number of bytes to read. Must be smaller than or equal to (<paramref name="destBuffer.Length"/> - <paramref name="offset"/>). </param>
+        /// <param name="byteCount">The maximum number of bytes to read. </param>
         /// <returns>The number of bytes that was actually read.</returns>
         public int ReadBytes(byte[] destBuffer, int offset, int byteCount)
         {
@@ -704,6 +768,8 @@ namespace Microsoft.Research.DryadLinq
         /// public helper to read into a byte*, mainly used to read preallocated fixed size,
         /// non-integer types (Array, Guid, decimal etc)
         /// </summary>
+        /// <param name="pBytes">The pointer to the pre-allocated byte array to read data into</param>
+        /// <param name="numBytes">The number of bytes to read</param>
         public void ReadRawBytes(byte* pBytes, int numBytes)
         {
             int numBytesRead = 0;

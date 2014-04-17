@@ -103,16 +103,16 @@ namespace Microsoft.Research.DryadLinq
             var vertexPath = Path.Combine(Context.DryadHomeDirectory, "VertexHost.exe");
             string[] jmArgs = { "--dfs=" + logDirParam, vertexPath, queryPlanFile };
             return ConfigHelpers.MakeProcessGroup(
-                "jm", "local", 1, 1, true,
-                jmPath, jmArgs, null, "graphmanager-stdout.txt", "graphmanager-stderr.txt",
-                resources, environment);
+                           "jm", "local", 1, 1, true,
+                           jmPath, jmArgs, null, "graphmanager-stdout.txt", "graphmanager-stderr.txt",
+                           resources, environment);
         }
 
         protected override XElement MakeWorkerConfig(string configPath, XElement peloponneseResource)
         {
             // add job-local resources to each worker directory, leaving out the standard Dryad files
             var resources = new List<XElement>();
-            foreach (var rg in LocalResources.Where(rg => rg.Key != Context.DryadHomeDirectory))
+            foreach (var rg in LocalResources)
             {
                 resources.Add(MakeResourceGroup(rg.Key, rg.Value));
             }
@@ -124,9 +124,9 @@ namespace Microsoft.Research.DryadLinq
             var psPath = Path.Combine(Context.DryadHomeDirectory, "ProcessService.exe");
             string[] psArgs = { configPath };
             return ConfigHelpers.MakeProcessGroup(
-                "Worker", "local", 2, numWorkerProcesses, false,
-                psPath, psArgs, null, "processservice-stdout.txt", "processservice-stderr.txt",
-                resources, null);
+                           "Worker", "local", 2, numWorkerProcesses, false,
+                           psPath, psArgs, null, "processservice-stdout.txt", "processservice-stderr.txt",
+                           resources, null);
         }
 
         private string MakeProcessServiceConfig()
@@ -185,7 +185,7 @@ namespace Microsoft.Research.DryadLinq
 
         private void CreateDirectory()
         {
-            m_workingDirectory = null;
+            this.m_workingDirectory = null;
 
             string wdBase = Path.Combine(Context.DryadHomeDirectory, "LocalJobs");
             if (!Directory.Exists(wdBase))
@@ -217,15 +217,12 @@ namespace Microsoft.Research.DryadLinq
             }
             catch (Exception e)
             {
-
                 lock (this)
                 {
                     m_error = "Failed to create local job directory " + wd + ": " + e.ToString();
                     m_status = JobStatus.Failure;
                 }
-
                 Console.WriteLine(m_error);
-
                 return;
             }
 
@@ -242,13 +239,11 @@ namespace Microsoft.Research.DryadLinq
                     m_error = "Failed to create local log directory " + logD + ": " + e.ToString();
                     m_status = JobStatus.Failure;
                 }
-
                 Console.WriteLine(m_error);
-
                 return;
             }
  
-            m_workingDirectory = wd;
+            this.m_workingDirectory = wd;
         }
 
         void OnJobExited(Object obj, EventArgs args)
@@ -287,6 +282,19 @@ namespace Microsoft.Research.DryadLinq
 
         public override void SubmitJob()
         {
+            if (Context.PeloponneseHomeDirectory == null)
+            {
+                throw new ApplicationException("No Peloponnese home directory is set");
+            }
+            if (Context.DryadHomeDirectory == null)
+            {
+                throw new ApplicationException("No Dryad home directory is set");
+            }
+            if (!IsValidDryadDirectory(Context.DryadHomeDirectory))
+            {
+                throw new ApplicationException("Dryad home directory " + Context.DryadHomeDirectory + " is missing some required files");
+            }
+
             CreateDirectory();
             if (m_workingDirectory == null)
             {

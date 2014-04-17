@@ -23,7 +23,7 @@ using System;
 using System.Diagnostics;
 using System.Windows.Forms;
 
-namespace Microsoft.Research.Calypso.DryadAnalysis
+namespace Microsoft.Research.DryadAnalysis
 {
     static class Program
     {

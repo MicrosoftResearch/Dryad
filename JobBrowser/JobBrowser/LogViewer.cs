@@ -19,15 +19,15 @@ limitations under the License.
 
 */
 
-using Microsoft.Research.Calypso.JobObjectModel;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
-using Microsoft.Research.Calypso.Tools;
+using Microsoft.Research.JobObjectModel;
+using Microsoft.Research.Tools;
 
-namespace Microsoft.Research.Calypso.DryadAnalysis
+namespace Microsoft.Research.DryadAnalysis
 {
     /// <summary>
     /// A log viewer displays fragments of logs or other text files.
@@ -37,7 +37,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         bool canceled;
 
         DGVData<TextFileLine> shownText;
-        DGVData<PositionedCosmosLogEntry> shownLogLines;
+        DGVData<PositionedDryadLogEntry> shownLogLines;
         StatusWriter status;
         
         /// <summary>
@@ -77,7 +77,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             }
             else
             {
-                this.shownLogLines = new DGVData<PositionedCosmosLogEntry>();
+                this.shownLogLines = new DGVData<PositionedDryadLogEntry>();
                 this.filteredDataGridView.SetDataSource(this.shownLogLines);
                 foreach (string s in new string[] { "Malformed", "IsError", "OriginalLogLine", "File", "LineNo" })
                 {
@@ -132,7 +132,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             long bytes = 0;
 
             List<TextFileLine> toAddText = new List<TextFileLine>();
-            List<PositionedCosmosLogEntry> toAddLog = new List<PositionedCosmosLogEntry>();
+            List<PositionedDryadLogEntry> toAddLog = new List<PositionedDryadLogEntry>();
             while (!sr.EndOfStream)
             {
                 string line = sr.ReadLine();
@@ -141,7 +141,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
                     toAddText.Add(new TextFileLine(lineno, line));
                 else
                 {
-                    PositionedCosmosLogEntry cle = new PositionedCosmosLogEntry(filename, lineno, line);
+                    PositionedDryadLogEntry cle = new PositionedDryadLogEntry(filename, lineno, line);
                     if (cle.Malformed)
                     {
                         Trace.TraceInformation("Malformed log entry: " + cle.OriginalLogLine);
@@ -204,7 +204,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
                 }
                 else
                 {
-                    PositionedCosmosLogEntry cle = new PositionedCosmosLogEntry(file, lineno, text);
+                    PositionedDryadLogEntry cle = new PositionedDryadLogEntry(file, lineno, text);
                     if (cle.Malformed)
                         return;
                     this.shownLogLines.AddItem(cle);
@@ -274,7 +274,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             var rows = this.filteredDataGridView.DataGridView.SelectedRows;
             for (int i = 0; i < rows.Count; i++)
             {
-                PositionedCosmosLogEntry entry = ((PositionedCosmosLogEntry)rows[i].DataBoundItem);
+                PositionedDryadLogEntry entry = ((PositionedDryadLogEntry)rows[i].DataBoundItem);
                 position += entry.File + ":" + entry.LineNo + Environment.NewLine;
             }
             MessageBox.Show(position, "File containing log entries");
@@ -319,7 +319,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
     /// <summary>
     /// Cosmos log entry with position information.
     /// </summary>
-    public class PositionedCosmosLogEntry : CosmosLogEntry
+    public class PositionedDryadLogEntry : DryadLogEntry
     {
         /// <summary>
         /// File containing the log entry.
@@ -336,7 +336,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         /// <param name="file">File containing the log entry.</param>
         /// <param name="lineno">Line number.</param>
         /// <param name="line">Line contents.</param>
-        public PositionedCosmosLogEntry(string file, long lineno, string line)
+        public PositionedDryadLogEntry(string file, long lineno, string line)
             : base(line)
         {
             this.File = file;

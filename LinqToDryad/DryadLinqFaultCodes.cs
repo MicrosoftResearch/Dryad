@@ -33,7 +33,7 @@ namespace Microsoft.Research.DryadLinq
         CodeGen = 0x02000000,
         JobSubmission = 0x03000000,
         Serialization = 0x04000000,
-        DscClient= 0x05000000,
+        StoreClient= 0x05000000,
         VertexRuntime = 0x06000000,
         LocalDebug = 0x07000000,
         Unknown = 0x0f000000
@@ -46,7 +46,7 @@ namespace Microsoft.Research.DryadLinq
     /// NOTE: New error codes must be appended to a category
     /// NOTE: Error codes cannot be deleted
     /// </remarks>
-    public static class DryadLinqErrorCode
+    internal static class DryadLinqErrorCode
     {
         internal const int codesPerCategory = 0x01000000;
 
@@ -104,28 +104,28 @@ namespace Microsoft.Research.DryadLinq
 
         #endregion
 
-        #region DscClient
-        public const int DSCStreamError = (int) DryadLinqErrorCodeCategory.DscClient + 0;
-        public const int StreamDoesNotExist = (int) DryadLinqErrorCodeCategory.DscClient + 1;
-        public const int StreamAlreadyExists = (int) DryadLinqErrorCodeCategory.DscClient + 2;
-        public const int AttemptToReadFromAWriteStream = (int) DryadLinqErrorCodeCategory.DscClient + 3;
-        public const int FailedToCreateStream = (int) DryadLinqErrorCodeCategory.DscClient + 4;
-        public const int JobToCreateTableWasCanceled = (int) DryadLinqErrorCodeCategory.DscClient + 5;
-        public const int FailedToGetReadPathsForStream = (int) DryadLinqErrorCodeCategory.DscClient + 6;
-        public const int CannotAccesFilePath = (int)DryadLinqErrorCodeCategory.DscClient + 7;
-        public const int PositionNotSupported = (int)DryadLinqErrorCodeCategory.DscClient + 8;
-        public const int GetFileSizeError = (int)DryadLinqErrorCodeCategory.DscClient + 9;
-        public const int ReadFileError = (int)DryadLinqErrorCodeCategory.DscClient + 10;
-        public const int UnknownCompressionScheme = (int)DryadLinqErrorCodeCategory.DscClient + 11;
-        public const int WriteFileError = (int)DryadLinqErrorCodeCategory.DscClient + 12;
-        public const int MultiBlockEmptyPartitionList = (int)DryadLinqErrorCodeCategory.DscClient + 13;
-        public const int GetURINotSupported = (int)DryadLinqErrorCodeCategory.DscClient + 14;
-        public const int SetCalcFPNotSupported = (int)DryadLinqErrorCodeCategory.DscClient + 15;
-        public const int GetFPNotSupported = (int)DryadLinqErrorCodeCategory.DscClient + 16;
-        public const int FailedToAllocateNewNativeBuffer = (int)DryadLinqErrorCodeCategory.DscClient + 17;
-        public const int FailedToReadFromInputChannel = (int)DryadLinqErrorCodeCategory.DscClient + 18;
-        public const int FailedToWriteToOutputChannel = (int)DryadLinqErrorCodeCategory.DscClient + 19;
-        public const int MultiBlockCannotAccesFilePath = (int)DryadLinqErrorCodeCategory.DscClient + 25;
+        #region StoreClient
+        public const int DSCStreamError = (int) DryadLinqErrorCodeCategory.StoreClient + 0;
+        public const int StreamDoesNotExist = (int) DryadLinqErrorCodeCategory.StoreClient + 1;
+        public const int StreamAlreadyExists = (int) DryadLinqErrorCodeCategory.StoreClient + 2;
+        public const int AttemptToReadFromAWriteStream = (int) DryadLinqErrorCodeCategory.StoreClient + 3;
+        public const int FailedToCreateStream = (int) DryadLinqErrorCodeCategory.StoreClient + 4;
+        public const int JobToCreateTableWasCanceled = (int) DryadLinqErrorCodeCategory.StoreClient + 5;
+        public const int FailedToGetReadPathsForStream = (int) DryadLinqErrorCodeCategory.StoreClient + 6;
+        public const int CannotAccesFilePath = (int)DryadLinqErrorCodeCategory.StoreClient + 7;
+        public const int PositionNotSupported = (int)DryadLinqErrorCodeCategory.StoreClient + 8;
+        public const int GetFileSizeError = (int)DryadLinqErrorCodeCategory.StoreClient + 9;
+        public const int ReadFileError = (int)DryadLinqErrorCodeCategory.StoreClient + 10;
+        public const int UnknownCompressionScheme = (int)DryadLinqErrorCodeCategory.StoreClient + 11;
+        public const int WriteFileError = (int)DryadLinqErrorCodeCategory.StoreClient + 12;
+        public const int MultiBlockEmptyPartitionList = (int)DryadLinqErrorCodeCategory.StoreClient + 13;
+        public const int GetURINotSupported = (int)DryadLinqErrorCodeCategory.StoreClient + 14;
+        public const int SetCalcFPNotSupported = (int)DryadLinqErrorCodeCategory.StoreClient + 15;
+        public const int GetFPNotSupported = (int)DryadLinqErrorCodeCategory.StoreClient + 16;
+        public const int FailedToAllocateNewNativeBuffer = (int)DryadLinqErrorCodeCategory.StoreClient + 17;
+        public const int FailedToReadFromInputChannel = (int)DryadLinqErrorCodeCategory.StoreClient + 18;
+        public const int FailedToWriteToOutputChannel = (int)DryadLinqErrorCodeCategory.StoreClient + 19;
+        public const int MultiBlockCannotAccesFilePath = (int)DryadLinqErrorCodeCategory.StoreClient + 25;
         #endregion
 
         #region JobSubmission
@@ -216,7 +216,7 @@ namespace Microsoft.Research.DryadLinq
         public const int FailureInOperator = (int)DryadLinqErrorCodeCategory.VertexRuntime + 25;
         public const int FailureInUserApplyFunction = (int)DryadLinqErrorCodeCategory.VertexRuntime + 26;
         public const int FailureInOrderedGroupBy = (int)DryadLinqErrorCodeCategory.VertexRuntime + 27;
-        public const int TooManyElementsBeforeReduction = (int)DryadLinqErrorCodeCategory.VertexRuntime + 33; //@@TODO: when possible, reword the sr.txt entry.
+        public const int TooManyElementsBeforeReduction = (int)DryadLinqErrorCodeCategory.VertexRuntime + 33;
         #endregion
 
         #region LocalDebug
@@ -233,31 +233,38 @@ namespace Microsoft.Research.DryadLinq
         /// </summary>
         internal static DryadLinqErrorCodeCategory Category(int code)
         {
-            if ((code >= (int) DryadLinqErrorCodeCategory.QueryAPI) && (code < (int) DryadLinqErrorCodeCategory.QueryAPI+ codesPerCategory))
+            if ((code >= (int)DryadLinqErrorCodeCategory.QueryAPI) &&
+                (code < (int)DryadLinqErrorCodeCategory.QueryAPI+ codesPerCategory))
             {
                 return DryadLinqErrorCodeCategory.QueryAPI;
             }
-            else if ((code >= (int) DryadLinqErrorCodeCategory.CodeGen) && (code < (int) DryadLinqErrorCodeCategory.CodeGen+ codesPerCategory))
+            else if ((code >= (int)DryadLinqErrorCodeCategory.CodeGen) &&
+                     (code < (int)DryadLinqErrorCodeCategory.CodeGen+ codesPerCategory))
             {
                 return DryadLinqErrorCodeCategory.CodeGen;
             }
-            else if ((code >= (int) DryadLinqErrorCodeCategory.JobSubmission) && (code < (int) DryadLinqErrorCodeCategory.JobSubmission+ codesPerCategory))
+            else if ((code >= (int)DryadLinqErrorCodeCategory.JobSubmission) &&
+                     (code < (int)DryadLinqErrorCodeCategory.JobSubmission+ codesPerCategory))
             {
                 return DryadLinqErrorCodeCategory.JobSubmission;
             }
-            else if ((code >= (int) DryadLinqErrorCodeCategory.Serialization) && (code < (int) DryadLinqErrorCodeCategory.Serialization+ codesPerCategory))
+            else if ((code >= (int)DryadLinqErrorCodeCategory.Serialization) &&
+                     (code < (int)DryadLinqErrorCodeCategory.Serialization+ codesPerCategory))
             {
                 return DryadLinqErrorCodeCategory.Serialization;
             }
-            else if ((code >= (int)DryadLinqErrorCodeCategory.DscClient) && (code < (int)DryadLinqErrorCodeCategory.DscClient+ codesPerCategory))
+            else if ((code >= (int)DryadLinqErrorCodeCategory.StoreClient) &&
+                     (code < (int)DryadLinqErrorCodeCategory.StoreClient+ codesPerCategory))
             {
-                return DryadLinqErrorCodeCategory.DscClient;
+                return DryadLinqErrorCodeCategory.StoreClient;
             }
-            else if ((code >= (int)DryadLinqErrorCodeCategory.VertexRuntime) && (code < (int)DryadLinqErrorCodeCategory.VertexRuntime+ codesPerCategory))
+            else if ((code >= (int)DryadLinqErrorCodeCategory.VertexRuntime) &&
+                     (code < (int)DryadLinqErrorCodeCategory.VertexRuntime+ codesPerCategory))
             {
                 return DryadLinqErrorCodeCategory.VertexRuntime;
             }
-            else if ((code >= (int)DryadLinqErrorCodeCategory.LocalDebug) && (code < (int)DryadLinqErrorCodeCategory.LocalDebug+ codesPerCategory))
+            else if ((code >= (int)DryadLinqErrorCodeCategory.LocalDebug) &&
+                     (code < (int)DryadLinqErrorCodeCategory.LocalDebug+ codesPerCategory))
             {
                 return DryadLinqErrorCodeCategory.LocalDebug;
             }
@@ -266,6 +273,5 @@ namespace Microsoft.Research.DryadLinq
                 return DryadLinqErrorCodeCategory.Unknown;
             }
         }
-
     }
 }

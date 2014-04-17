@@ -32,6 +32,9 @@ using System.Text;
 
 namespace Microsoft.Research.DryadLinq
 {
+    /// <summary>
+    /// The metadata associated with a DryadLINQ dataset.
+    /// </summary>
     public class DryadLinqMetaData
     {
         const int FLAG_ALLOW_NULL_RECORDS = 0x1;

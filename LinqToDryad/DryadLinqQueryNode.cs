@@ -864,7 +864,7 @@ namespace Microsoft.Research.DryadLinq
             }
             if (!queryGen.Context.Equals(this.m_table.Context))
             {
-                throw new DryadLinqException("DryadLinqContext was changed while constructing this query.");
+                throw new DryadLinqException("This query was constructed using different DryadLinqContexts.");
             }
             if (TypeSystem.IsTypeOrAnyGenericParamsAnonymous(queryExpr.Type.GetGenericArguments()[0]))
             {
@@ -887,7 +887,6 @@ namespace Microsoft.Research.DryadLinq
             }
         }
 
-        //@@TODO[P2]: rename to Query.  Also look for other places.
         internal DryadLinqQuery Table
         {
             get { return this.m_table; }
@@ -4807,6 +4806,7 @@ namespace Microsoft.Research.DryadLinq
         /// </summary>
         /// <param name="queryGen">Query generator to instantiate.</param>
         /// <param name="outputType">Type of the single output.</param>
+        /// <param name="partitionCount">The number of partitions.</param>
         /// <param name="children">The upstream nodes</param>
         internal DLinqDummyNode(DryadLinqQueryGen queryGen,
                                 Type outputType,

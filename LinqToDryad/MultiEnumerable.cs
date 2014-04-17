@@ -27,6 +27,8 @@ using System.Reflection;
 using System.Linq;
 using Microsoft.Research.DryadLinq;
 
+#pragma warning disable 1591
+
 namespace Microsoft.Research.DryadLinq.Internal
 {
     public interface IMultiEnumerable

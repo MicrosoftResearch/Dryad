@@ -23,16 +23,38 @@ using System;
 namespace Microsoft.Research.DryadLinq
 {
     /// <summary>
-    /// Trace levels for DryadLinqQuery runtime
+    /// Trace levels for DryadLinqQuery runtime.
     /// </summary>
     public enum QueryTraceLevel : int
     {
-        // Use internal constants since public type cannot be easily shared acrossed DLLs w/o resulting in ambiquities
+        /// <summary>
+        /// This level turns off DryadLINQ logging completely.
+        /// </summary>
         Off = Constants.TraceOffLevel,
+
+        /// <summary>
+        /// This level only logs critical log entries.
+        /// </summary>
         Critical = Constants.TraceCriticalLevel,
+
+        /// <summary>
+        /// This level logs error or critical log entries.
+        /// </summary>
         Error = Constants.TraceErrorLevel,
+
+        /// <summary>
+        /// This level logs warning or more critical log entries.
+        /// </summary>
         Warning = Constants.TraceWarningLevel,
+
+        /// <summary>
+        /// This level logs information or more critical log entries.
+        /// </summary>
         Information = Constants.TraceInfoLevel,
+
+        /// <summary>
+        /// This level logs all DryadLINQ log entries. 
+        /// </summary>
         Verbose = Constants.TraceVerboseLevel
     }
 }

@@ -31,6 +31,7 @@ using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Serialization;
 using System.Text.RegularExpressions;
@@ -38,7 +39,7 @@ using System.Threading;
 using System.Security.Cryptography;
 
 // Implement here generally-useful tools.
-namespace Microsoft.Research.Calypso.Tools
+namespace Microsoft.Research.Tools
 {
     /// <summary>
     /// An error handling function.
@@ -65,6 +66,38 @@ namespace Microsoft.Research.Calypso.Tools
         /// </summary>
         LongOp,
     };
+
+    /// <summary>
+    /// Communication management with background activities.
+    /// </summary>
+    public struct CommManager
+    {
+        /// <summary>
+        /// Used to report status.
+        /// </summary>
+        public StatusReporter Status;
+        /// <summary>
+        /// Used to report progress.
+        /// </summary>
+        public Action<int> Progress;
+        /// <summary>
+        /// Used to cancel activities.
+        /// </summary>
+        public CancellationToken Token;
+
+        /// <summary>
+        /// Create a communication manager.
+        /// </summary>
+        /// <param name="status">Status to report errors.</param>
+        /// <param name="progress">Action to report progress.</param>
+        /// <param name="token">Token to cancel computations.</param>
+        public CommManager(StatusReporter status, Action<int> progress, CancellationToken token)
+        {
+            this.Status = status;
+            this.Progress = progress;
+            this.Token = token;
+        }
+    }
 
     /// <summary>
     /// Untyped version of work item.
@@ -100,6 +133,10 @@ namespace Microsoft.Research.Calypso.Tools
         /// <param name="ex">Exception that occurred during background work (or null).</param>
         /// </summary>
         void RunContinuation(Exception ex);
+        /// <summary>
+        /// Can be used to cancel this work item.
+        /// </summary>
+        CancellationTokenSource TokenSource { get; }
     }
 
     /// <summary>
@@ -111,7 +148,7 @@ namespace Microsoft.Research.Calypso.Tools
         /// <summary>
         /// Computation to invoke.  If the computation is not cancelled the result is passed as the second argument to the continuation.
         /// </summary>
-        public Func<StatusReporter, Action<int>, T> Computation { get; protected set; }
+        public Func<CommManager, T> Computation { get; protected set; }
 
         /// <summary>
         /// Function to call when the work is completed.  The first argument is 'true' if the computation was not cancelled.  The second argument is the result of the computation.
@@ -141,6 +178,10 @@ namespace Microsoft.Research.Calypso.Tools
         /// Queue containing item.
         /// </summary>
         private BackgroundWorkQueue queue;
+        /// <summary>
+        /// Source for cancellation token.
+        /// </summary>
+        public CancellationTokenSource TokenSource { get; protected set; }
 
         // ReSharper disable ConvertToConstant.Local
         bool TraceAsync =
@@ -159,7 +200,7 @@ namespace Microsoft.Research.Calypso.Tools
         /// <param name="computation">Computation to perform on a background thread.  Ideally this should always be a static method.</param>
         /// <param name="continuation">Continuation to invoke on the foreground thread when work is done.</param>
         /// <param name="description">Description of the background work.</param>
-        public BackgroundWorkItem(Func<StatusReporter, Action<int>, T> computation, Action<bool, T> continuation, string description)
+        public BackgroundWorkItem(Func<CommManager, T> computation, Action<bool, T> continuation, string description)
         {
             this.Description = description;
             this.Computation = computation;
@@ -167,23 +208,22 @@ namespace Microsoft.Research.Calypso.Tools
             this.reporter = null;
             this.queue = null;
             this.Id = crtid++;
+            this.TokenSource = new CancellationTokenSource();
         }
 
         /// <summary>
         /// Perform the background work.
         /// </summary>
-        /// <param name="queue">Worker which does the work.</param>
-        /// <param name="reporter">Delegate used to report errors.</param>
+        /// <param name="q">Worker which does the work.</param>
+        /// <param name="rep">Delegate used to report errors.</param>
         /// <param name="progressReporter">Delegate used to report progress.</param>
         /// <param name="cancel">If true for an item, cancel it.</param>
-        // ReSharper disable ParameterHidesMember
-        public void Queue(BackgroundWorkQueue queue, StatusReporter reporter, Action<int> progressReporter, Func<IBackgroundWorkItem, bool> cancel)
-        // ReSharper restore ParameterHidesMember
+        public void Queue(BackgroundWorkQueue q, StatusReporter rep, Action<int> progressReporter, Func<IBackgroundWorkItem, bool> cancel)
         {
             if (TraceAsync)
                 Console.WriteLine("{0} Queueing {1}", Utilities.PreciseTime, this.Description);
-            this.queue = queue;
-            this.reporter = reporter;
+            this.queue = q;
+            this.reporter = rep;
             this.progress = progressReporter;
             this.queue.CancelMatching(cancel);
             this.queue.Enqueue(this);
@@ -200,7 +240,8 @@ namespace Microsoft.Research.Calypso.Tools
                 Console.WriteLine("{0} Running function {1}", Utilities.PreciseTime, this.Description);
             try
             {
-                this.Result = this.Computation(this.reporter, this.progress);
+                CommManager manager = new CommManager(this.reporter, this.progress, this.TokenSource.Token);
+                this.Result = this.Computation(manager);
             }
             catch (Exception ex)
             {
@@ -235,6 +276,7 @@ namespace Microsoft.Research.Calypso.Tools
             if (TraceAsync)
                 Console.WriteLine("{1}/{0}: Cancelling", this.Description, this.Id);
             this.Cancelled = true;
+            this.TokenSource.Cancel();
             this.queue.CancelMe(this);
         }
 
@@ -266,12 +308,18 @@ namespace Microsoft.Research.Calypso.Tools
         /// </summary>
         IBackgroundWorkItem current;
 
+        private ToolStripStatusLabel currentItemLabel, queueSizeLabel;
+
         /// <summary>
         /// Create a background work queue servicing a specified worker.
         /// </summary>
         /// <param name="worker">Worker to use.</param>
-        public BackgroundWorkQueue(BackgroundWorker worker)
+        /// <param name="current">Label where the current work is displayed.</param>
+        /// <param name="queue">Label where the queue size is displayed.</param>
+        public BackgroundWorkQueue(BackgroundWorker worker, ToolStripStatusLabel current, ToolStripStatusLabel queue)
         {
+            this.currentItemLabel = current;
+            this.queueSizeLabel = queue;
             if (worker == null)
                 throw new ArgumentNullException("worker");
             this.BackgroundWorker = worker;
@@ -280,6 +328,7 @@ namespace Microsoft.Research.Calypso.Tools
             this.BackgroundWorker.DoWork += this.worker_DoWork;
             this.queue = new List<IBackgroundWorkItem>();
             this.current = null;
+            this.stopped = false;
         }
 
         /// <summary>
@@ -289,7 +338,7 @@ namespace Microsoft.Research.Calypso.Tools
         /// <param name="e">Unused.</param>
         void worker_DoWork(object sender, DoWorkEventArgs e)
         {
-            if (this.current == null)
+            if (this.stopped || this.current == null)
                 return;
 #if DEBUG_WORKQUEUE
 #endif
@@ -306,6 +355,8 @@ namespace Microsoft.Research.Calypso.Tools
                 e.Cancel = true;
         }
 
+        private bool stopped;
+
         /// <summary>
         /// Called when the worker is completed.
         /// </summary>
@@ -319,6 +370,8 @@ namespace Microsoft.Research.Calypso.Tools
 #endif
                 IBackgroundWorkItem crt = this.current;
                 this.current = null;
+                if (this.currentItemLabel != null)
+                    this.currentItemLabel.Text = "";
                 crt.RunContinuation(e.Error);
             }
             this.Kick();
@@ -348,7 +401,11 @@ namespace Microsoft.Research.Calypso.Tools
             if (this.current != null)
                 throw new Exception("current is not null");
             this.current = this.queue[0];
+            if (this.currentItemLabel != null)
+                this.currentItemLabel.Text = "Doing " + this.current.Description;
             this.queue.RemoveAt(0);
+            if (this.queueSizeLabel != null)
+                this.queueSizeLabel.Text = "Pending " + this.queue.Count + " items";
             this.Start();
         }
 
@@ -411,9 +468,22 @@ namespace Microsoft.Research.Calypso.Tools
             }
         }
 
+        /// <summary>
+        /// Stop the queue.
+        /// </summary>
         public void Stop()
         {
-            // TODO
+            this.stopped = true;
+            this.CancelCurrentWork();
+        }
+
+        /// <summary>
+        /// Cancel the currently running work.
+        /// </summary>
+        public void CancelCurrentWork()
+        {
+            if (this.current == null) return;
+            this.current.Cancel();
         }
     }
 
@@ -3409,7 +3479,8 @@ namespace Microsoft.Research.Calypso.Tools
         /// Read the stream to the end from the current position.
         /// </summary>
         /// <returns>The contents of the stream.</returns>
-        string ReadToEnd();
+        /// <param name="token">Can be used to cancel the reading.</param>
+        string ReadToEnd(CancellationToken token);
 
         /// <summary>
         /// Read all the lines remaining in the stream.
@@ -3465,11 +3536,15 @@ namespace Microsoft.Research.Calypso.Tools
         /// Read the whole stream to the end.
         /// </summary>
         /// <returns>A string containing the whole contents of the stream.</returns>
-        public virtual string ReadToEnd()
+        /// <param name="token">Can be used to cancel the reading.</param>
+        public virtual string ReadToEnd(CancellationToken token)
         {
             StringBuilder result = new StringBuilder();
             foreach (string s in this.ReadAllLines())
+            {
+                token.ThrowIfCancellationRequested();
                 result.AppendLine(s);
+            }
             return result.ToString();
         }
 
@@ -3612,11 +3687,13 @@ namespace Microsoft.Research.Calypso.Tools
         /// Read the stream to the end from the current position.
         /// </summary>
         /// <returns>The contents of the stream.</returns>
-        public override string ReadToEnd()
+        /// <param name="token">Can be used to cancel the reading.</param>
+        public override string ReadToEnd(CancellationToken token)
         {
             string result = this.actualReader.ReadToEnd();
             if (this.cacheWriter != null)
             {
+                token.ThrowIfCancellationRequested();
                 this.cacheWriter.Write(result);
                 this.cacheWriter.Close();
                 if (this.onClose != null)

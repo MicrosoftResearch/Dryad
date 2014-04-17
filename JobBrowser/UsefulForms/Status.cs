@@ -23,7 +23,7 @@ using System.Drawing;
 using System;
 using System.Windows.Forms;
     
-namespace Microsoft.Research.Calypso.Tools
+namespace Microsoft.Research.Tools
 {
     /// <summary>
     /// Delegate used for invoking status messages from accross threads.

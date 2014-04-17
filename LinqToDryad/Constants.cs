@@ -23,6 +23,14 @@ using System;
 namespace Microsoft.Research.DryadLinq
 {
     /// <summary>
+    /// The root namespace for DryadLinq client programs
+    /// </summary>
+    [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+    class NamespaceDoc
+    {
+    }
+
+    /// <summary>
     /// Constants used by Dryad and DryadLINQ
     /// </summary>
     internal class Constants
@@ -93,25 +101,6 @@ namespace Microsoft.Research.DryadLinq
         public const uint DrError_VertexInitialization = 0x830A0019;
         public const uint DrError_ProcessingInterrupted = 0x830A001A;
         public const uint DrError_VertexHostLostCommunication = 0x830A0FFF;
-
-        // NodeAdmin constants
-        // Retain time set to one day
-        // todo: this should be configurable
-        public static readonly TimeSpan RetainTime = new TimeSpan(1, 0, 0, 0);
-        public static readonly TimeSpan FileTimeStampMarginForGC = new TimeSpan(0, 0, 5, 0);
-        public const string runningJobEnvVar = "CCP_RUNNING_JOBS";
-        public const string replicaPathFormat = @"\\{0}\DscData\{1}.data";
-        public const string nodeAdminMutexName = "A19A8AC1-4129-46e2-BB81-ED7EE3265B05";
-        public const string nodeAdminUsage = "Syntax:\n\t" + 
-                                                "DscNodeAdmin [/r] [/g] [/wd] [/e] [/v] [/u]\n\n" +
-                                             "Parameters:\n\t" + 
-                                                "/? \t- Display this help message.\n\t" +
-                                                "/g \t- Delete files not managed by DSC from the DscData share.\n\t" +
-                                                "/wd\t- Delete old job working directories from the DscTemp share.\n\t" +
-                                                "/r \t- Replicate DSC files onto this node.\n\t" +
-                                                "/e \t- Print full error traces.\n\t" +
-                                                "/u \t- Resets DscReplication account password.\n\t" +
-                                                "/v \t- Print verbose activity traces.\n";
 
         // Client retry period is 1 second for first retry, increasing up to 12 seconds for a total of 30 seconds
         // These timeouts are intended to ride through transient network failures

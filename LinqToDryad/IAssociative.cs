@@ -25,22 +25,53 @@ using System.Text;
 
 namespace Microsoft.Research.DryadLinq
 {
+    /// <summary>
+    /// Defines the DryadLINQ interface for associative accumulator. 
+    /// </summary>
+    /// <typeparam name="TAccumulate">The type of the accumulated value.</typeparam>
     public interface IAssociative<TAccumulate>
     {
+        /// <summary>
+        /// Provides the initial value for the accumulator.
+        /// </summary>
+        /// <returns>The initial value of the accumulator</returns>
         TAccumulate Seed();
+
+        /// <summary>
+        /// Combines two accumulator values into one.
+        /// </summary>
+        /// <param name="acc">The value of the accumulator</param>
+        /// <param name="val">A value to be accumulated</param>
+        /// <returns>The result of combining two accumulator values into one</returns>
         TAccumulate RecursiveAccumulate(TAccumulate acc, TAccumulate val);
     }
 
+    /// <summary>
+    /// A helper class for calling IAssociative methods more efficiently. It is used in 
+    /// auto-generated vertex code.  A DryadLINQ user should not need to use this class directly.
+    /// </summary>
+    /// <typeparam name="TAssoc">The type that implements the IAssociative{T} interface</typeparam>
+    /// <typeparam name="TAccumulate">The type of the accumulator value.</typeparam>
     public static class GenericAssociative<TAssoc, TAccumulate>
         where TAssoc : IAssociative<TAccumulate>, new()
     {
         private static TAssoc a = new TAssoc();
 
+        /// <summary>
+        /// Provides the initial value for the accumulator.
+        /// </summary>
+        /// <returns>The initial value of the accumulator</returns>
         public static TAccumulate Seed()
         {
             return a.Seed();
         }
 
+        /// <summary>
+        /// Combines two accumulator values into one.
+        /// </summary>
+        /// <param name="acc">The value of the accumulator</param>
+        /// <param name="val">A value to be accumulated</param>
+        /// <returns>The result of combining two accumulator values into one</returns>
         public static TAccumulate RecursiveAccumulate(TAccumulate acc, TAccumulate val)
         {
             return a.RecursiveAccumulate(acc, val);

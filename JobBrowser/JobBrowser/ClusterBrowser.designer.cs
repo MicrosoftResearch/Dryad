@@ -18,9 +18,9 @@ See the Apache Version 2.0 License for specific language governing permissions a
 limitations under the License. 
 
 */
-using Microsoft.Research.Calypso.Tools;
+using Microsoft.Research.Tools;
 
-namespace Microsoft.Research.Calypso.DryadAnalysis
+namespace Microsoft.Research.DryadAnalysis
 {
     partial class ClusterBrowser
     {
@@ -56,10 +56,9 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             this.openInJobBrowserToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.diagnoseToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.terminateToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.cancelToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.statuslabel = new System.Windows.Forms.ToolStripStatusLabel();
-            this.toolStripStatusLabel_backgroundWork = new System.Windows.Forms.ToolStripStatusLabel();
-            this.toolStripStatusLabel_currentWork = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripProgressBar = new System.Windows.Forms.ToolStripProgressBar();
             this.flowLayoutPanel_header = new System.Windows.Forms.FlowLayoutPanel();
             this.label_vc = new System.Windows.Forms.Label();
@@ -78,7 +77,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             this.logFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.autoRefreshToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.clusterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.filteredDataGridView = new Microsoft.Research.Calypso.Tools.FilteredDataGridView();
+            this.filteredDataGridView = new FilteredDataGridView();
             this.contextMenuStrip_job.SuspendLayout();
             this.statusStrip.SuspendLayout();
             this.flowLayoutPanel_header.SuspendLayout();
@@ -92,7 +91,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             this.diagnoseToolStripMenuItem1,
             this.terminateToolStripMenuItem1});
             this.contextMenuStrip_job.Name = "contextMenuStrip_job";
-            this.contextMenuStrip_job.Size = new System.Drawing.Size(182, 92);
+            this.contextMenuStrip_job.Size = new System.Drawing.Size(182, 70);
             // 
             // openInJobBrowserToolStripMenuItem
             // 
@@ -114,15 +113,19 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             this.terminateToolStripMenuItem1.Name = "terminateToolStripMenuItem1";
             this.terminateToolStripMenuItem1.Size = new System.Drawing.Size(181, 22);
             this.terminateToolStripMenuItem1.Text = "Terminate";
-            this.terminateToolStripMenuItem1.Visible = false;
             this.terminateToolStripMenuItem1.Click += new System.EventHandler(this.terminateToolStripMenuItem_Click);
+            // 
+            // cancelToolStripMenuItem1
+            // 
+            this.cancelToolStripMenuItem1.Name = "cancelToolStripMenuItem1";
+            this.cancelToolStripMenuItem1.Size = new System.Drawing.Size(186, 22);
+            this.cancelToolStripMenuItem1.Text = "Cancel current work";
+            this.cancelToolStripMenuItem1.Click += new System.EventHandler(this.cancelToolStripMenuItem_Click);
             // 
             // statusStrip
             // 
             this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.statuslabel,
-            this.toolStripStatusLabel_backgroundWork,
-            this.toolStripStatusLabel_currentWork,
             this.toolStripProgressBar});
             this.statusStrip.Location = new System.Drawing.Point(0, 431);
             this.statusStrip.Name = "statusStrip";
@@ -134,32 +137,16 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             // 
             this.statuslabel.Name = "statuslabel";
             this.statuslabel.Overflow = System.Windows.Forms.ToolStripItemOverflow.Never;
-            this.statuslabel.Size = new System.Drawing.Size(833, 17);
+            this.statuslabel.Size = new System.Drawing.Size(1026, 17);
             this.statuslabel.Spring = true;
             this.statuslabel.Text = "Status displayed here";
             this.statuslabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // toolStripStatusLabel_backgroundWork
-            // 
-            this.toolStripStatusLabel_backgroundWork.BorderStyle = System.Windows.Forms.Border3DStyle.SunkenOuter;
-            this.toolStripStatusLabel_backgroundWork.Name = "toolStripStatusLabel_backgroundWork";
-            this.toolStripStatusLabel_backgroundWork.Overflow = System.Windows.Forms.ToolStripItemOverflow.Never;
-            this.toolStripStatusLabel_backgroundWork.Size = new System.Drawing.Size(109, 17);
-            this.toolStripStatusLabel_backgroundWork.Text = "0 pending activities";
-            // 
-            // toolStripStatusLabel_currentWork
-            // 
-            this.toolStripStatusLabel_currentWork.BorderStyle = System.Windows.Forms.Border3DStyle.SunkenOuter;
-            this.toolStripStatusLabel_currentWork.Name = "toolStripStatusLabel_currentWork";
-            this.toolStripStatusLabel_currentWork.Overflow = System.Windows.Forms.ToolStripItemOverflow.Never;
-            this.toolStripStatusLabel_currentWork.Size = new System.Drawing.Size(84, 17);
-            this.toolStripStatusLabel_currentWork.Text = "Doing nothing";
             // 
             // toolStripProgressBar
             // 
             this.toolStripProgressBar.Name = "toolStripProgressBar";
             this.toolStripProgressBar.Size = new System.Drawing.Size(100, 16);
-           // 
+            // 
             // flowLayoutPanel_header
             // 
             this.flowLayoutPanel_header.AutoSize = true;
@@ -219,6 +206,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             // jobToolStripMenuItem_file
             // 
             this.jobToolStripMenuItem_file.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.cancelToolStripMenuItem1,
             this.newWindowToolStripMenuItem,
             this.refreshToolStripMenuItem1,
             this.exitToolStripMenuItem1});
@@ -264,7 +252,6 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             this.toolStripMenuItem_job.Size = new System.Drawing.Size(37, 20);
             this.toolStripMenuItem_job.Text = "&Job";
             this.toolStripMenuItem_job.ToolTipText = "View job informaotion in detail.";
-            this.toolStripMenuItem_job.Visible = false;
             // 
             // jobBrowserToolStripMenuItem
             // 
@@ -279,6 +266,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             this.diagnoseToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
             this.diagnoseToolStripMenuItem.Text = "Diagnose";
             this.diagnoseToolStripMenuItem.ToolTipText = "Attempt to diagnose job failures.";
+            this.diagnoseToolStripMenuItem.Visible = false;
             this.diagnoseToolStripMenuItem.Click += new System.EventHandler(this.diagnoseToolStripMenuItem_Click);
             // 
             // terminateToolStripMenuItem
@@ -295,6 +283,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             this.openFromURLToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
             this.openFromURLToolStripMenuItem.Text = "Open job URL...";
             this.openFromURLToolStripMenuItem.ToolTipText = "Open the job given a URL.";
+            this.openFromURLToolStripMenuItem.Visible = false;
             this.openFromURLToolStripMenuItem.Click += new System.EventHandler(this.openFromURLToolStripMenuItem_Click);
             // 
             // settingsToolStripMenuItem
@@ -309,7 +298,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             // logFileToolStripMenuItem
             // 
             this.logFileToolStripMenuItem.Name = "logFileToolStripMenuItem";
-            this.logFileToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
+            this.logFileToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.logFileToolStripMenuItem.Text = "Log file";
             this.logFileToolStripMenuItem.ToolTipText = "When enabled logs errors in the selected file.";
             this.logFileToolStripMenuItem.Click += new System.EventHandler(this.logFileToolStripMenuItem_Click);
@@ -317,7 +306,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             // autoRefreshToolStripMenuItem
             // 
             this.autoRefreshToolStripMenuItem.Name = "autoRefreshToolStripMenuItem";
-            this.autoRefreshToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
+            this.autoRefreshToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.autoRefreshToolStripMenuItem.Text = "Auto refresh";
             this.autoRefreshToolStripMenuItem.Click += new System.EventHandler(this.autoRefreshToolStripMenuItem_Click);
             // 
@@ -326,15 +315,15 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             this.clusterToolStripMenuItem.Name = "clusterToolStripMenuItem";
             this.clusterToolStripMenuItem.Size = new System.Drawing.Size(56, 20);
             this.clusterToolStripMenuItem.Text = "Cluster";
-
+            // 
             // filteredDataGridView
             // 
             this.filteredDataGridView.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.filteredDataGridView.ContextMenuStrip = this.contextMenuStrip_job;
             this.filteredDataGridView.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.filteredDataGridView.Location = new System.Drawing.Point(0, 56);
+            this.filteredDataGridView.Location = new System.Drawing.Point(0, 24);
             this.filteredDataGridView.Name = "filteredDataGridView";
-            this.filteredDataGridView.Size = new System.Drawing.Size(1143, 375);
+            this.filteredDataGridView.Size = new System.Drawing.Size(1143, 429);
             this.filteredDataGridView.TabIndex = 15;
             this.filteredDataGridView.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.filteredDataGridView_CellFormatting);
             this.filteredDataGridView.CellMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.filteredDataGridView_CellMouseDoubleClick);
@@ -365,6 +354,11 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
 
         }
 
+        private void cancelToolStripMenuItem_Click(object sender, System.EventArgs e)
+        {
+            this.queue.CancelCurrentWork();
+        }
+
         #endregion
 
         private System.Windows.Forms.StatusStrip statusStrip;
@@ -378,13 +372,12 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         private System.Windows.Forms.ToolStripMenuItem refreshToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem openFromURLToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem terminateToolStripMenuItem;
-        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel_backgroundWork;
-        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel_currentWork;
         private System.Windows.Forms.ToolStripMenuItem diagnoseToolStripMenuItem;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip_job;
         private System.Windows.Forms.ToolStripMenuItem openInJobBrowserToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem diagnoseToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem terminateToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem cancelToolStripMenuItem1;
         private System.Windows.Forms.ToolStripProgressBar toolStripProgressBar;
         private FilteredDataGridView filteredDataGridView;
         private System.Windows.Forms.ToolStripMenuItem newWindowToolStripMenuItem;

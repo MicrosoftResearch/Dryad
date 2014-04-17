@@ -1,0 +1,154 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<topic id="e992fd94-c956-481d-82e6-dbdf45daa722" revisionNumber="1">
+  <developerHowToDocument
+    xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+
+    <introduction>
+      <para>Instructions for quickly getting started with DryadLINQ:</para>
+    </introduction>
+
+    <procedure>
+      <title>Get the core DryadLINQ libraries and example code</title>
+      <steps class="ordered">
+        <step>
+          <content>
+            <para>Create a new Visual Studio Visual C# Console Application project. You need Visual Studio 2012 or later.</para>
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>Go to the Configuration manager menu, select your project, and add a new project platform <codeInline>x64</codeInline>,
+            making sure to check the <codeInline>Create new solution platforms</codeInline> box.
+          </para>
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>Right-click on the project and select "Manage NuGet Packages...".</para>
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>Change the "Stable Only" dropdown to "Include Prerelease".</para>
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>Choose 'Online/nuget.org' in the left pane.</para>
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>Enter "Dryad" into the search box, then select and install "Sample DryadLINQ Programs".</para>
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>The sample includes a Word Count example in a separate <localUri>WordCount.cs</localUri> file. Add
+            <codeInline>WordCount.WordCountExample();</codeInline> to the <codeInline>Main</codeInline> method in <localUri>Program.cs</localUri>.</para>
+          </content>
+        </step>
+      </steps>
+      <conclusion><content><para>You should now be able to build the project.</para></content></conclusion>
+    </procedure>
+
+    <procedure>
+      <title>Running the sample on your local computer</title>
+      <steps class="ordered">
+        <step>
+          <content>
+            <para>The sample is initially configured to run locally. All you have to do is build and run the program with
+            no arguments, and it will perform a word count on a single line of text embedded in the <codeInline>lines</codeInline>
+            variable, and output the results to the console. The output will look something like:</para>
+            <code language="none" title=" ">
+  <![CDATA[
+QueryPlan: C:\Users\JaneDoe\AppData\Local\Temp\DRYADLINQ\DryadSample.vshost_5004\DryadLinqProgram__0.xml
+line: 1
+short: 1
+a: 2
+job: 1
+dummy: 1
+for: 1
+is: 1
+This: 1]]>
+            </code>
+        </content>
+        </step>
+      </steps>
+    </procedure>
+
+    <procedure>
+      <title>Running the sample on an Azure cluster</title>
+      <steps class="ordered">
+        <step>
+            <content>
+                <para>If you don't already have one, you must first <link xlink:href="4aefe670-7b2b-4c05-9a65-6c60ff13c3b5">create an HDInsight cluster</link>.</para>
+            </content>
+        </step>
+        <step>
+          <content>
+            <para>Comment the <codeInline>#define local</codeInline> statement at the top of <localUri>WordCount.cs</localUri>
+            to modify the sample to run on Azure.</para>
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>Specify your cluster name, default storage account and default container in the
+            <codeInline>clusterName</codeInline>, <codeInline>accountName</codeInline> and <codeInline>containerName</codeInline>
+            variable constructors.</para>
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>Now rebuild and run, and the program will execute on your cluster, writing output to Azure blob storage.
+            The first time you run a DryadLINQ program on a cluster you will see lots of output log lines telling you that 
+            binaries are being uploaded to 'staging' blobs so that they will be available for use by the running program.
+            Subsequent runs won't need nearly as many files to be uploaded. Once all the staging files have been uploaded
+            there will be a delay of a minute or so while HDInsight launches the DryadLINQ job. For a short test like this
+            one above almost all the time is taken by job launch, but for serious computation this startup time won't make
+            a big difference to the overall running time. Eventually the submission program will return, and if you go look
+            at the Azure storage container you specified above, there will be a blob called
+            <localUri>wc-out.txt/part-00000000-0001-0000</localUri> which contains the counted output.
+            For this simple program there is only a single output part, though in general there may be many.</para>
+          </content>
+        </step>
+      </steps>
+    </procedure>
+
+    <relatedTopics>
+      <link xlink:href="4aefe670-7b2b-4c05-9a65-6c60ff13c3b5">Setting up an HDInsight 3.0 cluster</link>
+      <!-- One or more of the following:
+           - A local link
+           - An external link
+           - A code entity reference
+
+      <link xlink:href="Other Topic's ID">Link text</link>
+      <externalLink>
+          <linkText>Link text</linkText>
+          <linkAlternateText>Optional alternate link text</linkAlternateText>
+          <linkUri>URI</linkUri>
+      </externalLink>
+      <codeEntityReference>API member ID</codeEntityReference>
+
+      Examples:
+
+      <link xlink:href="00e97994-e9e6-46e0-b420-5be86b2f8278">Some other topic</link>
+
+      <externalLink>
+          <linkText>SHFB on CodePlex</linkText>
+          <linkAlternateText>Go to CodePlex</linkAlternateText>
+          <linkUri>http://shfb.codeplex.com</linkUri>
+      </externalLink>
+
+      <codeEntityReference>T:TestDoc.TestClass</codeEntityReference>
+      <codeEntityReference>P:TestDoc.TestClass.SomeProperty</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.#ctor</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.#ctor(System.String,System.Int32)</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.ToString</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.FirstMethod</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.SecondMethod(System.Int32,System.String)</codeEntityReference>
+      -->
+    </relatedTopics>
+  </developerHowToDocument>
+</topic>

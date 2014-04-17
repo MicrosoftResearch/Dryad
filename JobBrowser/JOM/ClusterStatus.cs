@@ -23,11 +23,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Research.Calypso.Tools;
+using Microsoft.Research.Peloponnese.Storage;
+using Microsoft.Research.Tools;
 
-namespace Microsoft.Research.Calypso.JobObjectModel
+namespace Microsoft.Research.JobObjectModel
 {
     /// <summary>
     /// Dynamic information of all the jobs and machines in a cluster. 
@@ -119,22 +118,20 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// The cached of tasks on the cluster.
         /// </summary>
         /// <param name="virtualCluster">Virtual cluster selected; defined only for Scope clusters.</param>
-        /// <param name="reporter">Delegate used to report errors.</param>
-        /// <param name="reportProgress">Used to report progress.</param>
-        public IEnumerable<ClusterJobInformation> GetClusterJobList(string virtualCluster, StatusReporter reporter, Action<int> reportProgress)
+        /// <param name="manager">Communication manager.</param>
+        public IEnumerable<ClusterJobInformation> GetClusterJobList(string virtualCluster, CommManager manager)
         {
-            this.RecomputeClusterJobList(virtualCluster, reporter, reportProgress);
+            this.RecomputeClusterJobList(virtualCluster, manager);
             return this.clusterJobs.Values.ToList();
         }
 
         /// <summary>
         /// Force the recomputation of the cluster job list.
         /// </summary>
-        /// <param name="reporter">Delegate used to report errors.</param>
         /// <param name="virtualCluster">Virtual cluster to use (defined only for some cluster types).</param>
-        /// <param name="reportProgress">Used to report progress.</param>
+        /// <param name="manager">Communication manager.</param>
         // ReSharper disable once UnusedParameter.Global
-        protected abstract void RecomputeClusterJobList(string virtualCluster, StatusReporter reporter, Action<int> reportProgress);
+        protected abstract void RecomputeClusterJobList(string virtualCluster, CommManager manager);
 
         /// <summary>
         /// Discover the (unique) dryadlinq job corresponding to a cluster job.
@@ -160,12 +157,11 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// </summary>
         /// <param name="job">Job to discover.</param>
         /// <returns>The cluster job, or null if not found.</returns>
-        /// <param name="reporter">Delegate used to report errors.</param>
-        /// <param name="reportProgress">Used to report progress.</param>
-        public virtual ClusterJobInformation DiscoverClusterJob(DryadLinqJobSummary job, StatusReporter reporter, Action<int> reportProgress)
+        /// <param name="manager">Communication manager.</param>
+        public virtual ClusterJobInformation DiscoverClusterJob(DryadLinqJobSummary job, CommManager manager)
         {
             if (this.clusterJobs == null)
-                this.RecomputeClusterJobList(job.VirtualCluster, reporter, reportProgress);
+                this.RecomputeClusterJobList(job.VirtualCluster, manager);
             return this.clusterJobs[job.ClusterJobId];
         }
 
@@ -173,13 +169,12 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// Refresh the job summary status.
         /// </summary>
         /// <param name="summary">Summary to refresh.</param>
-        /// <param name="reporter">Delegate used to report errors.</param>
-        /// <param name="reportProgress">Used to report progress.</param>
-        public virtual void RefreshStatus(DryadLinqJobSummary summary, StatusReporter reporter, Action<int> reportProgress)
+        /// <param name="manager">Communication manager.</param>
+        public virtual void RefreshStatus(DryadLinqJobSummary summary, CommManager manager)
         {
             // refresh the whole list
-            this.RecomputeClusterJobList(summary.VirtualCluster, reporter, reportProgress);
-            ClusterJobInformation info = this.DiscoverClusterJob(summary, reporter, reportProgress);
+            this.RecomputeClusterJobList(summary.VirtualCluster, manager);
+            ClusterJobInformation info = this.DiscoverClusterJob(summary, manager);
             if (info == null)
             {
                 summary.Status = ClusterJobInformation.ClusterJobStatus.Unknown;
@@ -226,10 +221,9 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// <summary>
         /// Recompute the list of jobs on the cluster and add them to the clusterJobs field.
         /// </summary>
-        /// <param name="reporter">Delegate used to report errors.</param>
         /// <param name="virtualCluster">Unused.</param>
-        /// <param name="reportProgress">Used to report progress.</param>
-        protected override void RecomputeClusterJobList(string virtualCluster, StatusReporter reporter, Action<int> reportProgress)
+        /// <param name="manager">Communication manager.</param>
+        protected override void RecomputeClusterJobList(string virtualCluster, CommManager manager)
         {
             this.clusterJobs = new Dictionary<string, ClusterJobInformation>();
             if (string.IsNullOrEmpty(CachedClusterResidentObject.CacheDirectory))
@@ -242,32 +236,32 @@ namespace Microsoft.Research.Calypso.JobObjectModel
             string[] files = Directory.GetFiles(joblist, "*.xml");
             foreach (var file in files)
             {
+                manager.Token.ThrowIfCancellationRequested();
                 DryadLinqJobSummary job = Utilities.LoadXml<DryadLinqJobSummary>(file);
                 string cjid = job.Cluster + "-" + job.ClusterJobId; // there may be two jobs with same id from different clusters
                 ClusterJobInformation ci = new ClusterJobInformation(this.Config.Name, job.Cluster, cjid, job.Name, job.User, job.Date, job.EndTime - job.Date, job.Status);
                 ci.SetAssociatedSummary(job);
                 if (this.clusterJobs.ContainsKey(cjid))
                 {
-                    reporter("Duplicate job id, cannot insert in cache " + job.AsIdentifyingString(), StatusKind.Error);
+                    manager.Status("Duplicate job id, cannot insert in cache " + job.AsIdentifyingString(), StatusKind.Error);
                     continue;
                 }
                 this.clusterJobs.Add(cjid, ci);
             }
-            reportProgress(100);
+            manager.Progress(100);
         }
 
         /// <summary>
         /// Refresh the job summary status.
         /// </summary>
         /// <param name="job">Summary to refresh.</param>
-        /// <param name="reporter">Delegate used to report errors.</param>
-        /// <param name="reportProgress">Used to report progres.</param>
-        public override void RefreshStatus(DryadLinqJobSummary job, StatusReporter reporter, Action<int> reportProgress)
+        /// <param name="manager">Communication manager.</param>        
+        public override void RefreshStatus(DryadLinqJobSummary job, CommManager manager)
         {
             ClusterConfiguration actual = (this.Config as CacheClusterConfiguration).ActualConfig(job);
             ClusterStatus actualStatus = actual.CreateClusterStatus();
-            actualStatus.RefreshStatus(job, reporter, reportProgress);
-            ClusterJobInformation info = actualStatus.DiscoverClusterJob(job, reporter, reportProgress);
+            actualStatus.RefreshStatus(job, manager);
+            ClusterJobInformation info = actualStatus.DiscoverClusterJob(job, manager);
             if (info == null)
             {
                 job.Status = ClusterJobInformation.ClusterJobStatus.Unknown;
@@ -303,13 +297,12 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// </summary>
         /// <param name="job">Cluster job.</param>
         /// <returns>Throws an exception.</returns>
-        /// <param name="reporter">Delegate used to report errors.</param>
-        /// <param name="reportProgress">Used to report progress.</param>
-        public override ClusterJobInformation DiscoverClusterJob(DryadLinqJobSummary job, StatusReporter reporter, Action<int> reportProgress)
+        /// <param name="manager">Communication manager.</param>
+        public override ClusterJobInformation DiscoverClusterJob(DryadLinqJobSummary job, CommManager manager)
         {
             ClusterConfiguration actual = (this.Config as CacheClusterConfiguration).ActualConfig(job);
             ClusterStatus actualStatus = actual.CreateClusterStatus();
-            return actualStatus.DiscoverClusterJob(job, reporter, reportProgress);
+            return actualStatus.DiscoverClusterJob(job, manager);
         }
 
         /// <summary>
@@ -358,10 +351,9 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// <summary>
         /// Force the recomputation of the cluster job list.
         /// </summary>
-        /// <param name="reporter">Delegate used to report errors.</param>
         /// <param name="virtualCluster">Virtual cluster to use (defined only for some cluster types).</param>
-        /// <param name="reportProgress">Used to report progress.</param>
-        protected override void RecomputeClusterJobList(string virtualCluster, StatusReporter reporter, Action<int> reportProgress)
+        /// <param name="manager">Communication manager.</param>        
+        protected override void RecomputeClusterJobList(string virtualCluster, CommManager manager)
         {
             this.clusterJobs = new Dictionary<string, ClusterJobInformation>();
             if (!Directory.Exists(this.config.JobsFolder))
@@ -371,6 +363,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
             int done = 0;
             foreach (var job in subfolders)
             {
+                manager.Token.ThrowIfCancellationRequested();
                 string jobId = Path.GetFileName(job);
                 ClusterJobInformation info = this.GetJobInfo(job, jobId);
                 if (info != null)
@@ -378,9 +371,9 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                     // ReSharper disable once AssignNullToNotNullAttribute
                     this.clusterJobs.Add(jobId, info);
                 }
-                reportProgress(done++ *100/subfolders.Length);
+                manager.Progress(done++ *100/subfolders.Length);
             }
-            reportProgress(100);
+            manager.Progress(100);
         }
 
         /// <summary>
@@ -478,10 +471,9 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// <summary>
         /// Force the recomputation of the cluster job list.
         /// </summary>
-        /// <param name="reporter">Delegate used to report errors.</param>
         /// <param name="virtualCluster">Virtual cluster to use (defined only for some cluster types).</param>
-        /// <param name="reportProgress">Used to report progress.</param>
-        protected override void RecomputeClusterJobList(string virtualCluster, StatusReporter reporter, Action<int> reportProgress)
+        /// <param name="manager">Communication manager.</param>        
+        protected override void RecomputeClusterJobList(string virtualCluster, CommManager manager)
         {
             this.clusterJobs = new Dictionary<string, ClusterJobInformation>();
             var jobs = this.config.AzureClient.EnumerateDirectory("").ToList();
@@ -489,15 +481,16 @@ namespace Microsoft.Research.Calypso.JobObjectModel
             int done = 0;
             foreach (var job in jobs)
             {
+                manager.Token.ThrowIfCancellationRequested();
                 ClusterJobInformation info = this.GetJobInfo(job);
                 if (info != null)
                 {
                     // ReSharper disable once AssignNullToNotNullAttribute
                     this.clusterJobs.Add(job, info);
                 }
-                reportProgress(100*done++/jobs.Count);
+                manager.Progress(100*done++/jobs.Count);
             }
-            reportProgress(100);
+            manager.Progress(100);
         }
 
         /// <summary>
@@ -547,23 +540,12 @@ namespace Microsoft.Research.Calypso.JobObjectModel
             DateTime lastHeartBeat = DateTime.MinValue;
             ClusterJobInformation.ClusterJobStatus status = ClusterJobInformation.ClusterJobStatus.Unknown;
             bool found = false;
+            string jobName = jobRootFolder;
 
             var jobsFolders = this.config.AzureClient.EnumerateDirectory(jobRootFolder).ToList();
             foreach (var file in jobsFolders)
             {
-                if (file.Contains("DryadLinqProgram__"))
-                {
-                    var blob = this.config.AzureClient.Container.GetBlockBlobReference(file);
-                    blob.FetchAttributes();
-                    var props = blob.Properties;
-                    if (props.LastModified.HasValue)
-                    {
-                        date = props.LastModified.Value.DateTime;
-                        date = date.ToLocalTime();
-                    }
-                    found = true;
-                }
-                else if (file.EndsWith("heartbeat"))
+                if (file.EndsWith("heartbeat"))
                 {
                     var blob = this.config.AzureClient.Container.GetPageBlobReference(file);
                     blob.FetchAttributes();
@@ -582,6 +564,9 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                             case "running":
                                 status = ClusterJobInformation.ClusterJobStatus.Running;
                                 break;
+                            case "killed":
+                                status = ClusterJobInformation.ClusterJobStatus.Cancelled;
+                                break;
                             default:
                                 Console.WriteLine("Unknown status " + st);
                                 break;
@@ -599,6 +584,31 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                                 status = ClusterJobInformation.ClusterJobStatus.Failed;
                         }
                     }
+                    if (props.ContainsKey("jobname"))
+                    {
+                        jobName = props["jobname"];
+                    }
+                    if (props.ContainsKey("starttime"))
+                    {
+                        var t = props["starttime"];
+                        if (DateTime.TryParse(t, out date))
+                            date = date.ToLocalTime();
+                    }
+                    
+                    found = true;
+                }
+                else if (file.Contains("DryadLinqProgram__") && 
+                    // newer heartbeats contain the date
+                    date != DateTime.MinValue)
+                {
+                    var blob = this.config.AzureClient.Container.GetBlockBlobReference(file);
+                    blob.FetchAttributes();
+                    var props = blob.Properties;
+                    if (props.LastModified.HasValue)
+                    {
+                        date = props.LastModified.Value.DateTime;
+                        date = date.ToLocalTime();
+                    }
                 }
             }
 
@@ -607,7 +617,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
             TimeSpan running = TimeSpan.Zero;
             if (date != DateTime.MinValue && lastHeartBeat != DateTime.MinValue)
                 running = lastHeartBeat - date;
-            var info = new ClusterJobInformation(this.config.Name, "", jobRootFolder, jobRootFolder, Environment.UserName, date, running, status);
+            var info = new ClusterJobInformation(this.config.Name, "", jobRootFolder, jobName, Environment.UserName, date, running, status);
             return info;
         }
 
@@ -615,9 +625,8 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// Refresh the job summary status.
         /// </summary>
         /// <param name="summary">Summary to refresh.</param>
-        /// <param name="reporter">Delegate used to report errors.</param>
-        /// <param name="reportProgress">Used to report progress.</param>
-        public override void RefreshStatus(DryadLinqJobSummary summary, StatusReporter reporter, Action<int> reportProgress)
+        /// <param name="manager">Communication manager.</param>        
+        public override void RefreshStatus(DryadLinqJobSummary summary, CommManager manager)
         {
             // refresh the whole list
             ClusterJobInformation info = this.GetJobInfo(summary.JobID);
@@ -636,7 +645,8 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// <returns>True if the cancellation succeeded.</returns>
         public override bool CancelJob(DryadLinqJobSummary job)
         {
-            throw new InvalidOperationException();
+            AzureUtils.KillJob(this.config.AccountName, this.config.AccountKey, this.config.Container, job.ClusterJobId);
+            return true;
         }
     }
 }

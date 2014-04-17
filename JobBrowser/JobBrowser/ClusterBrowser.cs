@@ -28,11 +28,11 @@ using System.Linq;
 using System.Net;
 using System.Windows.Forms;
 using System.Diagnostics;
-using Microsoft.Research.Calypso.JobObjectModel;
-using Microsoft.Research.Calypso.Tools;
-using Microsoft.Research.Calypso.UsefulForms;
+using Microsoft.Research.JobObjectModel;
+using Microsoft.Research.Tools;
+using Microsoft.Research.UsefulForms;
 
-namespace Microsoft.Research.Calypso.DryadAnalysis
+namespace Microsoft.Research.DryadAnalysis
 {
     /// <summary>
     /// Class to browse jobs on cluster, copy, summarize and start visualization.
@@ -73,7 +73,6 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         private TextWriterTraceListener LogFile;
 
         private BackgroundWorkQueue queue;
-        private BackgroundWorker queueWorker;
 
         /// <summary>
         /// Jobs from the cluster.
@@ -92,8 +91,8 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             this.InitializeComponent();
             this.status = new StatusWriter(this.statuslabel, this.statusStrip, this.Status);
 
-            this.queueWorker = new BackgroundWorker();
-            this.queue = new BackgroundWorkQueue(this.queueWorker);
+            BackgroundWorker queueWorker = new BackgroundWorker();
+            this.queue = new BackgroundWorkQueue(queueWorker, null, null);
 
             this.completeJobsList = new List<ClusterJobInformation>();
             this.refreshTimer = new Timer();
@@ -235,7 +234,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
                 this.toolStripMenuItem_job.Enabled = true;
 
                 var item = new BackgroundWorkItem<List<ClusterJobInformation>>(
-                    (s, p) => BuildClusterJobList(s, p, this.clusterStatus, this.SelectedVirtualCluster),
+                    m => BuildClusterJobList(m, this.clusterStatus, this.SelectedVirtualCluster),
                     this.JobListRetrieved,
                     "getJobs");
                 this.Queue(item);
@@ -250,6 +249,8 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
 
         private void JobListRetrieved(bool cancelled, List<ClusterJobInformation> jobs)
         {
+            if (cancelled) return;
+
             this.filteredDataGridView.DataGridView.ClearSelection();
             this.completeJobsList = jobs;
             this.clusterJobs.SetItems(this.completeJobsList);
@@ -274,12 +275,11 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         /// Talk to the web server and build the list of clustr jobs; used it to populate the upper panel.
         /// </summary>
         /// <param name="virtualCluster">Virtual cluster selected; defined only for Scope clusters.</param>
-        /// <param name="progress">Reports progress.</param>
-        /// <param name="reporter">Reports status.</param>
+        /// <param name="manager">Communication manager.</param>
         /// <param name="status">Cluster to scan.</param>
-        private static List<ClusterJobInformation> BuildClusterJobList(StatusReporter reporter, Action<int> progress, ClusterStatus status, string virtualCluster)
+        private static List<ClusterJobInformation> BuildClusterJobList(CommManager manager, ClusterStatus status, string virtualCluster)
         {
-            return status.GetClusterJobList(virtualCluster, reporter, progress).ToList();
+            return status.GetClusterJobList(virtualCluster, manager).ToList();
         }
 
         /// <summary>
@@ -311,7 +311,9 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             if (js == null)
                 return;
 
-            DryadLinqJobInfo job = DryadLinqJobInfo.CreateDryadLinqJobInfo(this.clusterStatus.Config, js, false, this.Status, delegate {});
+            // TODO: this should run in the background
+            CommManager manager = new CommManager(this.Status, delegate { }, new System.Threading.CancellationTokenSource().Token);
+            DryadLinqJobInfo job = DryadLinqJobInfo.CreateDryadLinqJobInfo(this.clusterStatus.Config, js, false, manager);
             if (job != null)
             {
                 JobBrowser browser = new JobBrowser(job);
@@ -366,7 +368,9 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             IEnumerable<ClusterJobInformation> ti = this.SelectedJobs();
             this.Status("Starting job browser...", StatusKind.LongOp);
             IEnumerable<DryadLinqJobSummary> jobs = ti.Select(t => t.DiscoverDryadLinqJob(this.clusterStatus, this.Status)).ToList();
-            IEnumerable<DryadLinqJobInfo> detailed = jobs.Select(j => DryadLinqJobInfo.CreateDryadLinqJobInfo(this.clusterStatus.Config, j, false, this.Status, delegate { }));
+
+            CommManager manager = new CommManager(this.Status, delegate { }, new System.Threading.CancellationTokenSource().Token);
+            IEnumerable<DryadLinqJobInfo> detailed = jobs.Select(j => DryadLinqJobInfo.CreateDryadLinqJobInfo(this.clusterStatus.Config, j, false, manager));
             foreach (DryadLinqJobInfo j in detailed)
             {
                 if (j == null) continue;
@@ -442,7 +446,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             IEnumerable<DryadLinqJobSummary> jobs = todo.Select(j => j.DiscoverDryadLinqJob(this.clusterStatus, this.Status)).Where(j => j != null);
 
             var item = new BackgroundWorkItem<bool>(
-                (s, p) => ClusterWork.CancelJobs(jobs, this.clusterStatus, s, p),
+                m => ClusterWork.CancelJobs(jobs, this.clusterStatus, m),
                 (c, b) => { },
                 "cancel");
             this.Queue(item);
@@ -504,8 +508,11 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             this.autoRefreshToolStripMenuItem.Checked = this.formSettings.AutoRefresh;
 
             this.AddClusterNameToMenu("<add>");
+            this.AddClusterNameToMenu("<scan>");
 
             ClusterConfiguration.ReconstructKnownCluster(this.formSettings.KnownClusters);
+
+            int found = 0;
             IEnumerable<string> clusters = ClusterConfiguration.GetKnownClusterNames();
             foreach (string c in clusters)
             {
@@ -515,7 +522,12 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
                 {
                     (config as CacheClusterConfiguration).StartCaching();
                 }
+                found++;
             }
+
+            if (found == 0)
+                // try to find them by scanning 
+                this.ScanClusters();
         }
 
         /// <summary>
@@ -539,6 +551,11 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
                 newItem.Click += this.AddNewCluster;
                 return;
             }
+            if (clusterName == "<scan>")
+            {
+                newItem.Click += this.ScanClusters;
+                return;
+            }
 
             var selItem = newItem.DropDownItems.Add("Select");
             var delItem = newItem.DropDownItems.Add("Delete");
@@ -546,6 +563,31 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             delItem.Click += delItem_Click;
             selItem.Click += selItem_Click;
             editItem.Click += editItem_Click;
+        }
+
+        /// <summary>
+        /// Scan the clusters we are subscribed to and add them to the list of known clusters.
+        /// </summary>
+        /// <param name="sender">Unused.</param>
+        /// <param name="e">Unused.</param>
+        private void ScanClusters(object sender, EventArgs e)
+        {
+            this.ScanClusters();
+        }
+
+        /// <summary>
+        /// Scan the clusters we are subscribed to and add them to the list of known clusters.
+        /// </summary>
+        private void ScanClusters()
+        {
+            this.Status("Scanning for known clusters", StatusKind.LongOp);
+            foreach (var conf in ClusterConfiguration.EnumerateSubscribedClusters())
+            {
+                ClusterConfiguration.AddKnownCluster(conf);
+                this.AddClusterNameToMenu(conf.Name);
+                this.Status("Adding cluster " + conf.Name, StatusKind.OK);
+            }
+            this.Status("Scan completed", StatusKind.OK);
         }
 
         /// <summary>
@@ -684,7 +726,7 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             IEnumerable<DryadLinqJobSummary> jobs = todo.Select(j => j.DiscoverDryadLinqJob(this.clusterStatus, this.Status)).Where(j => j != null);
             
             var item = new BackgroundWorkItem<List<DiagnosisLog>>(
-                (s, p) => ClusterWork.DiagnoseJobs(jobs, this.clusterStatus.Config, s, p),
+                m => ClusterWork.DiagnoseJobs(jobs, this.clusterStatus.Config, m),
                 DiagnosisResult.ShowDiagnosisResult,
                 "cancel");
             this.Queue(item);
@@ -895,18 +937,18 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         /// </summary>
         /// <param name="jobs">Jobs to cancel.</param>
         /// <param name="cluster">Cluster where the jobs are running.</param>
-        /// <param name="statusReporter">Delegate used to report errors.</param>
         /// <returns>True if all cancellations succeed.</returns>
-        /// <param name="updateProgress">Delegate used to report progress.</param>
+        /// <param name="manager">Communicatoni manager.</param>
         // ReSharper disable once UnusedParameter.Global
-        public static bool CancelJobs(IEnumerable<DryadLinqJobSummary> jobs, ClusterStatus cluster, StatusReporter statusReporter, Action<int> updateProgress)
+        public static bool CancelJobs(IEnumerable<DryadLinqJobSummary> jobs, ClusterStatus cluster, CommManager manager)
         {
             bool done = true;
             foreach (DryadLinqJobSummary job in jobs)
             {
+                manager.Token.ThrowIfCancellationRequested();
                 if (job.Status != ClusterJobInformation.ClusterJobStatus.Running)
                 {
-                    statusReporter("Job " + job.Name + " does not appear to be running; will still try to cancel", StatusKind.Error);
+                    manager.Status("Job " + job.Name + " does not appear to be running; will still try to cancel", StatusKind.Error);
                 }
 
                 bool success;
@@ -923,9 +965,9 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
                 }
 
                 if (success)
-                    statusReporter("Job " + job.Name + " cancelled", StatusKind.OK);
+                    manager.Status("Job " + job.Name + " cancelled", StatusKind.OK);
                 else
-                    statusReporter("Cancellation of " + job.Name + " failed " + reason, StatusKind.Error);
+                    manager.Status("Cancellation of " + job.Name + " failed " + reason, StatusKind.Error);
                 done &= success;
             }
             return done;
@@ -936,9 +978,8 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
         /// </summary>
         /// <param name="jobs">Jobs to diagnose.</param>
         /// <param name="config">Cluster configuration.</param>
-        /// <param name="reporter">Delegate used to report errors.</param>
-        /// <param name="updateProgress">Delegate used to report progress.</param>
-        public static List<DiagnosisLog> DiagnoseJobs(IEnumerable<DryadLinqJobSummary> jobs, ClusterConfiguration config, StatusReporter reporter, Action<int> updateProgress)
+        /// <param name="manager">Communicatino manager.</param>
+        public static List<DiagnosisLog> DiagnoseJobs(IEnumerable<DryadLinqJobSummary> jobs, ClusterConfiguration config, CommManager manager)
         {
             var dryadLinqJobSummaries = jobs as DryadLinqJobSummary[] ?? jobs.ToArray();
             int jobCount = dryadLinqJobSummaries.Count();
@@ -949,15 +990,16 @@ namespace Microsoft.Research.Calypso.DryadAnalysis
             {
                 if (summary == null) continue;
 
-                JobFailureDiagnosis diagnosis = JobFailureDiagnosis.CreateJobFailureDiagnosis(config, summary, reporter, updateProgress);
-                reporter("Diagnosing " + summary.ShortName(), StatusKind.LongOp);
+                manager.Token.ThrowIfCancellationRequested(); 
+                JobFailureDiagnosis diagnosis = JobFailureDiagnosis.CreateJobFailureDiagnosis(config, summary, manager);
+                manager.Status("Diagnosing " + summary.ShortName(), StatusKind.LongOp);
                 DiagnosisLog log = diagnosis.Diagnose();
                 result.Add(log);
 
                 done++;
-                updateProgress(done * 100 / jobCount);
+                manager.Progress(done * 100 / jobCount);
             }
-            reporter("Diagnosis complete", StatusKind.OK);
+            manager.Status("Diagnosis complete", StatusKind.OK);
             return result;
         }
     }

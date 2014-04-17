@@ -27,12 +27,15 @@ using System.Reflection;
 using System.Linq;
 using Microsoft.Research.DryadLinq.Internal;
 
+#pragma warning disable 1591
+
 namespace Microsoft.Research.DryadLinq.Internal
 {
-    // This class provides the IEnumerable implementation of the operators
-    // we introduced in DryadLINQ. This is needed when LocalDebug is set.
-    //
-    // Due to the way linq-to-objects locates methods to call, this class must be public visibility.
+    /// <summary>
+    /// This class provides the IEnumerable implementation of the operators
+    /// we introduced in DryadLINQ. This is needed to implement LocalDebug.
+    /// </summary>
+    /// <remarks>A DryadLINQ user should not need to use this class directly.</remarks>
     public static class DryadLinqEnumerable
     {
         // Operator: HashPartition

@@ -24,47 +24,84 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Research.DryadLinq;
 
+#pragma warning disable 1591
+
 namespace Microsoft.Research.DryadLinq.Internal
 {
+    /// <summary>
+    /// A value with an associated integer index.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     [Serializable]
     public struct IndexedValue<T> : IEquatable<IndexedValue<T>>, IComparable<IndexedValue<T>>
     {
         private int _index;
         private T _value;
 
-        public int Index
-        {
-            get { return _index; }
-            set { _index = value; }
-        }
-
-        public T Value
-        {
-            get { return _value; }
-            set { _value = value; }
-        }
-
+        /// <summary>
+        /// Initializes a new instance of IndexedValue.
+        /// </summary>
+        /// <param name="index">The index.</param>
+        /// <param name="value">The value</param>
         public IndexedValue(int index, T value)
         {
             _index = index;
             _value = value;
         }
 
+        /// <summary>
+        /// Gets and sets the index of the value.
+        /// </summary>
+        public int Index
+        {
+            get { return _index; }
+            set { _index = value; }
+        }
+
+        /// <summary>
+        /// Gets and sets the value.
+        /// </summary>
+        public T Value
+        {
+            get { return _value; }
+            set { _value = value; }
+        }
+
+        /// <summary>
+        /// Determines whether the specified IndexedValue is equal to the current IndexedValue.
+        /// </summary>
+        /// <param name="val">The IndexedValue to compare with.</param>
+        /// <returns>true if the specified IndexedValue is equal to the current IndexedValue.</returns>
         public bool Equals(IndexedValue<T> val)
         {
             return this.Index == val.Index;
         }
 
+        /// <summary>
+        /// Compares this IndexedValue with another instance of IndexedValue. Returns an integer that 
+        /// indicates the ordering. 
+        /// </summary>
+        /// <param name="val">The IndexedValue to compare with.</param>
+        /// <returns>An integer that indicates the ordering.</returns>
         public int CompareTo(IndexedValue<T> val)
         {
             return this.Index - val.Index;
         }
 
+        /// <summary>
+        /// Use the index as the hash function.
+        /// </summary>
+        /// <returns>An integer hashcode</returns>
         public override int GetHashCode()
         {
             return this.Index;
         }
 
+        /// <summary>
+        /// Determines whether the specified object is equal to the current IndexedValue.
+        /// </summary>
+        /// <param name="obj">The object to compare with.</param>
+        /// <returns>true if the specified object is equal to the current IndexedValue.</returns>
         public override bool Equals(object obj)
         {
             if (!(obj is IndexedValue<T>))
@@ -74,11 +111,23 @@ namespace Microsoft.Research.DryadLinq.Internal
             return this.Equals((IndexedValue<T>)obj);
         }
 
+        /// <summary>
+        /// Determines whether two instances of IndexedValue are equal.
+        /// </summary>
+        /// <param name="a">The left IndexedValue.</param>
+        /// <param name="b">The right IndexedValue.</param>
+        /// <returns>true if the two values are equal.</returns>
         public static bool operator ==(IndexedValue<T> a, IndexedValue<T> b)
         {
             return a.Equals(b);
         }
 
+        /// <summary>
+        /// Determines whether two instances of IndexedValue are not equal.
+        /// </summary>
+        /// <param name="a">The left IndexedValue.</param>
+        /// <param name="b">The right IndexedValue.</param>
+        /// <returns>true if the two values are not equal.</returns>
         public static bool operator !=(IndexedValue<T> a, IndexedValue<T> b)
         {
             return !a.Equals(b);

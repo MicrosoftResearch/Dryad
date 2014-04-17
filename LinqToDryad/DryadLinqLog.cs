@@ -51,7 +51,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             if (!IsOn || s_IOErrorOccurred) return;
 
             try
-                {
+            {
                 if (args == null)
                 {
                     s_writer.WriteLine(msg);
@@ -77,7 +77,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                 }
                 return;
             }
-            catch (System.ObjectDisposedException) 
+            catch (System.ObjectDisposedException)
             {
                 s_IOErrorOccurred = true;
                 try
@@ -89,21 +89,27 @@ namespace Microsoft.Research.DryadLinq.Internal
                 catch
                 {
                     // supress exceptions that occur during cleanup.
-        }  
+                }
                 return;
-    }
+            }
         }
     }
 }
     
 namespace Microsoft.Research.DryadLinq
 {
+    /// <summary>
+    /// DryadLINQ logging API.
+    /// </summary>
     public static class DryadLinqLog
     {
+        /// <summary>
+        /// Gets and sets the logging level of DryadLINQ.
+        /// </summary>
         public static int Level = Constants.TraceErrorLevel;
         private static TextWriter s_writer = Console.Out;
 
-        public static void Initialize(int logLevel, string filePath)
+        internal static void Initialize(int logLevel, string filePath)
         {
             Level = logLevel;
             if (filePath != null)
@@ -124,33 +130,58 @@ namespace Microsoft.Research.DryadLinq
                 }
                 catch (ObjectDisposedException)
                 {
-                    // we're in a shutdown scenario, writing the log triggers an error but it's ok, we can ignore it.
-                    // let's do the next best thing instead: write to the console.
+                    // we're in a shutdown scenario, writing the log triggers an error but it's ok, 
+                    // we can ignore it. Let's do the next best thing instead: write to the console.
                     Console.WriteLine(prefix + msg, args);
                 }
             }
         }
 
+        /// <summary>
+        /// Adds a critical-level log entries.
+        /// </summary>
+        /// <param name="msg">The log message as a format string</param>
+        /// <param name="args">The objects to format</param>
         public static void AddCritical(string msg, params object[] args)
         {
             Add("Critical: ", Constants.TraceCriticalLevel, msg, args);
         }
 
+        /// <summary>
+        /// Adds an error-level log entries.
+        /// </summary>
+        /// <param name="msg">The log message as a format string</param>
+        /// <param name="args">The objects to format</param>
         public static void AddError(string msg, params object[] args)
         {
             Add("Error: ", Constants.TraceErrorLevel, msg, args);
         }
 
+        /// <summary>
+        /// Adds a warning-level log entries.
+        /// </summary>
+        /// <param name="msg">The log message as a format string</param>
+        /// <param name="args">The objects to format</param>
         public static void AddWarning(string msg, params object[] args)
         {
             Add("Warning: ", Constants.TraceWarningLevel, msg, args);
         }
 
+        /// <summary>
+        /// Adds an information-level log entries.
+        /// </summary>
+        /// <param name="msg">The log message as a format string</param>
+        /// <param name="args">The objects to format</param>
         public static void AddInfo(string msg, params object[] args)
         {
             Add("Info: ", Constants.TraceInfoLevel, msg, args);
         }
 
+        /// <summary>
+        /// Adds a verbose-level log entries.
+        /// </summary>
+        /// <param name="msg">The log message as a format string</param>
+        /// <param name="args">The objects to format</param>
         public static void AddVerbose(string msg, params object[] args)
         {
             Add("Verbose: ", Constants.TraceVerboseLevel, msg, args);

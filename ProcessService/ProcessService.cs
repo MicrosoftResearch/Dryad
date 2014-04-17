@@ -129,7 +129,7 @@ namespace Microsoft.Research.Dryad.ProcessService
 
         private int id;
         private Dictionary<string, MailboxRecord> mailbox;
-        private Dictionary<string, long> inProgressFile;
+        //private Dictionary<string, long> inProgressFile;
         private int exitCode;
         private ProcessStatus status;
         private Int64 startTime;

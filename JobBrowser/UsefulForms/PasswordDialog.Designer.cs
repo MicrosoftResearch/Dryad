@@ -18,7 +18,7 @@ See the Apache Version 2.0 License for specific language governing permissions a
 limitations under the License. 
 
 */
-namespace Microsoft.Research.Calypso.UsefulForms
+namespace Microsoft.Research.UsefulForms
 {
     partial class PasswordDialog
     {

@@ -38,9 +38,10 @@ namespace Microsoft.Research.DryadLinq.Internal
         internal IntPtr ItemHandle;
     }
 
-    // this type is public on the outside but all its members are marked internal
-    // because generated vertex code needs to pass around references to it but
-    // doesn't call any methods, nor should client code.
+    /// <summary>
+    /// Represents the abstraction of a native stream. This NativeBlockStream class is public 
+    /// because auto-generated vertex code needs to pass around references to it.
+    /// </summary>
     public abstract class NativeBlockStream
     {
         internal abstract Int64 GetTotalLength();

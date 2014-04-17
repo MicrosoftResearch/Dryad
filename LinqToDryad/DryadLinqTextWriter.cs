@@ -28,6 +28,10 @@ using Microsoft.Research.DryadLinq;
 
 namespace Microsoft.Research.DryadLinq.Internal
 {
+    /// <summary>
+    /// The DryadLINQ class to write texts to a native stream. 
+    /// </summary>
+    /// <remarks>A DryadLINQ user should not need to use this class directly.</remarks>
     public unsafe sealed class DryadLinqTextWriter
     {
         private const int DefaultBlockSize = 256 * 1024;
@@ -47,16 +51,31 @@ namespace Microsoft.Research.DryadLinq.Internal
         private bool m_isClosed;
         private bool m_isASCIIOrUTF8;
 
+        /// <summary>
+        /// Initializes an instance of DryadLinqTextWriter with encoding UTF8.
+        /// </summary>
+        /// <param name="stream">A native stream to write to.</param>
         public DryadLinqTextWriter(NativeBlockStream stream)
             : this(stream, Encoding.UTF8)
         {
         }
 
+        /// <summary>
+        /// Initializes an instance of DryadLinqTextWriter.
+        /// </summary>
+        /// <param name="stream">A native stream to write to.</param>
+        /// <param name="encoding">The text encoding.</param>
         public DryadLinqTextWriter(NativeBlockStream stream, Encoding encoding)
             : this(stream, encoding, DefaultBlockSize)
         {
         }
-        
+
+        /// <summary>
+        /// Initializes an instance of DryadLinqTextWriter.
+        /// </summary>
+        /// <param name="stream">A native stream to write to.</param>
+        /// <param name="encoding">The text encoding.</param>
+        /// <param name="buffSize">A hint for the size of write buffer.</param>
         public DryadLinqTextWriter(NativeBlockStream stream, Encoding encoding, Int32 buffSize)
         {
             this.m_nativeStream = stream;
@@ -75,22 +94,41 @@ namespace Microsoft.Research.DryadLinq.Internal
             this.m_isClosed = false;
             this.m_isASCIIOrUTF8 = (encoding == Encoding.UTF8 || encoding == Encoding.ASCII);
         }
-        
+
+        /// <summary>
+        /// Initializes an instance of DryadLiqnTextWriter with encoding UTF8.
+        /// </summary>
+        /// <param name="vertexInfo">A native handle for Dryad vertex.</param>
+        /// <param name="portNum">A port number that specifies a Dryad channel.</param>
+        /// <param name="buffSize">A hint for the size of write buffer.</param>
         public DryadLinqTextWriter(IntPtr vertexInfo, UInt32 portNum, Int32 buffSize)
             : this(new DryadLinqChannel(vertexInfo, portNum, false), Encoding.UTF8, buffSize)
         {
         }
 
+        /// <summary>
+        /// Initializes an instance of DryadLiqnTextWriter with encoding UTF8.
+        /// </summary>
+        /// <param name="vertexInfo">A native handle for Dryad vertex.</param>
+        /// <param name="portNum">A port number that specifies a Dryad channel.</param>
+        /// <param name="encoding">The text encoding.</param>
+        /// <param name="buffSize">A hint for the size of write buffer.</param>
         public DryadLinqTextWriter(IntPtr vertexInfo, UInt32 portNum, Encoding encoding, Int32 buffSize)
             : this(new DryadLinqChannel(vertexInfo, portNum, false), encoding, buffSize)
         {
         }
 
+        /// <summary>
+        /// The finalizer that frees native resources.
+        /// </summary>
         ~DryadLinqTextWriter()
         {
             this.Close();
         }
 
+        /// <summary>
+        /// A hint for the size of write buffer.
+        /// </summary>
         public Int32 BufferSizeHint
         {
             get { return this.m_bufferSizeHint; }
@@ -115,12 +153,20 @@ namespace Microsoft.Research.DryadLinq.Internal
             return this.m_nativeStream.GetFingerPrint();
         }
 
+        /// <summary>
+        /// Gets and sets the fingerprint of the content of the writer.
+        /// </summary>
         public bool CalcFP
         {
             get { return this.m_calcFP; }
             set { this.m_calcFP = value; }
         }
 
+        /// <summary>
+        /// Writes a specified line of text to the writer.
+        /// </summary>
+        /// <param name="line">The line to write.</param>
+        /// <returns>The number of bytes used to represent the line.</returns>
         public unsafe int WriteLine(string line)
         {
             Int32 strLen = line.Length;
@@ -163,6 +209,9 @@ namespace Microsoft.Research.DryadLinq.Internal
             return numBytes + numBytes1;
         }
 
+        /// <summary>
+        /// Flushes the current write buffer.
+        /// </summary>
         public void Flush()
         {
             Debug.Assert(this.m_curLineStart == this.m_curLineEnd);
@@ -182,6 +231,9 @@ namespace Microsoft.Research.DryadLinq.Internal
             this.m_nativeStream.Flush();
         }
         
+        /// <summary>
+        /// Flushes the write buffer and closes the writer.
+        /// </summary>
         public void Close()
         {
             if (!this.m_isClosed)
@@ -230,6 +282,9 @@ namespace Microsoft.Research.DryadLinq.Internal
             this.m_curBlockSize = newDataBlockInfo.BlockSize;
         }
 
+        /// <summary>
+        /// The size in bytes of the current content of the writer.
+        /// </summary>
         public Int64 Length 
         {
             get {
@@ -237,6 +292,10 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
+        /// <summary>
+        /// Returns a string that represents this DryadLinqTextWriter object.
+        /// </summary>
+        /// <returns>The string representation.</returns>
         public override string ToString()
         {
             return this.m_nativeStream.ToString();

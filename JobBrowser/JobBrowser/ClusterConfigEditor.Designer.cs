@@ -18,7 +18,7 @@ See the Apache Version 2.0 License for specific language governing permissions a
 limitations under the License. 
 
 */
-namespace Microsoft.Research.Calypso.JobObjectModel
+namespace Microsoft.Research.JobObjectModel
 {
     partial class ClusterConfigEditor
     {

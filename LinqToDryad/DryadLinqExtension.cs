@@ -31,15 +31,21 @@ using Microsoft.Research.DryadLinq.Internal;
 namespace Microsoft.Research.DryadLinq
 {
     /// <summary>
-    /// This provides some useful classes and operators that are commonly used
-    /// in applications. The operators are defined using DryadLINQ operators.
+    /// Represents a key/value pair. Very similar to KeyValuePair, but adds a few more methods.
     /// </summary>
+    /// <typeparam name="T1">The type of the key</typeparam>
+    /// <typeparam name="T2">The type of the value</typeparam>
     [Serializable]
     public struct Pair<T1, T2> : IEquatable<Pair<T1, T2>>
     {
         private T1 m_key;
         private T2 m_value;
 
+        /// <summary>
+        /// Initializes an instance of this key-value Pair structure.
+        /// </summary>
+        /// <param name="x">The key of the pair.</param>
+        /// <param name="y">The value of the pair.</param>
         [FieldMapping("x", "Key")]
         [FieldMapping("y", "Value")]
         public Pair(T1 x, T2 y)
@@ -48,16 +54,27 @@ namespace Microsoft.Research.DryadLinq
             this.m_value = y;
         }
 
+        /// <summary>
+        /// Gets the key in the key-value pair.
+        /// </summary>
         public T1 Key
         {
             get { return this.m_key; }
         }
 
+        /// <summary>
+        /// Gets the value in the key-value pair.
+        /// </summary>
         public T2 Value
         {
             get { return this.m_value; }
         }
 
+        /// <summary>
+        /// Indicates whether this instance and a specified object are equal.
+        /// </summary>
+        /// <param name="obj">The object to compare with</param>
+        /// <returns>true iff this instance is equal to a specified object</returns>
         public override bool Equals(Object obj)
         {
             if (!(obj is Pair<T1, T2>)) return false;
@@ -65,37 +82,73 @@ namespace Microsoft.Research.DryadLinq
             return this.m_key.Equals(pair.Key) && this.m_value.Equals(pair.Value);
         }
 
+        /// <summary>
+        /// Determines whether this instance and another Pair are equal.
+        /// </summary>
+        /// <param name="val">The other Pair to compare with</param>
+        /// <returns>true iff this instance and the specified Pair are equal</returns>
         public bool Equals(Pair<T1, T2> val)
         {
             return this.m_key.Equals(val.Key) && this.m_value.Equals(val.Value);
         }
 
+        /// <summary>
+        /// Determines whether two specified Pairs are equal.
+        /// </summary>
+        /// <param name="a">The first Pair</param>
+        /// <param name="b">The second Pair</param>
+        /// <returns>true iff two Pairs are equal</returns>
         public static bool Equals(Pair<T1, T2> a, Pair<T1, T2> b)
         {
             return a.Equals(b);
         }
 
+        /// <summary>
+        /// Determines whether two specified Pairs are equal.
+        /// </summary>
+        /// <param name="a">The left Pair</param>
+        /// <param name="b">The right Pair</param>
+        /// <returns>true iff two Pairs are equal</returns>
         public static bool operator ==(Pair<T1, T2> a, Pair<T1, T2> b)
         {
             return a.Equals(b);
         }
 
+        /// <summary>
+        /// Determines whether two specified Pairs are not equal.
+        /// </summary>
+        /// <param name="a">The left Pair</param>
+        /// <param name="b">The right Pair</param>
+        /// <returns>true iff two Pairs are not equal</returns>
         public static bool operator !=(Pair<T1, T2> a, Pair<T1, T2> b)
         {
             return !a.Equals(b);
         }
 
+        /// <summary>
+        /// Returns the hash code of the current Pair.
+        /// </summary>
+        /// <returns>A 32-bit signed integer.</returns>
         public override int GetHashCode()
         {
             return (-1521134295 * this.m_key.GetHashCode()) + this.m_value.GetHashCode();
         }
 
+        /// <summary>
+        /// Returns a string that represents the current Pair.
+        /// </summary>
+        /// <returns>A string that represents the current Pair.</returns>
         public override string ToString()
         {
             return "<" + this.Key + ", " + this.Value + ">";
         }
     }
 
+    /// <summary>
+    /// Defines some useful operators that are commonly used in applications. The 
+    /// operators are defined using the basic DryadLINQ operators.  This class 
+    /// also shows how a user library can be defined.
+    /// </summary>
     public static class DryadLinqExtension
     {
         /// <summary>
@@ -202,24 +255,28 @@ namespace Microsoft.Research.DryadLinq
         /// <summary>
         /// Broadcast a dataset to multiple partitions
         /// </summary>
-        /// <typeparam name="T">The type of the input records</typeparam>
-        /// <param name="source">The input dataset</param>
-        /// <returns>The output dataset, which consists of multiple copies of source</returns>
-        public static IQueryable<T> BroadCast<T>(this IQueryable<T> source)
+        /// <typeparam name="T">The record type of the source</typeparam>
+        /// <typeparam name="T1">The record type of the destination</typeparam>
+        /// <param name="source">The source dataset to broadcast</param>
+        /// <param name="destination">The destination dataset to receive</param>
+        /// <returns>The output dataset, which consists of multiple copies of source. The number 
+        /// of copies is the number of partitions of destination.</returns>
+        public static IQueryable<T> BroadCast<T, T1>(this IQueryable<T> source, IQueryable<T1> destination)
         {
-            return source.ApplyPerPartition(source, (x, y) => y, true);
+            return destination.ApplyPerPartition(source, (x, y) => y, true);
         }
 
         /// <summary>
         /// Broadcast a dataset to n partitions.
         /// </summary>
-        /// <typeparam name="T">The type of the input records</typeparam>
-        /// <param name="source">The input dataset</param>
+        /// <typeparam name="T">The record type of the source</typeparam>
+        /// <param name="source">The source dataset to broadcast</param>
+        /// <param name="bcnt">The number of copies to broadcast</param>
         /// <returns>The output dataset, each partition of which is a copy of source</returns>
-        public static IQueryable<T> BroadCast<T>(this IQueryable<T> source, int n)
+        public static IQueryable<T> BroadCast<T>(this IQueryable<T> source, int bcnt)
         {
             var dummy = source.ApplyPerPartition(x => DryadLinqHelper.ValueZero(x))
-                              .HashPartition(x => x, n);
+                              .HashPartition(x => x, bcnt);
             return dummy.ApplyPerPartition(source, (x, y) => y, true);
         }
 

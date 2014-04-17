@@ -27,10 +27,16 @@ using System.Linq.Expressions;
 using System.Linq;
 using Microsoft.Research.DryadLinq;
 
+#pragma warning disable 1591
+
 namespace Microsoft.Research.DryadLinq.Internal
 {
-    // The class encapsulates the external environment in which a managed
-    // query operator writes to DryadLinq channels.
+    /// <summary>
+    /// The class encapsulates the external environment in which a managed
+    /// DryadLINQ vertex writes to output channels.
+    /// </summary>
+    /// <typeparam name="T">The record type.</typeparam>
+    /// <remarks>A DryadLINQ user should not use DryadLinqVertexWriter directly.</remarks>
     public class DryadLinqVertexWriter<T>
     {
         private VertexEnv m_dvertexEnv;

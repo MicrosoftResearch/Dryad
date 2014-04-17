@@ -21,7 +21,7 @@ limitations under the License.
 
 using System.Windows.Forms;
 
-namespace Microsoft.Research.Calypso.UsefulForms
+namespace Microsoft.Research.UsefulForms
 {
     /// <summary>
     /// Prompt user for password.

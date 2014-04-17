@@ -17,6 +17,8 @@ See the Apache Version 2.0 License for specific language governing permissions a
 limitations under the License. 
 
 */
+
+#if false
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -296,3 +298,4 @@ namespace Microsoft.Research.Dryad.ProcessService
         }
     }
 }
+#endif

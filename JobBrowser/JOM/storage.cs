@@ -22,13 +22,13 @@ limitations under the License.
 #undef USE_DSC
 #undef USE_TIDYFS
 
-using Microsoft.Research.Calypso.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Research.Tools;
 
-namespace Microsoft.Research.Calypso.JobObjectModel
+namespace Microsoft.Research.JobObjectModel
 {
 
     /// <summary>
@@ -197,7 +197,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
             {
                 var sourceInputs = plan.GetStageConnections(source, true).ToList();
                 if (sourceInputs.Count() != 1)
-                    throw new CalypsoDryadException("Unexpected number of inputs for stage " + source.Name);
+                    throw new DryadException("Unexpected number of inputs for stage " + source.Name);
                 source = sourceInputs.First().From;
             }
 

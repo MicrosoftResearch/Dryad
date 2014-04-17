@@ -28,6 +28,10 @@ using Microsoft.Research.DryadLinq;
 
 namespace Microsoft.Research.DryadLinq.Internal
 {
+    /// <summary>
+    /// The DryadLINQ class to read texts from a native stream.
+    /// </summary>
+    /// <remarks>A DryadLINQ user should not need to use this class directly.</remarks>
     public unsafe sealed class DryadLinqTextReader
     {
         // The number of bytes we attempt to decode each time
@@ -45,11 +49,20 @@ namespace Microsoft.Research.DryadLinq.Internal
         private Int32 m_curLineEnd;                // offset of line end in charBuff
         private bool m_isClosed;
 
+        /// <summary>
+        /// Initializes an instance of DryadLinqTextReader with encoding UTF8.
+        /// </summary>
+        /// <param name="stream">A native stream to read from.</param>
         public DryadLinqTextReader(NativeBlockStream stream)
             : this(stream, Encoding.UTF8)
         {
         }
 
+        /// <summary>
+        /// Initializes an instance of DryadLinqTextReader.
+        /// </summary>
+        /// <param name="stream">A native stream to read from.</param>
+        /// <param name="encoding">The text encoding.</param>
         public DryadLinqTextReader(NativeBlockStream stream, Encoding encoding)
         {
             this.m_nativeStream = stream;
@@ -67,16 +80,30 @@ namespace Microsoft.Research.DryadLinq.Internal
             this.m_isClosed = false;
         }
 
+        /// <summary>
+        /// Initializes an instance of DryadLiqnTextReader with encoding UTF8.
+        /// </summary>
+        /// <param name="vertexInfo">A native handle for Dryad vertex.</param>
+        /// <param name="portNum">A port number that specifies a Dryad channel.</param>
         public DryadLinqTextReader(IntPtr vertexInfo, UInt32 portNum)
             : this(new DryadLinqChannel(vertexInfo, portNum, true), Encoding.UTF8)
         {
         }
 
+        /// <summary>
+        /// Initializes an instance of DryadLiqnTextReader.
+        /// </summary>
+        /// <param name="vertexInfo">A native handle for Dryad vertex.</param>
+        /// <param name="portNum">A port number that specifies a Dryad channel.</param>
+        /// <param name="encoding">The text encoding.</param>
         public DryadLinqTextReader(IntPtr vertexInfo, UInt32 portNum, Encoding encoding)
             : this(new DryadLinqChannel(vertexInfo, portNum, true), encoding)
         {
         }
 
+        /// <summary>
+        /// The finalizer that frees native resources.
+        /// </summary>
         ~DryadLinqTextReader()
         {
             if (!this.m_isClosed)
@@ -88,6 +115,10 @@ namespace Microsoft.Research.DryadLinq.Internal
             }
         }
 
+        /// <summary>
+        /// Gets the length in bytes of the native stream.
+        /// </summary>
+        /// <returns>A 64-bit integer.</returns>
         public Int64 GetTotalLength()
         {
             return this.m_nativeStream.GetTotalLength();
@@ -171,12 +202,19 @@ namespace Microsoft.Research.DryadLinq.Internal
             this.m_curBlockPos = 0;
         }
 
+        /// <summary>
+        /// Moves to the next line.
+        /// </summary>
+        /// <returns>True if there is a next line.</returns>
         public bool MoveNext()
         {
             return (this.m_curLineEnd < this.m_charBuffEnd || this.FillCharBuffer() > 0);
         }
         
-        // Reads a line of characters and returns as a string. Returns null if EOF.
+        /// <summary>
+        /// Reads a line of text from the reader.
+        /// </summary>
+        /// <returns>A string. Returns null if EOF.</returns>
         public string ReadLine()
         {
             Debug.Assert(this.m_curLineStart == this.m_curLineEnd);
@@ -212,6 +250,9 @@ namespace Microsoft.Research.DryadLinq.Internal
             return lastLine;
         }
 
+        /// <summary>
+        /// Closes the native stream and frees native resources.
+        /// </summary>
         public void Close()
         {
             if (!this.m_isClosed)
@@ -228,6 +269,10 @@ namespace Microsoft.Research.DryadLinq.Internal
             return this.m_nativeStream.GetURI();
         }
 
+        /// <summary>
+        /// Returns a string that represents this DryadLinqTextReader object.
+        /// </summary>
+        /// <returns>The string representation.</returns>
         public override string ToString()
         {
             return this.m_nativeStream.ToString();

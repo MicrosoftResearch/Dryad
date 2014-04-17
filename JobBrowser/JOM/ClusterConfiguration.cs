@@ -19,30 +19,31 @@ limitations under the License.
 
 */
 
-using Microsoft.Research.Calypso.Tools;
+using System.Security.Cryptography.X509Certificates;
+using System.Xml.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Net;
-using System.Diagnostics;
 
 using Microsoft.Research.Peloponnese.Storage;
+using Microsoft.Research.Tools;
+using Microsoft.WindowsAzure.Management.HDInsight;
 
-namespace Microsoft.Research.Calypso.JobObjectModel
+namespace Microsoft.Research.JobObjectModel
 {
     /// <summary>
     /// Error during conversation with cluster.
     /// </summary>
-    public sealed class CalypsoClusterException : Exception
+    public sealed class ClusterException : Exception
     {
         /// <summary>
         /// Create an exception about handling a cluster.
         /// </summary>
         /// <param name="message">Exception message.</param>
-        public CalypsoClusterException(string message) : base(message) { }
+        public ClusterException(string message) : base(message) { }
     }
 
     /// <summary>
@@ -607,12 +608,21 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         public abstract string Initialize();
 
         /// <summary>
+        /// Enumerate all clusters this user is subscribed to.
+        /// </summary>
+        /// <returns>A list of clusters.</returns>
+        public static IEnumerable<ClusterConfiguration> EnumerateSubscribedClusters()
+        {
+            return AzureDfsClusterConfiguration.EnumerateAzureDfsSubscribedClusters();
+        }
+
+        /// <summary>
         /// Create serialization data structure for this configuration.
         /// </summary>
         /// <returns>The corresponding serialization.</returns>
         public ClusterConfigurationSerialization ExtractData()
         {
-            ClusterConfigurationSerialization result = new ClusterConfigurationSerialization()
+            ClusterConfigurationSerialization result = new ClusterConfigurationSerialization
             {
                 Type = this.TypeOfCluster,
                 Name = this.Name,
@@ -925,7 +935,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                 IClusterResidentObject dir = this.ProcessWorkDirectory(job.ManagerProcessGuid, true, job.Machine, job); // immutable
                 var matchingfiles = dir.GetFilesAndFolders("DryadLinqProgram__*.xml").ToList();
                 if (matchingfiles.Count() != 1)
-                    throw new CalypsoClusterException("Could not find query plan file; got " + matchingfiles.Count() + " possible matches");
+                    throw new ClusterException("Could not find query plan file; got " + matchingfiles.Count() + " possible matches");
                 IClusterResidentObject result = matchingfiles.First();
                 result.ShouldCacheLocally = true; // immutable
                 return result;
@@ -1306,7 +1316,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                 //IClusterResidentObject dir = this.ProcessWorkDirectory(new DryadProcessIdentifier("Process.000.001"), true, job.Machine, job);
                 var matchingfiles = dir.GetFilesAndFolders("DryadLinqProgram__*.xml").ToList();
                 if (matchingfiles.Count() != 1)
-                    throw new CalypsoClusterException("Could not find query plan file; got " + matchingfiles.Count() + " possible matches");
+                    throw new ClusterException("Could not find query plan file; got " + matchingfiles.Count() + " possible matches");
                 IClusterResidentObject result = matchingfiles.First();
                 result.ShouldCacheLocally = true; // immutable
                 return result;
@@ -1396,9 +1406,66 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         }
 
         /// <summary>
+        /// Enumerate all the clusters this user is subscribed to.
+        /// </summary>
+        /// <returns>The list of clusters this user is subscribed to.</returns>
+        public static IEnumerable<ClusterConfiguration> EnumerateAzureDfsSubscribedClusters()
+        {
+            var store = new X509Store();
+            store.Open(OpenFlags.ReadOnly);
+            var configDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "Windows Azure Powershell");
+            var defaultFile = Path.Combine(configDir, "WindowsAzureProfile.xml");
+            if (File.Exists(defaultFile))
+            {
+                using (FileStream s = new FileStream(defaultFile, FileMode.Open, FileAccess.Read))
+                {
+                    XDocument doc = XDocument.Load(s);
+                    XNamespace ns = doc.Root.GetDefaultNamespace();
+                    IEnumerable<XElement> subs = doc.Descendants(ns + "AzureSubscriptionData");
+                    foreach (XElement sub in subs)
+                    {
+                        string thumbprint = sub.Descendants(ns + "ManagementCertificate").Single().Value;
+                        string subId = sub.Descendants(ns + "SubscriptionId").Single().Value;
+                        Guid subGuid = new Guid(subId);
+
+                        X509Certificate2 cert = store.Certificates.Cast<X509Certificate2>().First(item => item.Thumbprint == thumbprint);
+
+                        HDInsightCertificateCredential sCred = new HDInsightCertificateCredential(subGuid, cert);
+                        IHDInsightClient sClient = HDInsightClient.Connect(sCred);
+                        var clusters = sClient.ListClusters();
+                        foreach (var cluster in clusters)
+                        {
+                            var account = cluster.DefaultStorageAccount;
+                            var accountName = account.Name.Split('.').First();
+                            Console.WriteLine("Cluster " + cluster.Name + " uses account " + accountName + " with key " + account.Key);
+
+                            AzureDfsClusterConfiguration config = null;
+                            try
+                            {
+                                config = new AzureDfsClusterConfiguration();
+                                config.AzureClient = new AzureDfsClient(accountName, account.Key, "dryad-jobs");
+                                config.Name = cluster.Name;
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine("Exception while reconstructing cluster " + cluster.Name + ": " + ex);
+                            }
+
+                            if (config != null)
+                                yield return config;
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Azure account name.
         /// </summary>
-        public string AccountName { get; set; }
+        public
+        string AccountName { get; set; }
         /// <summary>
         /// Azure account key.
         /// </summary>
@@ -1567,7 +1634,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                 IClusterResidentObject dir = this.ProcessWorkDirectory(job.ManagerProcessGuid, true, job.Machine, job); // immutable
                 var matchingfiles = dir.GetFilesAndFolders("DryadLinqProgram__*.xml").ToList();
                 if (matchingfiles.Count() != 1)
-                    throw new CalypsoClusterException("Could not find query plan file; got " + matchingfiles.Count() + " possible matches");
+                    throw new ClusterException("Could not find query plan file; got " + matchingfiles.Count() + " possible matches");
                 IClusterResidentObject result = matchingfiles.First();
                 (result as AzureDfsFile).IsDfsStream = true;
                 result.ShouldCacheLocally = true; // immutable

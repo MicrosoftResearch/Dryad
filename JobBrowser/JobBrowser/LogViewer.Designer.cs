@@ -18,9 +18,9 @@ See the Apache Version 2.0 License for specific language governing permissions a
 limitations under the License. 
 
 */
-using Microsoft.Research.Calypso.Tools;
+using Microsoft.Research.Tools;
 
-namespace Microsoft.Research.Calypso.DryadAnalysis
+namespace Microsoft.Research.DryadAnalysis
 {
     partial class LogViewer
     {

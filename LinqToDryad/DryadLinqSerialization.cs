@@ -32,14 +32,31 @@ using Microsoft.Research.DryadLinq;
 
 namespace Microsoft.Research.DryadLinq
 {
-    // If a class T implements DryadLinqSerializer<T>, DryadLinq will use the
-    // read and write methods of the class to do serialization.
+    /// <summary>
+    /// The interface for providing user-defined serialization for a .NET type.
+    /// If a class T implements DryadLinqSerializer{T}, DryadLinq will use the
+    /// read and write methods of the class to do serialization.
+    /// </summary>
+    /// <typeparam name="T">The .NET type to be serialized.</typeparam>
     public interface IDryadLinqSerializer<T>
     {
+        /// <summary>
+        /// Reads a record of type T from the specified reader.
+        /// </summary>
+        /// <param name="reader">The reader to read from.</param>
+        /// <returns>A record of type T</returns>
         T Read(DryadLinqBinaryReader reader);
+
+        /// <summary>
+        /// Writes a record of type T to the specified writer.
+        /// </summary>
+        /// <param name="writer">The writer to write to.</param>
+        /// <param name="x">The record to write.</param>
         void Write(DryadLinqBinaryWriter writer, T x);
     }
 }
+
+#pragma warning disable 1591
 
 namespace Microsoft.Research.DryadLinq.Internal
 {

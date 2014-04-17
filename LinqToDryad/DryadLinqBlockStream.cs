@@ -145,7 +145,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                 // options |= FileOptions.Asynchronous;
                 this.m_fstream = new FileStream(filePath, mode, access, FileShare.Read, DefaultBuffSize, options);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw new DryadLinqException(DryadLinqErrorCode.CannotAccesFilePath,
                                              String.Format(SR.CannotAccesFilePath , filePath),e);

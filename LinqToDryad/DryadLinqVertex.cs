@@ -38,11 +38,16 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Microsoft.Research.DryadLinq;
 
+#pragma warning disable 1591
+
 namespace Microsoft.Research.DryadLinq.Internal
 {
-    // This class contains the generic vertex code for each query operation
-    // supported by DryadLinq. We hope to support most of the LINQ operators.
-    // Applications can add their own vertex method using extension methods.
+    /// <summary>
+    /// This class provides the generic vertex runtime for the query operators
+    /// supported by DryadLINQ. The auto-generated vertex code uses the methods
+    /// in this class extensively.
+    /// </summary>
+    /// <remarks>A DryadLINQ user should not need to use DryadLinqVertex directly.</remarks>
     public static class DryadLinqVertex
     {
         public static bool s_multiThreading = true; //vertex code will set this at runtime. 
@@ -1302,6 +1307,8 @@ namespace Microsoft.Research.DryadLinq.Internal
         /// <typeparam name="TSource">Type of elements to union.</typeparam>
         /// <param name="source1">Left sorted stream to union.</param>
         /// <param name="source2">Right sorted stream to union.</param>
+        /// <param name="isDescending">true if both streams are ordered in descending order; 
+        /// otherwise they are in ascending order.</param>
         /// <returns>The union of all elements, in sorted order.</returns>
         public static IEnumerable<TSource>
             OrderedUnion<TSource>(IEnumerable<TSource> source1,
@@ -1318,6 +1325,8 @@ namespace Microsoft.Research.DryadLinq.Internal
         /// <param name="source1">Left sorted stream to union.</param>
         /// <param name="source2">Right sorted stream to union.</param>
         /// <param name="comparer">Comparison function to use for TSource.</param>
+        /// <param name="isDescending">true if both streams are ordered in descending order; 
+        /// otherwise they are in ascending order.</param>
         /// <returns>The union of all elements, in sorted order.</returns>
         public static IEnumerable<TSource>
             OrderedUnion<TSource>(IEnumerable<TSource> source1,
@@ -1446,6 +1455,8 @@ namespace Microsoft.Research.DryadLinq.Internal
         /// <typeparam name="TSource">Type of elements to intersect.</typeparam>
         /// <param name="source1">Left sorted stream of values.</param>
         /// <param name="source2">Right sorted stream of values.</param>
+        /// <param name="isDescending">true if both streams are ordered in descending order; 
+        /// otherwise they are in ascending order.</param>
         /// <returns></returns>
         public static IEnumerable<TSource>
             OrderedIntersect<TSource>(IEnumerable<TSource> source1,
@@ -1462,6 +1473,8 @@ namespace Microsoft.Research.DryadLinq.Internal
         /// <param name="source1">Left sorted stream of values.</param>
         /// <param name="source2">Right sorted stream of values.</param>
         /// <param name="comparer">Comparison function to use.</param>
+        /// <param name="isDescending">true if both streams are ordered in descending order; 
+        /// otherwise they are in ascending order.</param>
         /// <returns></returns>
         public static IEnumerable<TSource>
             OrderedIntersect<TSource>(IEnumerable<TSource> source1,
@@ -1559,6 +1572,8 @@ namespace Microsoft.Research.DryadLinq.Internal
         /// <typeparam name="TSource">Type of elements to compare.</typeparam>
         /// <param name="source1">Sorted stream from which subtraction occurs.</param>
         /// <param name="source2">Subtracted sorted stream.</param>
+        /// <param name="isDescending">true if both streams are ordered in descending order; 
+        /// otherwise, they are in ascending order. </param>
         /// <returns>Elements in left steram not ocurring in right stream.</returns>
         public static IEnumerable<TSource>
             OrderedExcept<TSource>(IEnumerable<TSource> source1,
@@ -1575,6 +1590,8 @@ namespace Microsoft.Research.DryadLinq.Internal
         /// <param name="source1">Sorted stream from which subtraction occurs.</param>
         /// <param name="source2">Subtracted sorted stream.</param>
         /// <param name="comparer">Function to use for comparison testing.</param>
+        /// <param name="isDescending">true if both streams are ordered in descending order; 
+        /// otherwise, they are in ascending order. </param>
         /// <returns>Elements in left steram not ocurring in right stream.</returns>
         public static IEnumerable<TSource>
             OrderedExcept<TSource>(IEnumerable<TSource> source1,

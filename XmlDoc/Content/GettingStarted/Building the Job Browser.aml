@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<topic id="91822db3-8a00-4307-ad8a-595c94f449b0" revisionNumber="1">
+  <developerHowToDocument
+    xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+
+    <!--
+    <summary>
+      <para>Optional summary abstract</para>
+    </summary>
+    -->
+
+    <introduction>
+      <para>For now the only way to get the Job Browser is to build it from source. Follow these instructions to 
+      build the DryadLINQ job browser:</para>
+    </introduction>
+
+    <!-- Optional procedures followed by optional code example but must have
+         at least one procedure or code example -->
+    <procedure>
+      <title>Getting the code</title>
+      <steps class="ordered">
+        <step>
+          <content>
+            <para>If you don't have any git tools installed, either install the <externalLink>
+              <linkText>Visual Studio Tools for Git</linkText>
+              <linkUri>http://visualstudiogallery.msdn.microsoft.com/abafc7d6-dcaa-40f4-8a5e-d6724bdb980c</linkUri>
+              <linkTarget>_blank</linkTarget>
+            </externalLink> extension to Visual Studio 2012 (VS 2013 has them built in) or <externalLink>
+              <linkText>Git for Windows</linkText>
+              <linkUri>http://msysgit.github.io/</linkUri>
+              <linkTarget>_blank</linkTarget>
+            </externalLink> command line tools.</para>
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>Clone the Dryad sources from <externalLink>
+              <linkText>https://github.com/MicrosoftResearchSVC/Dryad.git</linkText>
+              <linkUri>https://github.com/MicrosoftResearchSVC/Dryad.git</linkUri>
+              <linkTarget>_blank</linkTarget>
+            </externalLink>.</para>
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>Open <localUri>&lt;mydryaddirectory&gt;\JobBrowser\JobBrowser.sln</localUri> in Visual Studio 2012 or 2013 and
+            build the <codeInline>Release</codeInline> target.</para>
+          </content>
+        </step>
+      </steps>
+      <!-- <conclusion>Optional conclusion</conclusion> -->
+    </procedure>
+
+    <procedure>
+      <title>Installing for later use</title>
+      <steps class="ordered">
+        <step>
+          <content>
+            <para>Copy <localUri>&lt;mydryaddirectory&gt;\JobBrowser\JobBrowser\bin\x64\Release</localUri> to a folder of your
+            choosing, e.g. <localUri>c:\DryadLinqBrowser</localUri> and add it to your <codeInline>PATH</codeInline> if desired.</para>
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>Run <application>DryadLinqBrowser.exe</application> from that directory. The first time it runs it will read your
+            subscriptions (if you have configured Powershell as described in
+            <link xlink:href="4aefe670-7b2b-4c05-9a65-6c60ff13c3b5">Setting up an HDInsight 3.0 cluster</link>) and detect all the
+            attached HDInsight clusters. If you want it to rescan later you can click on <command>&lt;scan&gt;</command>
+            in the <command>Cluster</command> menu, or add and remove clusters manually from that menu.</para>
+          </content>
+        </step>
+        <step>
+          <content>
+            <para>Select a cluster from the <command>Cluster</command> menu.</para>
+          </content>
+        </step>
+      </steps>
+      <!-- <conclusion>Optional conclusion</conclusion> -->
+    </procedure>
+
+    <!-- <codeExample>Optional code example</codeExample> -->
+
+    <!-- <buildInstructions>Optional instructions for building a
+         code example.</buildInstructions> -->
+
+    <!-- <robustProgramming>Optional discussion of error handling and other
+         issues related to writing solid code.</robustProgramming> -->
+
+    <!-- <security>Optional discussion of security issues.</security> -->
+
+    <relatedTopics>
+      <externalLink>
+        <linkText>DryadLINQ Job Browser documentation</linkText>
+        <linkUri>https://github.com/MicrosoftResearchSVC/Dryad/wiki/Using%20the%20DryadLINQ%20job%20browser</linkUri>
+      </externalLink>
+      <!-- One or more of the following:
+           - A local link
+           - An external link
+           - A code entity reference
+
+      <link xlink:href="Other Topic's ID">Link text</link>
+      <externalLink>
+          <linkText>Link text</linkText>
+          <linkAlternateText>Optional alternate link text</linkAlternateText>
+          <linkUri>URI</linkUri>
+      </externalLink>
+      <codeEntityReference>API member ID</codeEntityReference>
+
+      Examples:
+
+      <link xlink:href="00e97994-e9e6-46e0-b420-5be86b2f8278">Some other topic</link>
+
+      <externalLink>
+          <linkText>SHFB on CodePlex</linkText>
+          <linkAlternateText>Go to CodePlex</linkAlternateText>
+          <linkUri>http://shfb.codeplex.com</linkUri>
+      </externalLink>
+
+      <codeEntityReference>T:TestDoc.TestClass</codeEntityReference>
+      <codeEntityReference>P:TestDoc.TestClass.SomeProperty</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.#ctor</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.#ctor(System.String,System.Int32)</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.ToString</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.FirstMethod</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.SecondMethod(System.Int32,System.String)</codeEntityReference>
+      -->
+    </relatedTopics>
+  </developerHowToDocument>
+</topic>

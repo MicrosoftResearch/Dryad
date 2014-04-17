@@ -27,24 +27,23 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using Microsoft.Research.Calypso.Tools;
 using System.Diagnostics;
+using Microsoft.Research.Tools;
 
-namespace Microsoft.Research.Calypso.JobObjectModel
+namespace Microsoft.Research.JobObjectModel
 {
     /// <summary>
-    /// Exception throw by Calypso when it cannot understand the structure of a Dryad/DryadLINQ job.
+    /// Exception thrown when we cannot understand the structure of a Dryad/DryadLINQ job.
     /// </summary>
-    public class CalypsoDryadException : Exception
+    public class DryadException : Exception
     {
         /// <summary>
-        /// Create a new CalypsoDryadException.
+        /// Create a new DryadException.
         /// </summary>
         /// <param name="message">Message conveyed by the exception.</param>
-        public CalypsoDryadException(string message) : base(message) { }
+        public DryadException(string message) : base(message) { }
     }
 
     /// <summary>
@@ -195,7 +194,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                         this.SuccessfulVertices++;
                         break;
                     default:
-                        throw new CalypsoDryadException("Unexpected vertex state " + vertex.State);
+                        throw new DryadException("Unexpected vertex state " + vertex.State);
                 }
             }
             this.TotalInitiatedVertices -= this.AbandonedVertices;
@@ -423,22 +422,21 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// <param name="cf">Cluster configuration.</param>
         /// <param name="summary">Summary description of the job.</param>
         /// <returns>The Dryad job description, or null.</returns>
-        /// <param name="reporter">Delegate used to report errors.</param>
         /// <param name="fill">If true, fill all the information, otherwise the user will have to call FillInformation on the result later.</param>
-        /// <param name="updateProgress">Delegate used to report progress.</param>
-        public static DryadLinqJobInfo CreateDryadLinqJobInfo(ClusterConfiguration cf, DryadLinqJobSummary summary, bool fill, StatusReporter reporter, Action<int> updateProgress)
+        /// <param name="manager">Communication manager.</param>        
+        public static DryadLinqJobInfo CreateDryadLinqJobInfo(ClusterConfiguration cf, DryadLinqJobSummary summary, bool fill, CommManager manager)
         {
             try
             {
                 DryadLinqJobInfo job = new DryadLinqJobInfo(cf, summary);
                 if (fill)
-                    job.CollectEssentialInformation(reporter, updateProgress);
+                    job.CollectEssentialInformation(manager);
                 return job;
             }
             catch (Exception e)
             {
                 Trace.TraceInformation(e.ToString());
-                reporter("Could not collect job information for " + summary.Name + ": " + e.Message, StatusKind.Error);
+                manager.Status("Could not collect job information for " + summary.Name + ": " + e.Message, StatusKind.Error);
                 return null;
             }
         }
@@ -506,7 +504,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
 
                     if (this.stdoutpath == null)
                     {
-                        throw new CalypsoClusterException("Could not locate JM standard output file in folder " + jmdir);
+                        throw new ClusterException("Could not locate JM standard output file in folder " + jmdir);
                     }
                 }
             }
@@ -515,9 +513,8 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// <summary>
         /// Refresh the job status.
         /// </summary>
-        /// <param name="reporter">Delegate used to report errors.</param>
-        /// <param name="updateProgress">Used to report progress.</param>
-        public void RefreshJobStatus(StatusReporter reporter, Action<int> updateProgress)
+        /// <param name="manager">Communication manager.</param>
+        public void RefreshJobStatus(CommManager manager)
         {
             // skip if job is finished
             if (this.Summary.Status == ClusterJobInformation.ClusterJobStatus.Failed ||
@@ -526,18 +523,17 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                 return;
 
             ClusterStatus status = this.ClusterConfiguration.CreateClusterStatus();
-            status.RefreshStatus(this.Summary, reporter, updateProgress);
+            status.RefreshStatus(this.Summary, manager);
         }
 
         /// <summary>
         /// Fill the job info by parsing the stdout.txt.
-        /// <param name="statusReporter">Delegate used to report errors.</param>
-        /// <returns>True if it succeeds, false otherwise.</returns>
-        /// <param name="updateProgress">Delegate used to report progress.</param>
+        /// <returns>The updated job.</returns>
+        /// <param name="manager">Communication manager.</param>
         /// </summary>
-        public bool CollectEssentialInformation(StatusReporter statusReporter, Action<int> updateProgress)
+        public bool CollectEssentialInformation(CommManager manager)
         {
-            this.RefreshJobStatus(statusReporter, updateProgress);
+            this.RefreshJobStatus(manager);
             if (this.ManagerVertex == null)
             {
                 this.ManagerVertex = new ExecutedVertexInstance(this, -1, 0, "JobManager", "", this.Summary.Date);
@@ -562,13 +558,13 @@ namespace Microsoft.Research.Calypso.JobObjectModel
 
             if (this.stdoutpath == null)
                 return false;
-            bool success = this.ParseStdout(this.stdoutpath, statusReporter, updateProgress);
-            updateProgress(100);
+            bool success = this.ParseStdout(this.stdoutpath, manager);
+            manager.Progress(100);
             if (!success)
                 return false;
 
             this.JobInfoCannotBeCollected = false;
-            statusReporter("Stdout parsed", StatusKind.OK);
+            manager.Status("Stdout parsed", StatusKind.OK);
 
             this.LastUpdatetime = DateTime.Now;
             if (this.Summary.Status == ClusterJobInformation.ClusterJobStatus.Running)
@@ -600,13 +596,13 @@ namespace Microsoft.Research.Calypso.JobObjectModel
             {
                 Match m = numberre.Match(vertexlist);
                 if (!m.Success)
-                    throw new CalypsoDryadException("Could not find vertex number in " + vertexlist);
+                    throw new DryadException("Could not find vertex number in " + vertexlist);
                 string number = m.Groups[1].Value;
 
                 // now scan a balanced number of parantheses
                 string rest = m.Groups[2].Value;
                 if (rest[0] != '(')
-                    throw new CalypsoDryadException("Expecting open parens after vertex number");
+                    throw new DryadException("Expecting open parens after vertex number");
                 int opened = 0;
                 int i;
                 for (i = 0; i < rest.Length; i++)
@@ -624,7 +620,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                     }
                 }
                 if (opened != 0 || i <= 2)
-                    throw new CalypsoDryadException("did not find matched parantheses in vertex name in " + vertexlist + ", can't parse");
+                    throw new DryadException("did not find matched parantheses in vertex name in " + vertexlist + ", can't parse");
                 string name = rest.Substring(1, i - 2); // skip first and last paranthesis
                 yield return new Tuple<string, int>(name, int.Parse(number));
                 vertexlist = rest.Substring(i);
@@ -761,7 +757,9 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                         case "running":
                         {
                             string process;
-                            kvp.TryGetValue("id", out process); // "process" is also good
+                            kvp.TryGetValue("id", out process);
+                            if (process == null)
+                                kvp.TryGetValue("process", out process);
                             string machine = kvp["computer"];
                             ExecutedVertexInstance vi = this.jobVertices.FindVertex(number, version);
                             this.jobVertices.Remap(vi, process);
@@ -776,6 +774,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                             vi.SetState(ExecutedVertexInstance.VertexState.Successful);
                             vi.End = timeStamp;
                             vi.ExitCode = "";
+                            this.UsefulCPUTime += vi.RunningTime;
                             break;
                         }
                         case "failed":
@@ -784,7 +783,11 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                             if (vi.State != ExecutedVertexInstance.VertexState.Started)
                                 vi.SetState(ExecutedVertexInstance.VertexState.Cancelled);
                             else
+                            {
                                 vi.SetState(ExecutedVertexInstance.VertexState.Failed);
+                                if (vi.RunningTime > TimeSpan.Zero)
+                                    this.WastedCPUTime += vi.RunningTime;
+                            }
                             if (kvp.ContainsKey("errorstring"))
                                 vi.AddErrorString(kvp["errorstring"]);
                             string exitcode;
@@ -797,32 +800,15 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                 }
                 else if (kvp.ContainsKey("outputChannel"))
                 {
-                    string chan = kvp["outputChannel"];
-                    int channelNo = int.Parse(chan);
                     ExecutedVertexInstance vi = this.jobVertices.FindVertex(number, version);
-
-                    if (!kvp.ContainsKey("errorstatus"))
-                    {
-                    }
-                    else
-                    {
-                        if (kvp.ContainsKey("errorstring"))
-                            vi.AddErrorString(kvp["errorstring"]);
-                    }
+                    if (kvp.ContainsKey("errorstring"))
+                        vi.AddErrorString(kvp["errorstring"]);
                 }
                 else if (kvp.ContainsKey("inputChannel"))
                 {
-                    string chan = kvp["inputChannel"];
-                    int channelNo = int.Parse(chan);
                     ExecutedVertexInstance vi = this.jobVertices.FindVertex(number, version);
-
-                    if (!kvp.ContainsKey("errorstatus"))
-                    {
-                    }
-                    else
-                    {
+                    if (kvp.ContainsKey("errorstring"))
                         vi.AddErrorString(kvp["errorstring"]);
-                    }
                 }
                 else if (kvp.ContainsKey("io"))
                 {
@@ -834,6 +820,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
 
                         if (vi.InputChannels == null)
                             vi.InputChannels = new Dictionary<int, ChannelEndpointDescription>();
+
                         for (int i = 0; i < numberOfInputs; i++)
                         {
                             string uri;
@@ -870,6 +857,24 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                         vi.DataRead = totalRead;
                         vi.DataWritten = totalWritten;
 
+                        if (vi.InputChannels != null)
+                        {
+                            foreach (int ch in vi.InputChannels.Keys)
+                            {
+                                long bytes = TryGetNumeric(kvp, "rb." + ch);
+                                vi.InputChannels[ch].Size = bytes;
+                            }
+                        }
+
+                        if (vi.OutputChannels != null)
+                        {
+                            foreach (int ch in vi.OutputChannels.Keys)
+                            {
+                                long bytes = TryGetNumeric(kvp, "wb." + ch);
+                                vi.OutputChannels[ch].Size = bytes;
+                            }
+                        }
+
                         this.TotalDataRead += totalRead;
                         this.LocalReadData += localRead;
                         this.CrossPodDataRead += tempReadCrossRack;
@@ -878,17 +883,26 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                     else if (kvp["io"] == "running")
                     {
                         ExecutedVertexInstance vi = this.jobVertices.FindVertex(number, version);
-                        
-                        foreach (int ch in vi.InputChannels.Keys)
+
+                        if (vi.InputChannels != null)
                         {
-                            long bytes = TryGetNumeric(kvp, "rb." + ch);
-                            vi.InputChannels[ch].Size = bytes;
+                            foreach (int ch in vi.InputChannels.Keys)
+                            {
+                                long bytes = TryGetNumeric(kvp, "rb." + ch);
+                                vi.InputChannels[ch].Size = bytes;
+
+                                bytes = TryGetNumeric(kvp, "tb." + ch);
+                                vi.InputChannels[ch].TotalSize = bytes;
+                            }
                         }
 
-                        foreach (int ch in vi.OutputChannels.Keys)
+                        if (vi.InputChannels != null)
                         {
-                            long bytes = TryGetNumeric(kvp, "wb." + ch);
-                            vi.OutputChannels[ch].Size = bytes;
+                            foreach (int ch in vi.OutputChannels.Keys)
+                            {
+                                long bytes = TryGetNumeric(kvp, "wb." + ch);
+                                vi.OutputChannels[ch].Size = bytes;
+                            }
                         }
 
                         long totalRead = TryGetNumeric(kvp, "totalRead");
@@ -1062,7 +1076,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                     else if (m.Groups[1].Value == "ices")
                         onevertex = false;
                     else
-                        throw new CalypsoDryadException("Can't figure out if one or many vertices");
+                        throw new DryadException("Can't figure out if one or many vertices");
 
                     IEnumerable<Tuple<string, int>> vertexList = DryadLinqJobInfo.ParseVertices(vertices);
 
@@ -1084,7 +1098,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                     }
 
                     if (vertexcount > 1 && onevertex)
-                        throw new CalypsoDryadException("Expected one vertex, found " + vertexcount);
+                        throw new DryadException("Expected one vertex, found " + vertexcount);
                 }
                 else
                 {
@@ -1225,7 +1239,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                     if (vi.State == ExecutedVertexInstance.VertexState.Started)
                     {
                         Console.WriteLine("Timing information while vertex is still running " + vi);
-                        //throw new CalypsoClusterException("Timing information for vertex still running: " + vi);
+                        //throw new ClusterException("Timing information for vertex still running: " + vi);
                     }
                     DateTime last = vi.SetTiming(createtime, m.Groups[5].Value, m.Groups[6].Value, m.Groups[7].Value, m.Groups[8].Value, m.Groups[9].Value);
                     if (last > this.lastTimestampSeen)
@@ -1245,7 +1259,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                     }
                 }
                 else
-                    throw new CalypsoDryadException("Unmatched timing information line " + line);
+                    throw new DryadException("Unmatched timing information line " + line);
             }
             else if (line.Contains("Process has failed"))
             {
@@ -1410,7 +1424,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
             return retval;
         }
 
-        private ISharedStreamReader cachedStdoutReader = null;
+        private ISharedStreamReader cachedStdoutReader;
 
         /// <summary>
         /// Remember how many lines were parsed, and skip them on a second invocation.
@@ -1420,10 +1434,9 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// Parse the stdout.txt file from the job manager.
         /// </summary>
         /// <param name="file">File to parse.</param>
-        /// <param name="statusReporter">Delegate used to report errors.</param>
-        /// <param name="updateProgress">Delegate used to report progress.</param>
+        /// <param name="manager">Communication manager.</param>
         /// <returns>True if the parsing succeeds.</returns>
-        private bool ParseStdout(IClusterResidentObject file, StatusReporter statusReporter, Action<int> updateProgress)
+        private bool ParseStdout(IClusterResidentObject file, CommManager manager)
         {
             int currentLine = 0;
             if (this.stdoutLinesParsed == 0)
@@ -1440,15 +1453,16 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                 string message = "Scanning JM stdout " + file;
                 if (filesize >= 0)
                     message += string.Format("({0:N0} bytes)", filesize);
-                statusReporter(message, StatusKind.LongOp);
+                manager.Status(message, StatusKind.LongOp);
 
                 if (this.cachedStdoutReader == null)
                     this.cachedStdoutReader = file.GetStream();
                 if (this.cachedStdoutReader.Exception != null)
                 {
-                    statusReporter("Exception while opening stdout " + this.cachedStdoutReader.Exception.Message, StatusKind.Error);
+                    manager.Status("Exception while opening stdout " + this.cachedStdoutReader.Exception.Message, StatusKind.Error);
                     return false;
                 }
+
                 while (!this.cachedStdoutReader.EndOfStream)
                 {
                     string line = this.cachedStdoutReader.ReadLine();
@@ -1457,6 +1471,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                     {
                         while (true)
                         {
+                            manager.Token.ThrowIfCancellationRequested();
                             int startLine = currentLine;
                             bool completeLine = true;
                             try
@@ -1465,7 +1480,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                             }
                             catch (Exception ex)
                             {
-                                statusReporter(string.Format("Line {0}: Exception {1}", currentLine, ex.Message), StatusKind.Error);
+                                manager.Status(string.Format("Line {0}: Exception {1}", currentLine, ex.Message), StatusKind.Error);
                                 Console.WriteLine("Line {0}: Exception {1}", currentLine, ex);
                             }
                             if (!completeLine)
@@ -1485,7 +1500,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                     currentLine++;
                     if (currentLine % 100 == 0 && filesize > 0)
                     {
-                        updateProgress(Math.Min(100, (int)(100 * readbytes / filesize)));
+                        manager.Progress(Math.Min(100, (int)(100 * readbytes / filesize)));
                     }
                 }
 
@@ -1500,13 +1515,16 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                     // we are done with this stream
                     if (this.ManagerVertex.State == ExecutedVertexInstance.VertexState.Failed ||
                         this.ManagerVertex.State == ExecutedVertexInstance.VertexState.Successful)
+                    {
                         this.cachedStdoutReader.Close();
+                        this.cachedStdoutReader = null; // will force reopening if refreshed
+                    }
                 }
                 return true;
             }
             catch (Exception e)
             {
-                statusReporter("Exception while reading stdout " + e.Message, StatusKind.Error);
+                manager.Status("Exception while reading stdout " + e.Message, StatusKind.Error);
                 Trace.TraceInformation(e.ToString());
                 return false;
             }
@@ -1592,7 +1610,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                 string line = sr.ReadLine();
                 if (!line.Contains("DryadProfiler")) continue;
 
-                CosmosLogEntry le = new CosmosLogEntry(line);
+                DryadLogEntry le = new DryadLogEntry(line);
                 if (le.Subsystem != "DryadProfiler") continue;
                 if (!le.Message.EndsWith("channel status")) continue;
 
@@ -1905,7 +1923,8 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// <summary>
         /// Parse the query plan: cluster-specific.
         /// </summary>
-        protected abstract void ParseQueryPlan();
+        /// <param name="manager">Communication manager.</param>
+        protected abstract void ParseQueryPlan(CommManager manager);
        
         int fictitiousStages;
 
@@ -2009,11 +2028,11 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// Factory: create the plan for a given job.
         /// </summary>
         /// <param name="dryadLinqJobInfo">Job to create plan for.</param>
-        /// <param name="reporter">Delegate used to report errors.</param>
         /// <returns>The plan or null.</returns>
-        public static DryadJobStaticPlan CreatePlan(DryadLinqJobInfo dryadLinqJobInfo, StatusReporter reporter)
+        /// <param name="manager">Communication manager.</param>
+        public static DryadJobStaticPlan CreatePlan(DryadLinqJobInfo dryadLinqJobInfo, CommManager manager)
         {
-            reporter("Trying to build static plan", StatusKind.LongOp);
+            manager.Status("Trying to build static plan", StatusKind.LongOp);
             ClusterConfiguration config = dryadLinqJobInfo.ClusterConfiguration;
             IClusterResidentObject file = config.JobQueryPlan(dryadLinqJobInfo.Summary);
             if (config is CacheClusterConfiguration)
@@ -2025,12 +2044,12 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                 {
                     retval = new DryadLinqJobStaticPlan(config, file.GetStream());
                 }
-                retval.ParseQueryPlan();
+                retval.ParseQueryPlan(manager);
                 return retval;
             }
             else
             {
-                reporter("Exception while looking for plan " + file.Exception.Message, StatusKind.Error);
+                manager.Status("Exception while looking for plan " + file.Exception.Message, StatusKind.Error);
                 return null;
             }
         }
@@ -2056,9 +2075,10 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// <summary>
         /// Parse an XML query plan and represent that information.
         /// </summary>
-        protected override void ParseQueryPlan()
+        /// <param name="manager">Communicaton manager.</param>
+        protected override void ParseQueryPlan(CommManager manager)
         {
-            string planString = this.planStream.ReadToEnd();
+            string planString = this.planStream.ReadToEnd(manager.Token);
 
             XDocument plan = XDocument.Parse(planString);
 // ReSharper disable PossibleNullReferenceException
@@ -2104,7 +2124,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                             info.Arity = Connection.ConnectionType.AllToAll;
                             break;
                         default:
-                            throw new CalypsoDryadException("Don't know about connection of type " + connection);
+                            throw new DryadException("Don't know about connection of type " + connection);
                     }
                     switch (cht)
                     {
@@ -2118,7 +2138,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                             info.ChannelKind = Connection.ChannelType.Fifo;
                             break;
                         default:
-                            throw new CalypsoDryadException("Don't know about channel of type " + cht);
+                            throw new DryadException("Don't know about channel of type " + cht);
                     }
                     this.perNodeConnectionInfo.Add(stage.Id, info);
                 }
@@ -2247,14 +2267,15 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// <summary>
         /// Parse the Algebra file.
         /// </summary>
-        private void ParseAlgebra()
+        /// <param name="manager">Communication manager.</param>
+        private void ParseAlgebra(CommManager manager)
         {
             // TODO: this parser is not really complete, as I don't understand the semantics of all xml elements.
             Dictionary<string, string> outToStage = new Dictionary<string, string>(); // map an output to a stage name. Assume that ios have unique names.
             Dictionary<string, List<string>> inputs = new Dictionary<string, List<string>>();
 
             // <CsJobAlgebra> <graph> <process> ...
-            string planString = this.planStream.ReadToEnd();
+            string planString = this.planStream.ReadToEnd(manager.Token);
             XDocument plan = XDocument.Parse(planString);
 // ReSharper disable PossibleNullReferenceException
             XElement graph = plan.Root.Element("graph"); // graph node, children are stages
@@ -2416,13 +2437,13 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// <summary>
         /// Parse the vertex definition file.
         /// </summary>
-        private void ParseVertexDef()
+        private void ParseVertexDef(CommManager manager)
         {
             if (this.vertexDef.Exception != null)
                 return;
 
             // <ScopeVertices> <ScopeVertex> <operator> <input> </input> <output> </output>
-            string planString = this.vertexDef.ReadToEnd();
+            string planString = this.vertexDef.ReadToEnd(manager.Token);
             XDocument vxDef = XDocument.Parse(planString);
 
             XElement vertices = vxDef.Root;
@@ -2469,10 +2490,11 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// <summary>
         /// Parse the query plan for a Scope job.
         /// </summary>
-        protected override void ParseQueryPlan()
+        /// <param name="manager">Communication manager.</param>
+        protected override void ParseQueryPlan(CommManager manager)
         {
-            this.ParseAlgebra();
-            this.ParseVertexDef();
+            this.ParseAlgebra(manager);
+            this.ParseVertexDef(manager);
         }
     }
 
@@ -2653,9 +2675,13 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// </summary>
         public string LocalPath { get; protected set; }
         /// <summary>
-        /// How big is the channel (0 if it cannot be determined, e.g. FIFO, -1 if the channel data cannot be retrieved).
+        /// The actual data read/written so far (0 if it cannot be determined, e.g. FIFO, -1 if the channel data cannot be retrieved).
         /// </summary>
         public long Size { get; set; }
+        /// <summary>
+        /// How much of the channel was 
+        /// </summary>
+        public long TotalSize { get; set; }
 
         /// <summary>
         /// String representation of the endpoint.
@@ -2664,7 +2690,10 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         {
             string uritype = this.UriType;
             string localpath = this.LocalPath;
-            return string.Format("{0,4} {1,20:N0} {2}://{3}", this.Number, this.Size, uritype, localpath);
+            if (this.TotalSize == 0)
+                return string.Format("{0,4} {1,20:N0} {2}://{3}", this.Number, this.Size, uritype, localpath);
+            else
+                return string.Format("{0,4} {1,20:N0}/{2,20:N0} {3}://{4}", this.Number, this.Size, this.TotalSize, uritype, localpath);
         }
 
         /// <summary>
@@ -2684,7 +2713,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
 
             int sepindex = uri.IndexOf("://");
             if (sepindex < 0)
-                throw new CalypsoDryadException("Channel URI " + uri + " does not contain separator ://");
+                throw new DryadException("Channel URI " + uri + " does not contain separator ://");
 
             this.UriType = uri.Substring(0, sepindex);
             // some HPC URIs use the compression scheme as an "option" (not really defined for file:// uris, but...)
@@ -2737,10 +2766,10 @@ namespace Microsoft.Research.Calypso.JobObjectModel
             this.Number = number;
             int sepindex = uri.IndexOf("://");
             if (sepindex < 0)
-                throw new CalypsoClusterException("Channel URI " + uri + " does not contain separator ://");
+                throw new ClusterException("Channel URI " + uri + " does not contain separator ://");
             this.UriType = uri.Substring(0, sepindex);
             this.LocalPath = uri.Substring(sepindex + 3);
-            this.Size = size;
+            this.TotalSize = size;
         }
     }
 
@@ -2883,7 +2912,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
             this.StdoutFile = job.ClusterConfiguration.ProcessStdoutFile(this.ProcessIdentifier, false, machine, job.Summary);
             this.SetState(VertexState.Started);
             if (approxStartTime == DateTime.MinValue)
-                throw new CalypsoDryadException("Unexpected small start time for vertex");
+                throw new DryadException("Unexpected small start time for vertex");
             this.LogDirectory = job.ClusterConfiguration.ProcessLogDirectory(this.ProcessIdentifier, false, machine, job.Summary);
             this.LogFilesPattern = job.ClusterConfiguration.VertexLogFilesPattern(false, job.Summary);
             this.UniqueID = uniqueId;
@@ -3049,7 +3078,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
             {
                 Trace.TraceInformation("Vertex {0} which is not started is still running?", this.Name);
                 return;
-                //throw new CalypsoClusterException("Vertex which is not started is still running?");
+                //throw new ClusterException("Vertex which is not started is still running?");
             }
             if (this.Start > when)
                 // This can happen if the cluster clocks are not synchronized with the local machine clocks.
@@ -3088,7 +3117,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
             TimeSpan total = TimeSpan.FromSeconds(totSeconds);
             DateTime totalTime = creation + total;
             if (totSeconds < 0)
-                throw new CalypsoDryadException("Negative total time for vertex " + this.Name);
+                throw new DryadException("Negative total time for vertex " + this.Name);
 
             // if the vertex has no machine just ignore the times
             if (string.IsNullOrEmpty(this.Machine))
@@ -3209,9 +3238,8 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// <param name="uriprefix">If the channel is an output, prefix the path with this; this is null for inputs.</param>
         /// <param name="skip">If true, do not return anything (still useful to advance the stream reader).</param>
         /// <param name="fast">If true the channel sizes are not discovered; this is much faster, since no remote machines are queried for files.</param>
-        /// <param name="updateProgress">Delegate used to report progress.</param>
-        /// <param name="reporter">Delegate used to report errors.</param>
-        private Dictionary<int, ChannelEndpointDescription> DiscoverOriginalInfoChannels(ISharedStreamReader sr, string uriprefix, bool skip, bool fast, StatusReporter reporter, Action<int> updateProgress)
+        /// <param name="manager">Communication manager.</param>
+        private Dictionary<int, ChannelEndpointDescription> DiscoverOriginalInfoChannels(ISharedStreamReader sr, string uriprefix, bool skip, bool fast, CommManager manager)
         {
             bool isInput = uriprefix == null;
 
@@ -3231,21 +3259,18 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                 string channel = sr.ReadLine();
                 if (channel == null)
                 {
-                    if (updateProgress != null)
-                        updateProgress(100);
+                    manager.Progress(100);
                     return null;
                 }
                 if (!skip)
                 {
-                    ChannelEndpointDescription desc = new ChannelEndpointDescription(isInput, i, channel, uriprefix, fast, reporter);
+                    ChannelEndpointDescription desc = new ChannelEndpointDescription(isInput, i, channel, uriprefix, fast, manager.Status);
                     channels.Add(i, desc);
-                    if (updateProgress != null)
-                        updateProgress(i * 100 / channelCount);
+                    manager.Progress(i * 100 / channelCount);
                 }
             }
             
-            if (updateProgress != null)
-                updateProgress(100);
+            manager.Progress(100);
             if (skip)
                 return null;
             return channels;
@@ -3258,9 +3283,8 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// <param name="inputs">If true discover the inputs.</param>
         /// <param name="outputs">If true discover the outputs.</param>
         /// <param name="fast">If true do not discover the channel sizes (much faster).</param>
-        /// <param name="progress">Delegate used to report progress.</param>
-        /// <param name="reporter">Delegate used to report errors.</param>
-        public bool DiscoverOriginalInfoChannels(bool inputs, bool outputs, bool fast, StatusReporter reporter, Action<int> progress)
+        /// <param name="manager">Communication manager.</param>
+        public bool DiscoverOriginalInfoChannels(bool inputs, bool outputs, bool fast, CommManager manager)
         {
             string filename = string.Format("vertex-{0}-{1}-rerun-originalInfo.txt", this.Number, this.Version);
             bool success = true;
@@ -3270,7 +3294,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
                 // skip discovery
                 inputs = false;
             ISharedStreamReader sr = this.WorkDirectory.GetFile(filename).GetStream();
-            var channels = this.DiscoverOriginalInfoChannels(sr, null, !inputs, fast, reporter, progress);
+            var channels = this.DiscoverOriginalInfoChannels(sr, null, !inputs, fast, manager);
             if (channels == null)
             {
                 if (inputs)
@@ -3281,7 +3305,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
             if (this.OutputChannels != null)
                 // skip discovery
                 outputs = false;
-            channels = this.DiscoverOriginalInfoChannels(sr, this.WorkDirectory.ToString(), !outputs, fast, reporter, progress);
+            channels = this.DiscoverOriginalInfoChannels(sr, this.WorkDirectory.ToString(), !outputs, fast, manager);
             if (channels == null)
             {
                 if (outputs)
@@ -3300,28 +3324,27 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// <param name="inputs">If true discover the inputs.</param>
         /// <param name="outputs">If true discover the outputs.</param>
         /// <param name="fast">If true do not discover the channel sizes (much faster).</param>
-        /// <param name="progress">Delegate used to report progress.</param>
-        /// <param name="reporter">Delegate used to report errors.</param>
+        /// <param name="manager">Communication manager.</param>
         // ReSharper disable UnusedParameter.Global
-        public bool DiscoverScopeChannels(bool inputs, bool outputs, bool fast, StatusReporter reporter, Action<int> progress)
+        public bool DiscoverScopeChannels(bool inputs, bool outputs, bool fast, CommManager manager)
             // ReSharper restore UnusedParameter.Global
         {
             // find the xml file
             var files = this.WorkDirectory.GetFilesAndFolders("vcmdStart*.xml").ToList();
             if (files.Count != 1)
             {
-                reporter("Cannot locate vcmdStart*.xml file", StatusKind.Error);
+                manager.Status("Cannot locate vcmdStart*.xml file", StatusKind.Error);
                 return false;
             }
             ISharedStreamReader sr = files.First().GetStream();
             if (sr.Exception != null)
             {
-                reporter("Error reading vcmdStart*.xml file" + sr.Exception.Message, StatusKind.Error);
+                manager.Status("Error reading vcmdStart*.xml file" + sr.Exception.Message, StatusKind.Error);
                 return false;
             }
             
             // ReSharper disable PossibleNullReferenceException
-            XDocument plan = XDocument.Parse(sr.ReadToEnd());
+            XDocument plan = XDocument.Parse(sr.ReadToEnd(manager.Token));
             if (inputs && this.InputChannels == null)
             {
                 var channels = new Dictionary<int, ChannelEndpointDescription>();
@@ -3365,9 +3388,8 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         /// <param name="inputs">If true discover the inputs.</param>
         /// <param name="outputs">If true discover the outputs.</param>
         /// <param name="fast">If true do not discover the channel sizes (much faster).</param>
-        /// <param name="progress">Delegate used to report progress.</param>
-        /// <param name="reporter">Delegate used to report errors.</param>
-        public bool DiscoverChannels(bool inputs, bool outputs, bool fast, StatusReporter reporter, Action<int> progress)
+        /// <param name="manager">Communication manager.</param>
+        public bool DiscoverChannels(bool inputs, bool outputs, bool fast, CommManager manager)
         {
             // check if the result is already cached
             if ((this.InputChannels != null || !inputs) &&
@@ -3395,7 +3417,7 @@ namespace Microsoft.Research.Calypso.JobObjectModel
 
             if (wd is UNCFile)
             {
-                result = this.DiscoverOriginalInfoChannels(inputs, outputs, fast, reporter, progress);
+                result = this.DiscoverOriginalInfoChannels(inputs, outputs, fast, manager);
             }
             else
             {
@@ -3448,9 +3470,9 @@ namespace Microsoft.Research.Calypso.JobObjectModel
         internal void Update(string name, string guid)
         {
             if (this.State != VertexState.Cancelled && this.State != VertexState.Abandoned)
-                throw new CalypsoDryadException("Updating a non-cancelled/abandoned vertex");
+                throw new DryadException("Updating a non-cancelled/abandoned vertex");
             if (this.Name != name)
-                throw new CalypsoDryadException("Vertex changed name");
+                throw new DryadException("Vertex changed name");
             this.UniqueID = guid;
             this.SetState(VertexState.Created);
             // the stdoutfile is expected to change, so I don't invalidate the cache

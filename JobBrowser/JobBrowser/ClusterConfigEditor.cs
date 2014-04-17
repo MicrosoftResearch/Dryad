@@ -23,9 +23,9 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-using Microsoft.Research.Calypso.Tools;
+using Microsoft.Research.Tools;
 
-namespace Microsoft.Research.Calypso.JobObjectModel
+namespace Microsoft.Research.JobObjectModel
 {
     /// <summary>
     /// Editor for cluster configuration.

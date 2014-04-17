@@ -29,16 +29,27 @@ using System.Diagnostics;
 
 namespace Microsoft.Research.DryadLinq
 {
+    /// <summary>
+    /// The Nullable attribute specifies if a field is nullable. The information is used by DryadLINQ 
+    /// serialization. DryadLINQ serialization by default treats all fields not nullable. 
+    /// </summary>
     [AttributeUsage(AttributeTargets.Field|AttributeTargets.Property|AttributeTargets.Class|AttributeTargets.Method, AllowMultiple = false)]
     public sealed class NullableAttribute : Attribute
     {
         private bool m_canBeNull;
 
+        /// <summary>
+        /// Initializes an instance of NullableAttribute.
+        /// </summary>
+        /// <param name="canBeNull">true iff the target of the attribute is nullable</param>
         public NullableAttribute(bool canBeNull)
         {
             this.m_canBeNull = canBeNull;
         }
 
+        /// <summary>
+        /// Determines if the target of this attribute is nullable.
+        /// </summary>
         public bool CanBeNull
         {
             get { return this.m_canBeNull; }
@@ -46,7 +57,7 @@ namespace Microsoft.Research.DryadLinq
     }
 
     [AttributeUsage(AttributeTargets.Method|AttributeTargets.Constructor, AllowMultiple = true)]
-    public sealed class FieldMappingAttribute : Attribute
+    internal sealed class FieldMappingAttribute : Attribute
     {
         private string m_source;
         private string m_destination;
@@ -116,11 +127,11 @@ namespace Microsoft.Research.DryadLinq
     }
 
     /// <summary>
-    /// The Resource attribute is used to specify the computation cost of a function.
-    /// IsStateful asserts that the function is stateful; IsExpensive asserts that
-    /// the function is expensive to compute. The information is useful in generating
-    /// better execution plan. For example, expensive associative aggregation
-    /// functions can use multiple aggregation layers.
+    /// The Resource attribute is used to specify the computation cost of a user defined 
+    /// function (UDF). IsStateful asserts that the function is stateful; IsExpensive 
+    /// asserts that the function is expensive to compute. The information is useful in 
+    /// generating better execution plan. For example, expensive associative aggregation
+    /// functions enables the use of multiple aggregation layers.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public sealed class ResourceAttribute : Attribute
@@ -128,18 +139,28 @@ namespace Microsoft.Research.DryadLinq
         private bool m_isStateful;
         private bool m_isExpensive;
 
+        /// <summary>
+        /// Initializes an instance of the Resource attribute. The default value of
+        /// IsStateful is true; the default value of IsExpensive is false.
+        /// </summary>
         public ResourceAttribute()
         {
             this.m_isStateful = true;
             this.m_isExpensive = false;
         }
 
+        /// <summary>
+        /// Gets and sets the IsStateful flag.
+        /// </summary>
         public bool IsStateful
         {
             get { return this.m_isStateful; }
             set { this.m_isStateful = value; }
         }
 
+        /// <summary>
+        /// Gets and sets the IsExpensive flag.
+        /// </summary>
         public bool IsExpensive
         {
             get { return this.m_isExpensive; }
@@ -147,33 +168,52 @@ namespace Microsoft.Research.DryadLinq
         }        
     }
 
+    /// <summary>
+    /// Indicates that a method can be decomposed to multiple methods. The argument to the 
+    /// constructor must be of type IDecomposable. The computation of the method annotated
+    /// by this attribute can be decomposed to a sequence of calls to the Seed, Accumulate,
+    /// RecursiveAccumulate methods and a FinalReduce.
+    /// </summary>
+    /// <remarks>
+    /// If a method is decomposable, a user can annotate it with this attribute. This enables
+    /// DryadLINQ to perform a generalized "combiner" optimization.
+    /// </remarks>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public sealed class DecomposableAttribute : Attribute
     {
-        Type m_decompositionType;
+        private Type m_decompositionType;
 
+        /// <summary>
+        /// Initializes an instance of DecomposableAttribute. The argument is a type that implements
+        /// <see cref="IDecomposable{TSource, TAccumulate, TResult}"/>.
+        /// </summary>
+        /// <param name="decompositionType">A type that implements IDecomposable{TSource, TAccumulate, TResult}</param>
         public DecomposableAttribute(Type decompositionType)
         {
             m_decompositionType = decompositionType;
         }
 
+        /// <summary>
+        /// A type that implements IDecomposable{TSource, TAccumulate, TResult} where 
+        /// TSource is the element type of the input, TAccumulate is the element type
+        /// of an intermediate dataset, and TResult is the output type of the method
+        /// annotated by this attribute.
+        /// </summary>
         public Type DecompositionType
         {
-            get {
-                return m_decompositionType; 
-            }
+            get { return m_decompositionType; }
         }
     }
 
     /// <summary>
-    /// Indicates that a method can be used as an associative aggregation method.
-    /// The aggregation can either be via recursive calls to the tagged method, or
-    /// via top-level calls to the tagged method, followed by recursive calls to 
-    /// a RecursiveAccumulate method.
+    /// Indicates that a method is an associative aggregation method. The argument to the 
+    /// constructor must be of type IAssociative. The computation of the method annotated
+    /// by this attribute can be decomposed to a sequence of calls to the Seed and 
+    /// RecursiveAccumulate methods.
     /// </summary>
     /// <remarks>
-    /// If a recursive accumulator method is necessary, create type that implements
-    /// IAssociative and provide that to the ctor of this type.
+    /// If a method is associative, a user can annotate it with this attribute. This enables
+    /// DryadLINQ to perform the "combiner" optimization.
     /// </remarks>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public sealed class AssociativeAttribute : Attribute
@@ -181,29 +221,22 @@ namespace Microsoft.Research.DryadLinq
         private Type m_associativeType;
 
         /// <summary>
-        /// Creates an instance of AssociativeAttribute
-        /// </summary>
-        public AssociativeAttribute()
-        {
-        }
-
-        /// <summary>
-        /// Creates an instance of AssociativeAttribute, with an associated type that provides
-        /// a recursive-accumulator method.
+        /// Initializes an instance of AssociativeAttribute. The argument is a type that implements
+        /// <see cref="IAssociative{T}"/>.
         /// </summary>
         /// <remarks>
         /// During aggregation, the recursiveAccumulator will be used to aggregate items arising 
         /// from the main aggregation.
         /// </remarks>
-        /// <param name="associativeType">A type that implements IAssociative{T,T}  where T
-        /// is the output type of methods that are decorated with this attribute.</param>
+        /// <param name="associativeType">A type that implements IAssociative{T}, where T
+        /// is the output type of the method annotated by this attribute.</param>
         public AssociativeAttribute(Type associativeType)
         {
             this.m_associativeType = associativeType;
         }
 
         /// <summary>
-        /// Type that implements IAssociative{T,T} where T is the output type of methods
+        /// A type that implements IAssociative{T} where T is the output type of methods
         /// that are decorated with this attribute.
         /// </summary>
         public Type AssociativeType
@@ -212,12 +245,20 @@ namespace Microsoft.Research.DryadLinq
         }
     }
 
+    /// <summary>
+    /// Provides a user-defined serialization method for a .NET type. 
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited=false)]
     public sealed class CustomDryadLinqSerializerAttribute : Attribute
     {
+        /// <summary>
+        /// Initializes an instance of CustomDryadLinqSerializer attribute.
+        /// </summary>
+        /// <param name="serializerType">A type that implements IDryadLinqSerializer{T}, where T
+        /// is the .NET type to be serialized.</param>
         public CustomDryadLinqSerializerAttribute(Type serializerType)
         {
-            SerializerType = serializerType;
+            this.SerializerType = serializerType;
 
             // We need to make sure serializerType implements IDryadLinqSerializer<T>
             // However we will defer that check until DryadCodeGen.FindCustomSerializerType(), because
@@ -225,6 +266,9 @@ namespace Microsoft.Research.DryadLinq
             //  2) because an exception coming from the attribute ctor leads to an obscure failure.
         }
 
+        /// <summary>
+        /// Gets and sets the type object for serialization.
+        /// </summary>
         public Type SerializerType { get; private set; }
     }
 

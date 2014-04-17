@@ -2,11 +2,11 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/01/nuspec.xsd">
     <metadata minClientVersion="2.5">
         <id>Microsoft.Research.DryadLinq.Samples</id>
-        <version>0.1.0-beta</version>
+        <version>0.1.2-beta</version>
         <title>Sample DryadLINQ Programs</title>
-        <authors>msrsvc</authors>
-        <owners>msrsvc</owners>
-        <licenseUrl>http://research.microsoft.com/en-us/projects/dryad/</licenseUrl>
+        <authors>bigdatadev@microsoft.com</authors>
+        <owners>bigdatadev@microsoft.com,Microsoft</owners>
+        <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0.html</licenseUrl>
         <projectUrl>http://research.microsoft.com/en-us/projects/dryad/</projectUrl>
         <requireLicenseAcceptance>true</requireLicenseAcceptance>
         <description>Sample DryadLINQ programs.</description>
@@ -14,7 +14,7 @@
         <language>en-US</language>
         <dependencies>
             <group targetFramework=".NETFramework4.5">
-                <dependency id="Microsoft.Research.Dryad" version="0.1.0-beta" />
+                <dependency id="Microsoft.Research.Dryad" version="0.1.2-beta" />
             </group>
         </dependencies>
         <frameworkAssemblies>

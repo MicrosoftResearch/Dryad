@@ -163,7 +163,7 @@ namespace Microsoft.Research.DryadLinq
     }
 
     /// <summary>
-    /// Contains references to class&method names that are referenced via reflection.
+    /// Contains references to class/method/field names that are referenced via reflection.
     /// This is intended to assist with refactoring that may break reflection.
     ///
     /// NOTE: this list will probably never be complete. 

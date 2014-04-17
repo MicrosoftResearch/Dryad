@@ -29,12 +29,17 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Diagnostics;
 using Microsoft.Research.DryadLinq;
 
+#pragma warning disable 1591
+
 namespace Microsoft.Research.DryadLinq.Internal
 {
-    // This class implements an object store that is used to store objects
-    // needed for remote execution of managed vertex code. All objects put
-    // in the store must have the .NET Serializable attribute.
-    // Note: this class is not thread safe
+    /// <summary>
+    /// This class implements an object store that is used to store objects
+    /// needed for remote execution of DryadLINQ vertex code. All objects put
+    /// in the store must have the .NET Serializable attribute.
+    /// </summary>
+    /// <remarks>A DryadLINQ user should not need to use this class directly.</remarks>
+    /// <remarks>The methods in this class is not thread safe.</remarks>
     public sealed class DryadLinqObjectStore
     {
         private const string ObjectStoreFileName = "DryadLinqObjectStore.bin";

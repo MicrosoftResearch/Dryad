@@ -23,7 +23,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
     
-namespace Microsoft.Research.Calypso.Tools
+namespace Microsoft.Research.Tools
 {
     /// <summary>
     /// A data grid that filters the contents.
