@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shfbBuild product="Sandcastle Help File Builder" version="2014.2.15.0 Beta" projectFile="D:\Users\misard\src\dryad\XmlDoc\XmlDoc.shfbproj" started="4/17/2014 10:17:22 AM">
+<shfbBuild product="Sandcastle Help File Builder" version="2014.2.15.0 Beta" projectFile="D:\Users\misard\src\dryad\XmlDoc\XmlDoc.shfbproj" started="4/17/2014 10:53:10 AM">
 <buildStep step="Initializing">
 Finding tools...
 The Sandcastle tools are located in &#39;C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\&#39;
@@ -20,16 +20,16 @@ Copying XML comments files
 </buildStep>
 <buildStep step="GenerateSharedContent">
 Generating shared content files (en-US, English (United States))...
-    Last step completed in 00:00:00.0000
+    Last step completed in 00:00:00.0030
 </buildStep>
 <buildStep step="GenerateApiFilter">
 Generating API filter for MRefBuilder...
-    Last step completed in 00:00:00.0156
+    Last step completed in 00:00:00.0080
 </buildStep>
 <buildStep step="GenerateReflectionInfo">
 Generating reflection information...
 [C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe]
-Build started 4/17/2014 10:17:23 AM.
+Build started 4/17/2014 10:53:11 AM.
 Project &quot;D:\Users\misard\src\dryad\XmlDoc\Help\Working\GenerateRefInfo.proj&quot; on node 1 (default targets).
 PrepareForBuild:
   Creating directory &quot;obj\Debug\&quot;.
@@ -49,12 +49,12 @@ Done Building Project &quot;D:\Users\misard\src\dryad\XmlDoc\Help\Working\Genera
 Build succeeded.
 
 Time Elapsed 00:00:00.67
-    Last step completed in 00:00:00.7500
+    Last step completed in 00:00:00.7766
 </buildStep>
 <buildStep step="TransformReflectionInfo">
 Transforming reflection output...
 [C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe]
-Build started 4/17/2014 10:17:24 AM.
+Build started 4/17/2014 10:53:12 AM.
 Project &quot;D:\Users\misard\src\dryad\XmlDoc\Help\Working\TransformManifest.proj&quot; on node 1 (default targets).
 TransformManifest:
   XslTransform (v2014.1.26.0)
@@ -74,12 +74,12 @@ Done Building Project &quot;D:\Users\misard\src\dryad\XmlDoc\Help\Working\Transf
 
 Build succeeded.
 
-Time Elapsed 00:00:00.54
-    Last step completed in 00:00:00.6339
+Time Elapsed 00:00:00.57
+    Last step completed in 00:00:00.6635
 </buildStep>
 <buildStep step="GenerateNamespaceSummaries">
 Generating namespace summary information...
-    Last step completed in 00:00:00.1250
+    Last step completed in 00:00:00.1101
 </buildStep>
 <buildStep step="CopyConceptualContent">
 Copying conceptual content...
@@ -104,30 +104,30 @@ Generating conceptual topic files
     D:\Users\misard\src\dryad\XmlDoc\Content\Resources\Running a job on HDInsight.aml -&gt; D:\Users\misard\src\dryad\XmlDoc\Help\Working\ddueXml\3596a79f-0714-43b0-b49a-ea9eeccb7326.xml
     Parsing topic file &#39;D:\Users\misard\src\dryad\XmlDoc\Content\VersionHistory\VersionHistory.aml&#39;
     D:\Users\misard\src\dryad\XmlDoc\Content\VersionHistory\VersionHistory.aml -&gt; D:\Users\misard\src\dryad\XmlDoc\Help\Working\ddueXml\a5d9b686-8282-4120-ae0e-5a9f11a2ac0b.xml
-    Parsing topic file &#39;D:\Users\misard\src\dryad\XmlDoc\Content\VersionHistory\v0.1.1.aml&#39;
-    D:\Users\misard\src\dryad\XmlDoc\Content\VersionHistory\v0.1.1.aml -&gt; D:\Users\misard\src\dryad\XmlDoc\Help\Working\ddueXml\a2eaaf5d-f1d8-4319-844e-a458cc72e4db.xml
-    Last step completed in 00:00:00.0781
+    Parsing topic file &#39;D:\Users\misard\src\dryad\XmlDoc\Content\VersionHistory\v0.1.2.aml&#39;
+    D:\Users\misard\src\dryad\XmlDoc\Content\VersionHistory\v0.1.2.aml -&gt; D:\Users\misard\src\dryad\XmlDoc\Help\Working\ddueXml\a2eaaf5d-f1d8-4319-844e-a458cc72e4db.xml
+    Last step completed in 00:00:00.1071
 </buildStep>
 <buildStep step="CreateConceptualTopicConfigs">
 Creating conceptual topic configuration files...
     Companion files
     _ContentMetadata_.xml
     ConceptualManifest.xml
-    Last step completed in 00:00:00.0156
+    Last step completed in 00:00:00.0200
 </buildStep>
 <buildStep step="CopyAdditionalContent">
 Copying additional content files...
 No additional content to copy
-    Last step completed in 00:00:00.0000
+    Last step completed in 00:00:00.0010
 </buildStep>
 <buildStep step="MergeTablesOfContents">
 Merging conceptual and additional tables of contents...
-    Last step completed in 00:00:00.0000
+    Last step completed in 00:00:00.0010
 </buildStep>
 <buildStep step="GenerateIntermediateTableOfContents">
 Generating intermediate table of contents file...
 [C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe]
-Build started 4/17/2014 10:17:24 AM.
+Build started 4/17/2014 10:53:12 AM.
 Project &quot;D:\Users\misard\src\dryad\XmlDoc\Help\Working\GenerateIntermediateTOC.proj&quot; on node 1 (default targets).
 GenerateIntermediateTOC:
   XslTransform (v2014.1.26.0)
@@ -138,27 +138,27 @@ Done Building Project &quot;D:\Users\misard\src\dryad\XmlDoc\Help\Working\Genera
 
 Build succeeded.
 
-Time Elapsed 00:00:00.10
+Time Elapsed 00:00:00.08
 Generating conceptual content intermediate TOC file...
-    Last step completed in 00:00:00.1875
+    Last step completed in 00:00:00.1681
 </buildStep>
 <buildStep step="CreateBuildAssemblerConfigs">
 Creating Sandcastle configuration files...
     sandcastle.config
     conceptual.config
-    Last step completed in 00:00:00.2552
+    Last step completed in 00:00:00.2462
 </buildStep>
 <buildStep step="MergeCustomConfigs">
 Merging custom build component configurations
 D:\Users\misard\src\dryad\XmlDoc\Help\Working\sandcastle.config
 D:\Users\misard\src\dryad\XmlDoc\Help\Working\conceptual.config
     Removing unused ExampleComponent.
-    Last step completed in 00:00:00.1875
+    Last step completed in 00:00:00.1241
 </buildStep>
 <buildStep step="BuildConceptualTopics">
 Building conceptual help topics...
 [C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe]
-Build started 4/17/2014 10:17:25 AM.
+Build started 4/17/2014 10:53:13 AM.
 Project &quot;D:\Users\misard\src\dryad\XmlDoc\Help\Working\BuildConceptualTopics.proj&quot; on node 1 (default targets).
 BuildConceptualTopics:
   BuildAssembler (v2014.1.26.0)
@@ -172,13 +172,13 @@ Done Building Project &quot;D:\Users\misard\src\dryad\XmlDoc\Help\Working\BuildC
 
 Build succeeded.
 
-Time Elapsed 00:00:04.25
-    Last step completed in 00:00:04.4656
+Time Elapsed 00:00:04.00
+    Last step completed in 00:00:04.2305
 </buildStep>
 <buildStep step="BuildReferenceTopics">
 Building reference help topics...
 [C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe]
-Build started 4/17/2014 10:17:30 AM.
+Build started 4/17/2014 10:53:17 AM.
 Project &quot;D:\Users\misard\src\dryad\XmlDoc\Help\Working\BuildReferenceTopics.proj&quot; on node 1 (default targets).
 BuildReferenceTopics:
   BuildAssembler (v2014.1.26.0)
@@ -196,14 +196,14 @@ Done Building Project &quot;D:\Users\misard\src\dryad\XmlDoc\Help\Working\BuildR
 
 Build succeeded.
 
-Time Elapsed 00:00:20.55
-    Last step completed in 00:00:20.6414
+Time Elapsed 00:00:18.86
+    Last step completed in 00:00:18.9570
 </buildStep>
 <buildStep step="CombiningIntermediateTocFiles">
 Combining conceptual and API intermediate TOC files...
 
 Clearing any prior web output
-    Last step completed in 00:00:00.2762
+    Last step completed in 00:00:00.2502
 </buildStep>
 <buildStep step="ExtractingHtmlInfo">
 Extracting HTML info for HTML Help 1 and/or website...
@@ -219,7 +219,7 @@ Processed 462 HTML files
 Sorting keywords and generating See Also indices
 Saving website keyword index to D:\Users\misard\src\dryad\XmlDoc\Help\Working\WebKI.xml
 Saving website table of contents to D:\Users\misard\src\dryad\XmlDoc\Help\Working\WebTOC.xml
-    Last step completed in 00:00:02.1078
+    Last step completed in 00:00:01.8345
 </buildStep>
 <buildStep step="CopyStandardHelpContent">
 Copying standard help content...
@@ -318,16 +318,16 @@ C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\\Web\SyncTOC.gif 
 C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\\Web\TOC.css -&gt; D:\Users\misard\src\dryad\XmlDoc\Help\Working\Output\Website\.\TOC.css
 C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\\Web\TOC.js -&gt; D:\Users\misard\src\dryad\XmlDoc\Help\Working\Output\Website\.\TOC.js
 C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\\Web\Web.Config -&gt; D:\Users\misard\src\dryad\XmlDoc\Help\Working\Output\Website\.\Web.Config
-    Last step completed in 00:00:00.4583
+    Last step completed in 00:00:00.4464
 </buildStep>
 <buildStep step="GenerateHelpFormatTableOfContents">
 Generating website table of contents file...
-    Last step completed in 00:00:00.0000
+    Last step completed in 00:00:00.0010
 </buildStep>
 <buildStep step="GenerateFullTextIndex">
 Generating full-text index for the website...
 
-    Last step completed in 00:00:01.5836
+    Last step completed in 00:00:01.4942
 </buildStep>
 <buildStep step="CopyingWebsiteFiles">
 Copying website files to output folder...
@@ -338,15 +338,15 @@ Copied 300 files
 Copied 400 files
 Copied 500 files
 Copied 587 files for the website content
-    Last step completed in 00:00:00.7045
+    Last step completed in 00:00:00.4924
 </buildStep>
 <buildStep step="CleanIntermediates">
 Removing intermediate files...
-    Last step completed in 00:00:00.3293
+    Last step completed in 00:00:00.3603
 </buildStep>
 <buildStep step="Completed">
 
-Build completed successfully at 04/17/2014 10:17 AM.  Total time: 00:00:33.3046
+Build completed successfully at 04/17/2014 10:53 AM.  Total time: 00:00:30.8807
 
 </buildStep>
 </shfbBuild>

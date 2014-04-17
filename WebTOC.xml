@@ -2,36 +2,36 @@
 <HelpTOC>
 
   <HelpTOCNode Title="Welcome to the DryadLINQ help page" Url="html/e203b95e-0737-40f6-9c16-fc84484a5bad.htm" />
-  <HelpTOCNode Id="23c97a37-0b26-4427-bbc2-af2de5e9ac2e" Title="Getting Started" Url="html/4a617e67-0920-46e4-9223-5effbac46b3d.htm">
+  <HelpTOCNode Id="e85bf8bb-e072-43bb-9fe5-1a1da24c045c" Title="Getting Started" Url="html/4a617e67-0920-46e4-9223-5effbac46b3d.htm">
     <HelpTOCNode Title="Quick Start" Url="html/e992fd94-c956-481d-82e6-dbdf45daa722.htm" />
     <HelpTOCNode Title="Setting up an HDInsight 3.0 cluster" Url="html/4aefe670-7b2b-4c05-9a65-6c60ff13c3b5.htm" />
     <HelpTOCNode Title="Building the Job Browser" Url="html/91822db3-8a00-4307-ad8a-595c94f449b0.htm" />
   </HelpTOCNode>
-  <HelpTOCNode Id="82b088a4-535c-4775-8f9d-e6095d3b9b49" Title="Resources" Url="html/1ef96122-dbe3-4815-a81f-7b5a72bf9f4f.htm">
+  <HelpTOCNode Id="70e5131e-a556-4528-a76d-dae347ae64f4" Title="Resources" Url="html/1ef96122-dbe3-4815-a81f-7b5a72bf9f4f.htm">
     <HelpTOCNode Title="Running a DryadLINQ job on HDInsight" Url="html/3596a79f-0714-43b0-b49a-ea9eeccb7326.htm" />
   </HelpTOCNode>
-  <HelpTOCNode Id="512829f4-d7ff-49bc-9d75-a668d6db9e3b" Title="Version History" Url="html/a5d9b686-8282-4120-ae0e-5a9f11a2ac0b.htm">
-    <HelpTOCNode Title="Version 0.1.1" Url="html/a2eaaf5d-f1d8-4319-844e-a458cc72e4db.htm" />
+  <HelpTOCNode Id="af1327a3-24f8-4553-92a8-f3877a9b00fa" Title="Version History" Url="html/a5d9b686-8282-4120-ae0e-5a9f11a2ac0b.htm">
+    <HelpTOCNode Title="Version 0.1.2" Url="html/a2eaaf5d-f1d8-4319-844e-a458cc72e4db.htm" />
   </HelpTOCNode>
-  <HelpTOCNode Id="99fb1391-a689-4b5a-b0df-3f0080e49ae8" Title="Microsoft.Research.DryadLinq Namespace" Url="html/efe6507e-9fd8-bbd3-8227-fd6ba9e289c1.htm">
-    <HelpTOCNode Id="10e56035-5419-4602-b944-be1b6f420ab0" Title="AssociativeAttribute Class" Url="html/d3237c01-5085-45a9-fa72-8e489a9bf480.htm">
+  <HelpTOCNode Id="af5460a8-e1d4-4dbe-9d10-2339638833fd" Title="Microsoft.Research.DryadLinq Namespace" Url="html/efe6507e-9fd8-bbd3-8227-fd6ba9e289c1.htm">
+    <HelpTOCNode Id="d3a5e7ff-755b-42d5-beed-81878b65a0a5" Title="AssociativeAttribute Class" Url="html/d3237c01-5085-45a9-fa72-8e489a9bf480.htm">
       <HelpTOCNode Title="AssociativeAttribute Constructor " Url="html/d983b9ab-497d-ab70-c9a7-6a7deba87eeb.htm" />
       <HelpTOCNode Title="AssociativeAttribute Methods" Url="html/2742392b-14df-2e20-8199-eba6eff9de1e.htm" />
-      <HelpTOCNode Id="48b5c269-1f0d-4b60-bab0-d86b5def4ad7" Title="AssociativeAttribute Properties" Url="html/68d64338-5cda-816c-965b-9e8f70c00350.htm">
+      <HelpTOCNode Id="69618ace-8db1-40cc-8174-8b05f3b0f2cf" Title="AssociativeAttribute Properties" Url="html/68d64338-5cda-816c-965b-9e8f70c00350.htm">
         <HelpTOCNode Title="AssociativeType Property " Url="html/daef2faf-6f9e-bfd4-710b-d0a00af66587.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
     <HelpTOCNode Title="CompressionScheme Enumeration" Url="html/9266635e-c3ea-7e66-528b-f44b55a2daca.htm" />
-    <HelpTOCNode Id="1ee439b6-889f-4141-b1cd-710f99997cf8" Title="CustomDryadLinqSerializerAttribute Class" Url="html/1842f60d-35dc-a934-cc36-dfa0cba934e1.htm">
+    <HelpTOCNode Id="9ae7357a-77ef-4346-be13-aace6d571999" Title="CustomDryadLinqSerializerAttribute Class" Url="html/1842f60d-35dc-a934-cc36-dfa0cba934e1.htm">
       <HelpTOCNode Title="CustomDryadLinqSerializerAttribute Constructor " Url="html/188cfe0e-30ad-5808-ecf3-69159ca7250f.htm" />
       <HelpTOCNode Title="CustomDryadLinqSerializerAttribute Methods" Url="html/fddc68e4-67ac-e5ac-4bc5-b09c806cf123.htm" />
-      <HelpTOCNode Id="b23b8950-0c31-4ce0-a92a-d7ea72bb195d" Title="CustomDryadLinqSerializerAttribute Properties" Url="html/ee419700-0f92-43f8-3218-d012d674cf28.htm">
+      <HelpTOCNode Id="1a3737a8-a03d-429d-ab5a-1d138c00aa98" Title="CustomDryadLinqSerializerAttribute Properties" Url="html/ee419700-0f92-43f8-3218-d012d674cf28.htm">
         <HelpTOCNode Title="SerializerType Property " Url="html/5a4ebe0b-dfae-da42-1c4f-3face32fbe00.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="a3c41797-be90-45d8-a614-38207a47723c" Title="DataProvider Class" Url="html/e30d9823-523d-4504-b321-4c990c768d6d.htm">
+    <HelpTOCNode Id="12651e60-60ac-4498-b010-36bb74b826f6" Title="DataProvider Class" Url="html/e30d9823-523d-4504-b321-4c990c768d6d.htm">
       <HelpTOCNode Title="DataProvider Constructor " Url="html/59154932-1406-ee03-f7cf-759e92e86ace.htm" />
-      <HelpTOCNode Id="a4c6a3fb-0c34-4163-b4fb-1f4812ddaea3" Title="DataProvider Methods" Url="html/63b737ac-d6fd-b67e-8fcc-c61cf5e14b3b.htm">
+      <HelpTOCNode Id="cf82c4e8-3d0d-41e6-97e4-9f0603414ef0" Title="DataProvider Methods" Url="html/63b737ac-d6fd-b67e-8fcc-c61cf5e14b3b.htm">
         <HelpTOCNode Title="CheckExistence Method " Url="html/7957fe73-07cf-2939-6e5e-a974e62adae3.htm" />
         <HelpTOCNode Title="Egress Method " Url="html/76dc89db-d2f7-c6b1-ee72-231a3e1881fc.htm" />
         <HelpTOCNode Title="GetMetaData Method " Url="html/03212629-8351-bc14-0918-ef18541c60f6.htm" />
@@ -42,20 +42,20 @@
         <HelpTOCNode Title="Register Method " Url="html/a75dd58d-7100-3ca7-290f-9bdb23548453.htm" />
         <HelpTOCNode Title="RewriteUri(T) Method " Url="html/325384d4-2a45-fe6c-b801-212e9d856332.htm" />
       </HelpTOCNode>
-      <HelpTOCNode Id="309b9d47-e06a-4c3c-b28b-6cf3f3f2b1c8" Title="DataProvider Properties" Url="html/cee341d1-e9b4-faf0-3556-8c93401e18be.htm">
+      <HelpTOCNode Id="ced98d4d-150d-4433-b4e2-b5bde82e3c3e" Title="DataProvider Properties" Url="html/cee341d1-e9b4-faf0-3556-8c93401e18be.htm">
         <HelpTOCNode Title="PathSeparator Property " Url="html/b858c440-72f0-0ede-cb6e-92651cf1c9e7.htm" />
         <HelpTOCNode Title="Scheme Property " Url="html/8c73442d-fbb2-4170-5d0f-2a61d34c83ca.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="fd99344c-0f03-45a1-9796-f9492fa05672" Title="DecomposableAttribute Class" Url="html/49fcc552-44b3-1cd7-9e8d-0182923c9af4.htm">
+    <HelpTOCNode Id="ebddc4a5-aef0-4432-8cce-0b79d5c3e8e7" Title="DecomposableAttribute Class" Url="html/49fcc552-44b3-1cd7-9e8d-0182923c9af4.htm">
       <HelpTOCNode Title="DecomposableAttribute Constructor " Url="html/43e39b06-dae0-8746-65d9-ad9db2814283.htm" />
       <HelpTOCNode Title="DecomposableAttribute Methods" Url="html/1634cb40-8440-9f89-4255-84fa32a3ba65.htm" />
-      <HelpTOCNode Id="57b808c9-fa17-4d7b-9e11-723374f990f6" Title="DecomposableAttribute Properties" Url="html/dfb2cde5-43c0-b931-a2ce-7dccbeb13bd3.htm">
+      <HelpTOCNode Id="0c998958-730c-4e0b-8abf-092dee8572f9" Title="DecomposableAttribute Properties" Url="html/dfb2cde5-43c0-b931-a2ce-7dccbeb13bd3.htm">
         <HelpTOCNode Title="DecompositionType Property " Url="html/788f4f30-eed5-7aa7-045f-30121da5937e.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="fc1d34c4-7ae6-4ec8-a81d-1ea484e794c0" Title="DryadLinqBinaryReader Class" Url="html/e2f6b120-72cd-d97c-d0c9-9ab1b4abb5b5.htm">
-      <HelpTOCNode Id="72d2d9b5-ef05-47b1-911c-30eae762a0bd" Title="DryadLinqBinaryReader Methods" Url="html/0f3128d9-99ac-a067-779a-bdc86f46af10.htm">
+    <HelpTOCNode Id="498d5eb0-71a6-424b-a37a-1420fa205758" Title="DryadLinqBinaryReader Class" Url="html/e2f6b120-72cd-d97c-d0c9-9ab1b4abb5b5.htm">
+      <HelpTOCNode Id="0daa8eca-495e-4524-b3bd-b59cd9767390" Title="DryadLinqBinaryReader Methods" Url="html/0f3128d9-99ac-a067-779a-bdc86f46af10.htm">
         <HelpTOCNode Title="ReadBool Method " Url="html/2ee81ea8-7bae-c5c3-321d-a2f34f52376e.htm" />
         <HelpTOCNode Title="ReadBytes Method " Url="html/40368e39-431f-8596-e970-9996a945e453.htm" />
         <HelpTOCNode Title="ReadChar Method " Url="html/f9f3883f-e817-f693-6540-03eaa31f66fe.htm" />
@@ -80,10 +80,10 @@
         <HelpTOCNode Title="ToString Method " Url="html/74d1e42c-3b08-ea09-0b8b-c841914deab0.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="d719fdb9-f742-42e3-8743-bd9c540eac94" Title="DryadLinqBinaryWriter Class" Url="html/46c3c8f6-eac2-96d5-3ff0-d837669e9557.htm">
-      <HelpTOCNode Id="ecc7a488-243d-478f-8753-6ab6561ac14b" Title="DryadLinqBinaryWriter Methods" Url="html/1ba7bd47-27c9-8c6f-b5fb-54fdfb0b382a.htm">
+    <HelpTOCNode Id="34419097-3528-414d-bbef-20ae7ae11277" Title="DryadLinqBinaryWriter Class" Url="html/46c3c8f6-eac2-96d5-3ff0-d837669e9557.htm">
+      <HelpTOCNode Id="cdaf656b-000b-4fe3-8839-fd6b09cd3121" Title="DryadLinqBinaryWriter Methods" Url="html/1ba7bd47-27c9-8c6f-b5fb-54fdfb0b382a.htm">
         <HelpTOCNode Title="ToString Method " Url="html/8b8a247b-5e60-0750-b2e2-7de2d3ed69ee.htm" />
-        <HelpTOCNode Id="56d3d6dd-a171-4eaa-a3a5-f60696b2fb39" Title="Write Method " Url="html/a520e94d-0d05-1c66-4b54-06b43eac5735.htm">
+        <HelpTOCNode Id="f81d6e5c-b003-41d0-811e-ce0819a9aba4" Title="Write Method " Url="html/a520e94d-0d05-1c66-4b54-06b43eac5735.htm">
           <HelpTOCNode Title="Write Method (Boolean)" Url="html/06abeb89-68da-4121-d33e-c40a6c5767a0.htm" />
           <HelpTOCNode Title="Write Method (Byte)" Url="html/aa695532-3e3b-1286-ced5-1e1f3753076b.htm" />
           <HelpTOCNode Title="Write Method (Char)" Url="html/1b0a7d22-63b3-062c-d1e8-dfaccece9749.htm" />
@@ -108,38 +108,38 @@
         <HelpTOCNode Title="WriteRawBytes Method " Url="html/b1ad85ba-1fa8-77de-a82a-c04f1436060d.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="27f54d5e-867f-49a4-9d7f-256d371134fa" Title="DryadLinqCluster Interface" Url="html/65be1ae5-77ef-6de4-cd1f-586d32aeb383.htm">
-      <HelpTOCNode Id="dae2651e-3348-436e-9959-5153e8c3c860" Title="DryadLinqCluster Methods" Url="html/f8778722-6751-02a4-98f6-36825c384fd7.htm">
+    <HelpTOCNode Id="5a862c00-75cb-4b7a-b05c-694c96b7f88e" Title="DryadLinqCluster Interface" Url="html/65be1ae5-77ef-6de4-cd1f-586d32aeb383.htm">
+      <HelpTOCNode Id="8ce8cec9-2cf3-45d4-ad08-1afca49b8a66" Title="DryadLinqCluster Methods" Url="html/f8778722-6751-02a4-98f6-36825c384fd7.htm">
         <HelpTOCNode Title="Client Method " Url="html/7f734680-4cdf-d557-8034-45cff61afcbc.htm" />
         <HelpTOCNode Title="MakeDefaultUri Method " Url="html/a6795b03-3dc7-3b8e-96af-20c0bf78461a.htm" />
       </HelpTOCNode>
-      <HelpTOCNode Id="027b8d40-ace7-497d-8237-7e9c840349a6" Title="DryadLinqCluster Properties" Url="html/2c8b1ff4-5681-5ffc-451d-2445a2177a8f.htm">
+      <HelpTOCNode Id="07f9af77-49f5-49fd-8811-d322b3566871" Title="DryadLinqCluster Properties" Url="html/2c8b1ff4-5681-5ffc-451d-2445a2177a8f.htm">
         <HelpTOCNode Title="DfsClient Property " Url="html/bca2414d-9eb5-0563-8c12-58b6c58effd0.htm" />
         <HelpTOCNode Title="HeadNode Property " Url="html/20b0ceec-2c28-4a0c-f876-d10e8bef2c80.htm" />
         <HelpTOCNode Title="Kind Property " Url="html/615c02e9-bed8-c196-6e0a-7db0f9bd5966.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="7f65c43b-65b6-4bb8-9a0d-95fe95ac2c53" Title="DryadLinqContext Class" Url="html/093a0025-a8c4-d1e2-a289-d3863b1a845f.htm">
-      <HelpTOCNode Id="16fa77be-1329-4bac-a8b3-3a0539fc7b7e" Title="DryadLinqContext Constructor " Url="html/93cf83b3-2042-bd63-c168-e4ef7f7994bc.htm">
+    <HelpTOCNode Id="5fb916e8-510f-47a7-8b61-45043ab7d127" Title="DryadLinqContext Class" Url="html/093a0025-a8c4-d1e2-a289-d3863b1a845f.htm">
+      <HelpTOCNode Id="a109f95e-9e80-4155-b722-e313f89a54f4" Title="DryadLinqContext Constructor " Url="html/93cf83b3-2042-bd63-c168-e4ef7f7994bc.htm">
         <HelpTOCNode Title="DryadLinqContext Constructor (DryadLinqCluster)" Url="html/7eed4ffa-872c-28db-b869-d39cd3277b45.htm" />
         <HelpTOCNode Title="DryadLinqContext Constructor (Int32, String)" Url="html/c7d60fb2-867b-688c-9429-3cf46ed008e3.htm" />
         <HelpTOCNode Title="DryadLinqContext Constructor (String, PlatformKind)" Url="html/d59f82a7-d32d-f25d-d836-3f4605133e99.htm" />
       </HelpTOCNode>
-      <HelpTOCNode Id="c43d80f9-0209-4002-9e05-bffbf1e40b70" Title="DryadLinqContext Methods" Url="html/0d63a0c3-846a-e70d-6184-23387d3a9160.htm">
+      <HelpTOCNode Id="f713af7a-78eb-47a2-b611-1ba6a49fa627" Title="DryadLinqContext Methods" Url="html/0d63a0c3-846a-e70d-6184-23387d3a9160.htm">
         <HelpTOCNode Title="AzureAccountKey Method " Url="html/2d28ac74-38d0-f39d-2a5b-879b8089889b.htm" />
         <HelpTOCNode Title="ClientVersion Method " Url="html/c441f14e-35fd-3f66-3e98-95bba06f8461.htm" />
         <HelpTOCNode Title="Dispose Method " Url="html/adbb7cea-3cd7-a024-d14b-35fc87b257a7.htm" />
-        <HelpTOCNode Id="3020639d-db95-452b-a642-c01135821277" Title="Equals Method " Url="html/13cce920-2cb3-0614-4d48-34257614f24f.htm">
+        <HelpTOCNode Id="cccac0d3-6a4d-4aeb-9610-7084733ad469" Title="Equals Method " Url="html/13cce920-2cb3-0614-4d48-34257614f24f.htm">
           <HelpTOCNode Title="Equals Method (DryadLinqContext)" Url="html/29860ba9-7870-df8e-9abf-ee6b5441fdcc.htm" />
         </HelpTOCNode>
         <HelpTOCNode Title="FromEnumerable(T) Method " Url="html/3f22686d-c67f-2db6-f48b-73e16e30652b.htm" />
-        <HelpTOCNode Id="81294d9f-3b50-4fd3-ab54-19d2d14eeace" Title="FromStore Method " Url="html/bb6433fa-fa92-45b8-b706-1ac9fc37d063.htm">
+        <HelpTOCNode Id="30e61823-715f-478b-bb80-8ed14431fca0" Title="FromStore Method " Url="html/bb6433fa-fa92-45b8-b706-1ac9fc37d063.htm">
           <HelpTOCNode Title="FromStore(T) Method (String)" Url="html/c000253c-a00e-58a3-d16c-d58bee051b6e.htm" />
           <HelpTOCNode Title="FromStore(T) Method (Uri)" Url="html/f7de5c1e-ed36-fdf6-7ee7-ffb58d2ea979.htm" />
         </HelpTOCNode>
         <HelpTOCNode Title="RegisterAzureAccount Method " Url="html/17d622f1-6799-aeab-3637-9d66a4d79f0b.htm" />
       </HelpTOCNode>
-      <HelpTOCNode Id="b7bbcdec-a622-4f44-a947-c5f1575eb8fe" Title="DryadLinqContext Properties" Url="html/ab8e84a0-8f4c-1d6b-a30a-c7ff0d76094b.htm">
+      <HelpTOCNode Id="0ed7b5a7-6ea8-485e-9dc5-9651d582dda2" Title="DryadLinqContext Properties" Url="html/ab8e84a0-8f4c-1d6b-a30a-c7ff0d76094b.htm">
         <HelpTOCNode Title="CompileForVertexDebugging Property " Url="html/06266f74-a819-017c-e03f-0f9761a28c52.htm" />
         <HelpTOCNode Title="DebugBreak Property " Url="html/0bc5d95a-ef00-1073-ac66-8aa04e76bea4.htm" />
         <HelpTOCNode Title="DryadHomeDirectory Property " Url="html/1a3367ed-b951-d562-fbbc-4da581fb22ff.htm" />
@@ -171,49 +171,49 @@
         <HelpTOCNode Title="SelectOrderPreserving Property " Url="html/17d9d840-e581-26d0-9aaf-16ca5687adda.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="3affd16f-5f40-4d37-96a5-4be939b021ca" Title="DryadLinqException Class" Url="html/692e14c6-46ed-baaf-6b0f-b36cb74fe616.htm">
-      <HelpTOCNode Id="51c688c5-6340-4dda-9d88-55ea4cd14f84" Title="DryadLinqException Constructor " Url="html/3ae48862-5298-892f-b8fb-33cbc99551da.htm">
+    <HelpTOCNode Id="84d9cc09-a03a-4632-874e-3ae057c1631b" Title="DryadLinqException Class" Url="html/692e14c6-46ed-baaf-6b0f-b36cb74fe616.htm">
+      <HelpTOCNode Id="a92a8612-a8b6-4a24-a480-1cd463b888f6" Title="DryadLinqException Constructor " Url="html/3ae48862-5298-892f-b8fb-33cbc99551da.htm">
         <HelpTOCNode Title="DryadLinqException Constructor (String)" Url="html/7c0701b8-0d6a-ad81-a4f9-4215c1222d35.htm" />
         <HelpTOCNode Title="DryadLinqException Constructor (SerializationInfo, StreamingContext)" Url="html/c06ec97a-7ab5-c5f1-fd05-ea2def8d9565.htm" />
         <HelpTOCNode Title="DryadLinqException Constructor (String, Exception)" Url="html/854880fe-b894-acd2-dfde-1e2e38eb45af.htm" />
       </HelpTOCNode>
-      <HelpTOCNode Id="ecd49731-1dd1-4c38-a080-17db3297e086" Title="DryadLinqException Methods" Url="html/0d08006d-22e5-4a13-1882-0209adfb201b.htm">
+      <HelpTOCNode Id="8b9b5fc4-09d7-4336-9634-2fa0f9b9d603" Title="DryadLinqException Methods" Url="html/0d08006d-22e5-4a13-1882-0209adfb201b.htm">
         <HelpTOCNode Title="GetObjectData Method " Url="html/677e55a4-eaa4-2887-7257-555abf78300e.htm" />
       </HelpTOCNode>
-      <HelpTOCNode Id="c9bf3a00-baf7-47c4-8473-27738a236440" Title="DryadLinqException Properties" Url="html/7f1a363f-43b1-26c1-963c-7702593b2615.htm">
+      <HelpTOCNode Id="077d9a27-11a0-434e-bdf5-2b6ac9f21760" Title="DryadLinqException Properties" Url="html/7f1a363f-43b1-26c1-963c-7702593b2615.htm">
         <HelpTOCNode Title="ErrorCode Property " Url="html/56710010-4bb7-345f-c29b-7eeb00164b0e.htm" />
       </HelpTOCNode>
       <HelpTOCNode Title="DryadLinqException Events" Url="html/77634612-83a1-5a40-7973-0a7a229e468d.htm" />
     </HelpTOCNode>
-    <HelpTOCNode Id="d5bca3c9-5e92-41f1-a19c-d2affa4240e7" Title="DryadLinqExtension Class" Url="html/d83d6168-067a-d431-aaf5-3d9515eff360.htm">
-      <HelpTOCNode Id="4f0c0b35-57ba-41ca-b3b4-affe93b494c6" Title="DryadLinqExtension Methods" Url="html/c52687c7-a7dd-36fc-2e87-b01f8d8fb652.htm">
-        <HelpTOCNode Id="3dadcad0-336b-4a26-bf66-a7bdef4316d7" Title="BroadCast Method " Url="html/cc46bb36-e5ca-8273-a411-4f6b54885a8b.htm">
+    <HelpTOCNode Id="f1076c83-b11a-4bcc-bb23-d78ef8afcfb0" Title="DryadLinqExtension Class" Url="html/d83d6168-067a-d431-aaf5-3d9515eff360.htm">
+      <HelpTOCNode Id="293cdb4a-5227-4ec4-9a1a-b6b10c1573eb" Title="DryadLinqExtension Methods" Url="html/c52687c7-a7dd-36fc-2e87-b01f8d8fb652.htm">
+        <HelpTOCNode Id="223d11c2-c44e-45e8-8659-5dccde405231" Title="BroadCast Method " Url="html/cc46bb36-e5ca-8273-a411-4f6b54885a8b.htm">
           <HelpTOCNode Title="BroadCast(T) Method (IQueryable(T), Int32)" Url="html/94f192e1-af7a-809b-4939-80890958945b.htm" />
           <HelpTOCNode Title="BroadCast(T, T1) Method (IQueryable(T), IQueryable(T1))" Url="html/e05d0998-2488-a010-a996-701d268f5c51.htm" />
         </HelpTOCNode>
         <HelpTOCNode Title="CheckOrderBy(TSource, TKey) Method " Url="html/895403fc-6f72-5cdc-76c0-ec7fdd32d923.htm" />
         <HelpTOCNode Title="CrossProduct(T1, T2, T3) Method " Url="html/d5302869-185b-30a0-e61a-0b95888c6be9.htm" />
-        <HelpTOCNode Id="f91fc80e-048d-4af0-ae32-93a088d34232" Title="DoWhile Method " Url="html/e453d0ea-ad38-4d2b-20e0-6d48fb35e1b5.htm">
+        <HelpTOCNode Id="5726eefc-97b4-44b8-b9a7-5dba5e32be44" Title="DoWhile Method " Url="html/e453d0ea-ad38-4d2b-20e0-6d48fb35e1b5.htm">
           <HelpTOCNode Title="DoWhile(T) Method (IQueryable(T), Func(IQueryable(T), IQueryable(T)), Func(IQueryable(T), IQueryable(T), IQueryable(Boolean)))" Url="html/267f053f-e105-22da-4c71-d345f585b80c.htm" />
           <HelpTOCNode Title="DoWhile(T) Method (IQueryable(T), Func(IQueryable(T), IQueryable(T)), Func(IQueryable(T), IQueryable(T), IQueryable(Boolean)), Int32)" Url="html/c9592db7-ab41-e3b6-f10b-2d066022802b.htm" />
         </HelpTOCNode>
         <HelpTOCNode Title="MapReduce(TSource, TMap, TKey, TResult) Method " Url="html/6613acc6-d94d-28ed-f5ce-28ad5967f7f0.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="9730139f-e26d-4784-ad27-6ad432b847c3" Title="DryadLinqJobInfo Class" Url="html/1286706e-b13a-d4da-31b6-a8e9095728c7.htm">
-      <HelpTOCNode Id="bc074b78-2de5-4249-b8f9-70480b992fbe" Title="DryadLinqJobInfo Methods" Url="html/a1383e04-1dc0-9ec0-9699-d7532bc3fe18.htm">
+    <HelpTOCNode Id="639bb57c-1082-4996-9cbe-e0a90034dfe2" Title="DryadLinqJobInfo Class" Url="html/1286706e-b13a-d4da-31b6-a8e9095728c7.htm">
+      <HelpTOCNode Id="c05452af-1fba-43a2-9a81-7ea6a78345e8" Title="DryadLinqJobInfo Methods" Url="html/a1383e04-1dc0-9ec0-9699-d7532bc3fe18.htm">
         <HelpTOCNode Title="CancelJob Method " Url="html/da218c9d-8317-6573-83b6-ac6c2264c47e.htm" />
         <HelpTOCNode Title="Wait Method " Url="html/7ffb4590-0ee6-b22c-d148-d971fb69f7c8.htm" />
       </HelpTOCNode>
-      <HelpTOCNode Id="0f23d537-28e7-4eb8-89cd-dccc2cab63a1" Title="DryadLinqJobInfo Properties" Url="html/06fee6ad-aae4-3914-38a5-269ea8886d4a.htm">
+      <HelpTOCNode Id="7b1da02d-748b-44fe-bb12-a3329b4f7e51" Title="DryadLinqJobInfo Properties" Url="html/06fee6ad-aae4-3914-38a5-269ea8886d4a.htm">
         <HelpTOCNode Title="JobIds Property " Url="html/6ead0e05-329b-6672-cf9b-b13587e53520.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="2c0016b8-11e1-4f0b-b3c1-7275d462aeba" Title="DryadLinqLog Class" Url="html/85ce5a97-d2bb-bd50-ca58-f017d3769b7c.htm">
-      <HelpTOCNode Id="ed6837c8-aebc-4b18-b459-612c41cc1d9b" Title="DryadLinqLog Fields" Url="html/a95d75cb-8a35-9b13-14a4-ad132a7215e0.htm">
+    <HelpTOCNode Id="7576e103-fccd-40bc-98e3-fad409827bc5" Title="DryadLinqLog Class" Url="html/85ce5a97-d2bb-bd50-ca58-f017d3769b7c.htm">
+      <HelpTOCNode Id="d6d23bef-e174-4bb7-a4d9-05d6a43b101f" Title="DryadLinqLog Fields" Url="html/a95d75cb-8a35-9b13-14a4-ad132a7215e0.htm">
         <HelpTOCNode Title="Level Field" Url="html/185c1846-bd97-af24-9a74-6b5679232636.htm" />
       </HelpTOCNode>
-      <HelpTOCNode Id="2e9ece76-8172-486a-8a08-29226e8c4458" Title="DryadLinqLog Methods" Url="html/540e37fb-9c0d-9095-78c7-778e6938db6d.htm">
+      <HelpTOCNode Id="c9b4a87e-023e-4d87-8532-59f47a44cd5d" Title="DryadLinqLog Methods" Url="html/540e37fb-9c0d-9095-78c7-778e6938db6d.htm">
         <HelpTOCNode Title="AddCritical Method " Url="html/fb0017d4-2002-13a0-845c-9c86972f6404.htm" />
         <HelpTOCNode Title="AddError Method " Url="html/6d667751-03f2-3777-378f-dc995f109148.htm" />
         <HelpTOCNode Title="AddInfo Method " Url="html/36d5998d-a061-1d6e-c67a-3bc77cf7a1ed.htm" />
@@ -221,53 +221,53 @@
         <HelpTOCNode Title="AddWarning Method " Url="html/a78f10bf-2daf-79ab-cb29-8319316d39f7.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="30afead4-f544-4bd8-9891-2fce1cb6ed0b" Title="DryadLinqMetaData Class" Url="html/5e3ae825-91af-0ff7-6ae4-f98f18bd6e58.htm">
+    <HelpTOCNode Id="f292463c-645f-4d7f-9d4c-800d04928f85" Title="DryadLinqMetaData Class" Url="html/5e3ae825-91af-0ff7-6ae4-f98f18bd6e58.htm">
       <HelpTOCNode Title="DryadLinqMetaData Methods" Url="html/44eb96bb-a236-19b9-5ff3-aff6a5f2728e.htm" />
     </HelpTOCNode>
-    <HelpTOCNode Id="6f46a243-bc7c-47ef-a53e-7d73e1fbb9cc" Title="DryadLinqQueryable Class" Url="html/6d67ec6b-96ed-0a8b-0ad4-1c0568c7bf91.htm">
-      <HelpTOCNode Id="68f0ed10-e600-4e1c-b770-dec9f9991868" Title="DryadLinqQueryable Methods" Url="html/a09bbd62-c781-673f-1297-a71a44f264bf.htm">
-        <HelpTOCNode Id="5fba7a6e-facb-4a35-8829-289989a5812c" Title="Aggregate Method " Url="html/c0f6970e-9d7d-0f05-99ec-aea86dd3901d.htm">
+    <HelpTOCNode Id="6867c8fb-9c40-481f-88a4-91ad8f3268e3" Title="DryadLinqQueryable Class" Url="html/6d67ec6b-96ed-0a8b-0ad4-1c0568c7bf91.htm">
+      <HelpTOCNode Id="22648dc8-42dc-46e1-a4a2-c27bae576450" Title="DryadLinqQueryable Methods" Url="html/a09bbd62-c781-673f-1297-a71a44f264bf.htm">
+        <HelpTOCNode Id="982deae0-7f03-42cf-af77-0692f8ee6a85" Title="Aggregate Method " Url="html/c0f6970e-9d7d-0f05-99ec-aea86dd3901d.htm">
           <HelpTOCNode Title="Aggregate(TSource, TAccumulate) Method (IQueryable(TSource), Expression(Func(TAccumulate)), Expression(Func(TAccumulate, TSource, TAccumulate)))" Url="html/5ce051ae-e7dd-780d-b4c0-36d01ca8c7c5.htm" />
           <HelpTOCNode Title="Aggregate(TSource, TAccumulate, TResult) Method (IQueryable(TSource), Expression(Func(TAccumulate)), Expression(Func(TAccumulate, TSource, TAccumulate)), Expression(Func(TAccumulate, TResult)))" Url="html/da78cce5-ac5d-fbb6-a6be-b1fc45f73240.htm" />
         </HelpTOCNode>
-        <HelpTOCNode Id="68c87081-fb4e-46b4-b19b-80d879a827b8" Title="AggregateAsQuery Method " Url="html/6cd1fdb7-0be2-f40e-96a7-266629debe2e.htm">
+        <HelpTOCNode Id="488cf330-c2b1-47ce-ad74-268bad3a020c" Title="AggregateAsQuery Method " Url="html/6cd1fdb7-0be2-f40e-96a7-266629debe2e.htm">
           <HelpTOCNode Title="AggregateAsQuery(TSource) Method (IQueryable(TSource), Expression(Func(TSource, TSource, TSource)))" Url="html/96e77bda-5af9-0f63-59c6-cf69a1ae6aad.htm" />
           <HelpTOCNode Title="AggregateAsQuery(TSource, TAccumulate) Method (IQueryable(TSource), TAccumulate, Expression(Func(TAccumulate, TSource, TAccumulate)))" Url="html/efef2462-44c3-4c23-335e-654ee84f766f.htm" />
           <HelpTOCNode Title="AggregateAsQuery(TSource, TAccumulate, TResult) Method (IQueryable(TSource), TAccumulate, Expression(Func(TAccumulate, TSource, TAccumulate)), Expression(Func(TAccumulate, TResult)))" Url="html/aef29ac6-8d87-4f66-74a9-aa2efc7afcbc.htm" />
         </HelpTOCNode>
         <HelpTOCNode Title="AllAsQuery(TSource) Method " Url="html/e15e3251-3443-58ca-7e56-f1a9abf0e18e.htm" />
-        <HelpTOCNode Id="f164f8f5-89e4-41e6-9551-e1c82a91c9f8" Title="AnyAsQuery Method " Url="html/65e4aa00-0ceb-92d0-9f0f-653938c30ace.htm">
+        <HelpTOCNode Id="b9d3c430-743c-4799-9f95-99f3ae24085f" Title="AnyAsQuery Method " Url="html/65e4aa00-0ceb-92d0-9f0f-653938c30ace.htm">
           <HelpTOCNode Title="AnyAsQuery(TSource) Method (IQueryable(TSource))" Url="html/ff2da2fb-3aa8-6711-b58a-f3ba59d560ee.htm" />
           <HelpTOCNode Title="AnyAsQuery(TSource) Method (IQueryable(TSource), Expression(Func(TSource, Boolean)))" Url="html/a9abc979-77eb-0136-f779-985e2c4fb033.htm" />
         </HelpTOCNode>
-        <HelpTOCNode Id="4e17ad28-49dc-4c2f-8607-35d1da3bb9fb" Title="Apply Method " Url="html/b3becad6-86fb-857e-5ee5-295a2d23b663.htm">
+        <HelpTOCNode Id="5fce01a1-d609-4eaa-853d-5d5e47aa75f3" Title="Apply Method " Url="html/b3becad6-86fb-857e-5ee5-295a2d23b663.htm">
           <HelpTOCNode Title="Apply(T1, T2) Method (IQueryable(T1), Expression(Func(IEnumerable(T1), IEnumerable(T2))))" Url="html/dca1d561-3c90-238e-7d31-b4983b0b21f2.htm" />
           <HelpTOCNode Title="Apply(T1, T2) Method (IQueryable(T1), IQueryable[], Expression(Func(IEnumerable(T1), IEnumerable[], IEnumerable(T2))))" Url="html/bc38ce8c-386d-bdb4-b3b4-cd001206823c.htm" />
           <HelpTOCNode Title="Apply(T1, T2) Method (IQueryable(T1), IQueryable(T1)[], Expression(Func(IEnumerable(T1)[], IEnumerable(T2))))" Url="html/005a51b3-d88c-6ff3-7f8d-fadf5ad2435c.htm" />
           <HelpTOCNode Title="Apply(T1, T2, T3) Method (IQueryable(T1), IQueryable(T2), Expression(Func(IEnumerable(T1), IEnumerable(T2), IEnumerable(T3))))" Url="html/81ad61a3-de30-2d6b-fa09-d07c875dc591.htm" />
         </HelpTOCNode>
-        <HelpTOCNode Id="8456d4c6-915c-4611-bc6b-575fdec1542f" Title="ApplyPerPartition Method " Url="html/072ffb1e-75fa-7aa1-fb37-b34393ddcab4.htm">
+        <HelpTOCNode Id="b68b93b1-67a1-4ef0-aa66-375377f86f5f" Title="ApplyPerPartition Method " Url="html/072ffb1e-75fa-7aa1-fb37-b34393ddcab4.htm">
           <HelpTOCNode Title="ApplyPerPartition(T1, T2) Method (IQueryable(T1), Expression(Func(IEnumerable(T1), IEnumerable(T2))))" Url="html/09443df1-c90c-bb8f-a15e-b24dadb75fe3.htm" />
           <HelpTOCNode Title="ApplyPerPartition(T1, T2) Method (IQueryable(T1), IQueryable[], Expression(Func(IEnumerable(T1), IEnumerable[], IEnumerable(T2))), Boolean)" Url="html/90ac62ab-f2ae-1077-2afc-ee91c36c9b9d.htm" />
           <HelpTOCNode Title="ApplyPerPartition(T1, T2) Method (IQueryable(T1), IQueryable(T1)[], Expression(Func(IEnumerable(T1)[], IEnumerable(T2))), Boolean)" Url="html/e4b24cc1-7a50-2b77-cae2-1a9f5c3e2966.htm" />
           <HelpTOCNode Title="ApplyPerPartition(T1, T2, T3) Method (IQueryable(T1), IQueryable(T2), Expression(Func(IEnumerable(T1), IEnumerable(T2), IEnumerable(T3))), Boolean)" Url="html/714968d4-cbe3-f362-8dbc-b3ca0c050592.htm" />
         </HelpTOCNode>
         <HelpTOCNode Title="ApplyWithPartitionIndex(T1, T2) Method " Url="html/a88c1234-7c0c-d694-11e5-b47c155fdc94.htm" />
-        <HelpTOCNode Id="9bc5c67f-2b89-4956-9b74-5012c84b38e1" Title="AssumeHashPartition Method " Url="html/0fe358e3-5219-60c4-1a15-c77bd51338f7.htm">
+        <HelpTOCNode Id="a80b9e14-4e56-4847-8c26-3e77f43d0c46" Title="AssumeHashPartition Method " Url="html/0fe358e3-5219-60c4-1a15-c77bd51338f7.htm">
           <HelpTOCNode Title="AssumeHashPartition(TSource, TKey) Method (IQueryable(TSource), Expression(Func(TSource, TKey)))" Url="html/716d5b8d-5259-d16d-b992-b3fa53e3c9d1.htm" />
           <HelpTOCNode Title="AssumeHashPartition(TSource, TKey) Method (IQueryable(TSource), Expression(Func(TSource, TKey)), IEqualityComparer(TKey))" Url="html/788057c6-6e61-982a-d575-543e2522121e.htm" />
         </HelpTOCNode>
-        <HelpTOCNode Id="c9a28441-b422-4424-82d3-129a4b99b1b6" Title="AssumeOrderBy Method " Url="html/98cee862-bd46-4244-cdbe-0783a9474bd5.htm">
+        <HelpTOCNode Id="17f30bdf-6b1f-4d50-bdd5-89f75e4d1a87" Title="AssumeOrderBy Method " Url="html/98cee862-bd46-4244-cdbe-0783a9474bd5.htm">
           <HelpTOCNode Title="AssumeOrderBy(TSource, TKey) Method (IQueryable(TSource), Expression(Func(TSource, TKey)), Boolean)" Url="html/38eade5e-69de-fc88-75ce-469053a87f53.htm" />
           <HelpTOCNode Title="AssumeOrderBy(TSource, TKey) Method (IQueryable(TSource), Expression(Func(TSource, TKey)), IComparer(TKey), Boolean)" Url="html/88c80170-22c6-d017-acec-a28879b41e84.htm" />
         </HelpTOCNode>
-        <HelpTOCNode Id="0261a510-70ee-48f2-b367-a4c0742c3be6" Title="AssumeRangePartition Method " Url="html/05317da6-b361-379e-397d-e34d85c6856d.htm">
+        <HelpTOCNode Id="e592a323-55f5-43cb-a762-4f70446e98ea" Title="AssumeRangePartition Method " Url="html/05317da6-b361-379e-397d-e34d85c6856d.htm">
           <HelpTOCNode Title="AssumeRangePartition(TSource, TKey) Method (IQueryable(TSource), Expression(Func(TSource, TKey)), Boolean)" Url="html/5e7665b9-2edd-f06b-379f-2f6b84970870.htm" />
           <HelpTOCNode Title="AssumeRangePartition(TSource, TKey) Method (IQueryable(TSource), Expression(Func(TSource, TKey)), TKey[])" Url="html/f4bf1d22-a963-dab9-a715-09ec09cb78d0.htm" />
           <HelpTOCNode Title="AssumeRangePartition(TSource, TKey) Method (IQueryable(TSource), Expression(Func(TSource, TKey)), IComparer(TKey), Boolean)" Url="html/750d7563-286e-f1ce-7a49-320d5e20911a.htm" />
           <HelpTOCNode Title="AssumeRangePartition(TSource, TKey) Method (IQueryable(TSource), Expression(Func(TSource, TKey)), TKey[], IComparer(TKey))" Url="html/310f517f-7d39-3fcd-42d8-a30e2f015c94.htm" />
         </HelpTOCNode>
-        <HelpTOCNode Id="b8a021d0-5fef-4672-ab72-b1d8ab76a2a6" Title="AverageAsQuery Method " Url="html/1b4e9327-9b61-e353-0051-d36bb399ce3e.htm">
+        <HelpTOCNode Id="d77654ba-1970-4d2c-a1f6-b52c53da0d47" Title="AverageAsQuery Method " Url="html/1b4e9327-9b61-e353-0051-d36bb399ce3e.htm">
           <HelpTOCNode Title="AverageAsQuery Method (IQueryable(Decimal))" Url="html/a173f444-9a31-9410-db35-8c5e3e268910.htm" />
           <HelpTOCNode Title="AverageAsQuery Method (IQueryable(Double))" Url="html/796dc26e-5648-e8cf-a910-ca39c7dc6d94.htm" />
           <HelpTOCNode Title="AverageAsQuery Method (IQueryable(Int32))" Url="html/092201f1-5901-0976-887e-a1f961caaf66.htm" />
@@ -289,27 +289,27 @@
           <HelpTOCNode Title="AverageAsQuery(TSource) Method (IQueryable(TSource), Expression(Func(TSource, Nullable(Single))))" Url="html/5fa81715-d54e-e16c-f4a9-81af44d67811.htm" />
           <HelpTOCNode Title="AverageAsQuery(TSource) Method (IQueryable(TSource), Expression(Func(TSource, Single)))" Url="html/43b7325b-3c83-5705-be5e-7c7561f33bcc.htm" />
         </HelpTOCNode>
-        <HelpTOCNode Id="d609968a-9add-4e47-be4a-80393cf663c8" Title="ContainsAsQuery Method " Url="html/79406ffb-6664-636a-bd34-d80965d38172.htm">
+        <HelpTOCNode Id="7c052be9-caa2-48b9-bbba-1b289c49895d" Title="ContainsAsQuery Method " Url="html/79406ffb-6664-636a-bd34-d80965d38172.htm">
           <HelpTOCNode Title="ContainsAsQuery(TSource) Method (IQueryable(TSource), TSource)" Url="html/f5e0d6a7-dab3-246a-1374-c352c2cc95ab.htm" />
           <HelpTOCNode Title="ContainsAsQuery(TSource) Method (IQueryable(TSource), TSource, IEqualityComparer(TSource))" Url="html/a70f28e9-7898-7b06-cdc9-1ac10ae0b9a5.htm" />
         </HelpTOCNode>
-        <HelpTOCNode Id="81866a7c-8d7f-4aa3-bad4-9d93c0b15bf3" Title="CountAsQuery Method " Url="html/b26b8681-c9eb-e216-6c54-d34454d3dd80.htm">
+        <HelpTOCNode Id="d7b5d937-3b46-4564-9e60-0288f5c93a1c" Title="CountAsQuery Method " Url="html/b26b8681-c9eb-e216-6c54-d34454d3dd80.htm">
           <HelpTOCNode Title="CountAsQuery(TSource) Method (IQueryable(TSource))" Url="html/b77739be-8bda-d64b-4dbb-01c41b1ae9fc.htm" />
           <HelpTOCNode Title="CountAsQuery(TSource) Method (IQueryable(TSource), Expression(Func(TSource, Boolean)))" Url="html/2d841b14-7689-159f-de0d-9a875506fd33.htm" />
         </HelpTOCNode>
         <HelpTOCNode Title="DoWhile(T) Method " Url="html/d0d82a69-b3db-d19d-8def-edc5457aca2e.htm" />
-        <HelpTOCNode Id="3a94069c-caca-42bb-b0be-c5853532acbf" Title="FirstAsQuery Method " Url="html/9af8461f-bf9b-b3fe-d9f0-0e03dffb3a85.htm">
+        <HelpTOCNode Id="4b59b040-acf6-457c-8335-97b23bc98879" Title="FirstAsQuery Method " Url="html/9af8461f-bf9b-b3fe-d9f0-0e03dffb3a85.htm">
           <HelpTOCNode Title="FirstAsQuery(TSource) Method (IQueryable(TSource))" Url="html/596279c8-3cec-4a87-cc37-c6d8207c5a48.htm" />
           <HelpTOCNode Title="FirstAsQuery(TSource) Method (IQueryable(TSource), Expression(Func(TSource, Boolean)))" Url="html/0b5ec7e8-a29f-e104-b8c6-56d15489af32.htm" />
         </HelpTOCNode>
-        <HelpTOCNode Id="977add3e-a4b0-4308-8aa6-4a3d47ae0a7d" Title="Fork Method " Url="html/7f3c4d7e-cc6a-3e04-2d17-ad817bc05ccb.htm">
+        <HelpTOCNode Id="afe9eafa-27c0-4d93-bdf4-0938c758474f" Title="Fork Method " Url="html/7f3c4d7e-cc6a-3e04-2d17-ad817bc05ccb.htm">
           <HelpTOCNode Title="Fork(T, R1, R2) Method (IQueryable(T), Expression(Func(IEnumerable(T), IEnumerable(ForkTuple(R1, R2)))))" Url="html/7efe26f6-2ba5-a153-1022-ecec752e281d.htm" />
           <HelpTOCNode Title="Fork(T, R1, R2, R3) Method (IQueryable(T), Expression(Func(IEnumerable(T), IEnumerable(ForkTuple(R1, R2, R3)))))" Url="html/ee0cde94-6965-9695-b25e-1ca1db55bb78.htm" />
           <HelpTOCNode Title="Fork(T, R1, R2) Method (IQueryable(T), Expression(Func(T, ForkTuple(R1, R2))))" Url="html/cb9b0765-8920-603b-6b65-7b61153384f8.htm" />
           <HelpTOCNode Title="Fork(T, R1, R2, R3) Method (IQueryable(T), Expression(Func(T, ForkTuple(R1, R2, R3))))" Url="html/6058d142-d1ca-63d1-73e1-43d62118b44c.htm" />
           <HelpTOCNode Title="Fork(TSource, TKey) Method (IQueryable(TSource), Expression(Func(TSource, TKey)), TKey[])" Url="html/c0dd673a-3a38-6030-54f0-dab156c26679.htm" />
         </HelpTOCNode>
-        <HelpTOCNode Id="122afe23-3672-4dea-9c09-95364422334c" Title="HashPartition Method " Url="html/1d3ec0f6-3549-a859-323d-eaa072b59745.htm">
+        <HelpTOCNode Id="e3deabb3-de99-418f-bcc7-4235d6288da0" Title="HashPartition Method " Url="html/1d3ec0f6-3549-a859-323d-eaa072b59745.htm">
           <HelpTOCNode Title="HashPartition(TSource, TKey) Method (IQueryable(TSource), Expression(Func(TSource, TKey)))" Url="html/c4c35f69-39cf-eb7b-6eb5-cca89036da1e.htm" />
           <HelpTOCNode Title="HashPartition(TSource, TKey) Method (IQueryable(TSource), Expression(Func(TSource, TKey)), IEqualityComparer(TKey))" Url="html/63cd5e2d-5e8a-0f8c-44c7-2a22fc2bc534.htm" />
           <HelpTOCNode Title="HashPartition(TSource, TKey) Method (IQueryable(TSource), Expression(Func(TSource, TKey)), Int32)" Url="html/84c12c93-d339-8f2f-446d-3a528a2e0927.htm" />
@@ -317,31 +317,31 @@
           <HelpTOCNode Title="HashPartition(TSource, TKey) Method (IQueryable(TSource), Expression(Func(TSource, TKey)), IEqualityComparer(TKey), Int32)" Url="html/7e999dcc-cf11-288a-27d8-bc029e4152a8.htm" />
           <HelpTOCNode Title="HashPartition(TSource, TKey, TResult) Method (IQueryable(TSource), Expression(Func(TSource, TKey)), IEqualityComparer(TKey), Expression(Func(TSource, TResult)))" Url="html/ee049bec-6bfb-fb7f-3707-a411d85f477a.htm" />
         </HelpTOCNode>
-        <HelpTOCNode Id="b6c0461a-c172-481d-b72e-2692c5152ec0" Title="LastAsQuery Method " Url="html/5b19d6a4-77d1-1e89-dfc2-d28d904f0856.htm">
+        <HelpTOCNode Id="9710e4dd-35ac-4139-a845-24655a1e25eb" Title="LastAsQuery Method " Url="html/5b19d6a4-77d1-1e89-dfc2-d28d904f0856.htm">
           <HelpTOCNode Title="LastAsQuery(TSource) Method (IQueryable(TSource))" Url="html/29d41f10-4912-b1e5-7e48-1e2c9ba3863a.htm" />
           <HelpTOCNode Title="LastAsQuery(TSource) Method (IQueryable(TSource), Expression(Func(TSource, Boolean)))" Url="html/ddcd8c8c-d6d2-b5a1-9787-5b4b8ce4e955.htm" />
         </HelpTOCNode>
-        <HelpTOCNode Id="6c6703b4-8fa3-4360-929a-e31267a9010f" Title="LongCountAsQuery Method " Url="html/6bc2eb5c-4e5c-228f-d4e6-420163ae5b5d.htm">
+        <HelpTOCNode Id="08e2b576-92e3-4440-b07c-431bfd276f82" Title="LongCountAsQuery Method " Url="html/6bc2eb5c-4e5c-228f-d4e6-420163ae5b5d.htm">
           <HelpTOCNode Title="LongCountAsQuery(TSource) Method (IQueryable(TSource))" Url="html/340e9506-802c-808f-6e03-21a9594cd219.htm" />
           <HelpTOCNode Title="LongCountAsQuery(TSource) Method (IQueryable(TSource), Expression(Func(TSource, Boolean)))" Url="html/89ef2df9-d9b6-a0c1-cbcf-bbe538329437.htm" />
         </HelpTOCNode>
         <HelpTOCNode Title="LongSelect(TSource, TResult) Method " Url="html/4479c8c4-d7b5-0a9a-f6ad-740afffa2969.htm" />
-        <HelpTOCNode Id="548bb6b9-c676-47ac-ac7d-5780f5431872" Title="LongSelectMany Method " Url="html/241043ae-a90b-3cca-80f6-71bc570453fd.htm">
+        <HelpTOCNode Id="ff4617c5-c9ab-49b3-9367-2e37136ffda3" Title="LongSelectMany Method " Url="html/241043ae-a90b-3cca-80f6-71bc570453fd.htm">
           <HelpTOCNode Title="LongSelectMany(TSource, TResult) Method (IQueryable(TSource), Expression(Func(TSource, Int64, IEnumerable(TResult))))" Url="html/b06131d8-0ce4-6292-8d07-3a97f0b13626.htm" />
           <HelpTOCNode Title="LongSelectMany(TSource, TCollection, TResult) Method (IQueryable(TSource), Expression(Func(TSource, Int64, IEnumerable(TCollection))), Expression(Func(TSource, TCollection, TResult)))" Url="html/007a2597-5856-ead6-c4c0-24afeb3c146f.htm" />
         </HelpTOCNode>
         <HelpTOCNode Title="LongSkipWhile(TSource) Method " Url="html/c5b7a8bf-193f-1e84-706e-a9ffc74d41a3.htm" />
         <HelpTOCNode Title="LongTakeWhile(TSource) Method " Url="html/1361c8c8-c04b-e5f2-6112-9f62b5af8fcb.htm" />
         <HelpTOCNode Title="LongWhere(TSource) Method " Url="html/a9e6f3c2-457f-4d7d-af58-7a4827a47f92.htm" />
-        <HelpTOCNode Id="978d7447-9975-4976-9401-e86eec276e38" Title="MaxAsQuery Method " Url="html/f4b36863-6a66-5778-2fae-56e7eac50834.htm">
+        <HelpTOCNode Id="70c19a86-757f-49ac-8708-9a35bcf602e6" Title="MaxAsQuery Method " Url="html/f4b36863-6a66-5778-2fae-56e7eac50834.htm">
           <HelpTOCNode Title="MaxAsQuery(TSource) Method (IQueryable(TSource))" Url="html/a1e96bef-d0a1-e613-50bd-b045dc706b87.htm" />
           <HelpTOCNode Title="MaxAsQuery(TSource, TResult) Method (IQueryable(TSource), Expression(Func(TSource, TResult)))" Url="html/e259305c-5491-6008-ed03-acfc4e7b4417.htm" />
         </HelpTOCNode>
-        <HelpTOCNode Id="87b0126f-dbe5-4d4c-be1c-7b172dd0610f" Title="MinAsQuery Method " Url="html/9d6119ab-121a-148e-3170-b5b252aaef07.htm">
+        <HelpTOCNode Id="d8025f4f-35a0-46ec-b249-749df795311a" Title="MinAsQuery Method " Url="html/9d6119ab-121a-148e-3170-b5b252aaef07.htm">
           <HelpTOCNode Title="MinAsQuery(TSource) Method (IQueryable(TSource))" Url="html/f41ccdbb-3d80-1a38-0075-bc3aac3b67f9.htm" />
           <HelpTOCNode Title="MinAsQuery(TSource, TResult) Method (IQueryable(TSource), Expression(Func(TSource, TResult)))" Url="html/c620fa3a-4b7d-d7b7-2299-9e71373d64e2.htm" />
         </HelpTOCNode>
-        <HelpTOCNode Id="1b252144-6695-4772-a399-25a245013f4f" Title="RangePartition Method " Url="html/f90db211-91a6-9160-f0b1-f7b5d6267e24.htm">
+        <HelpTOCNode Id="3361acb6-5ec5-4300-b24d-ea2af2530f0f" Title="RangePartition Method " Url="html/f90db211-91a6-9160-f0b1-f7b5d6267e24.htm">
           <HelpTOCNode Title="RangePartition(TSource, TKey) Method (IQueryable(TSource), Expression(Func(TSource, TKey)))" Url="html/b925e80f-05f7-a57a-eb58-5c3dd9ed285c.htm" />
           <HelpTOCNode Title="RangePartition(TSource, TKey) Method (IQueryable(TSource), Expression(Func(TSource, TKey)), Boolean)" Url="html/e5bb9a6d-135c-fd92-b508-04ec0bf9cd92.htm" />
           <HelpTOCNode Title="RangePartition(TSource, TKey) Method (IQueryable(TSource), Expression(Func(TSource, TKey)), Int32)" Url="html/93567120-1e64-cbdf-9cea-7fc9836b83d8.htm" />
@@ -352,24 +352,24 @@
           <HelpTOCNode Title="RangePartition(TSource, TKey) Method (IQueryable(TSource), Expression(Func(TSource, TKey)), IComparer(TKey), Boolean, Int32)" Url="html/883b44ef-3226-b906-c30a-7cd877c37dd2.htm" />
           <HelpTOCNode Title="RangePartition(TSource, TKey) Method (IQueryable(TSource), Expression(Func(TSource, TKey)), TKey[], IComparer(TKey), Boolean)" Url="html/5060dac8-f347-dd7c-fb6d-5080979247a5.htm" />
         </HelpTOCNode>
-        <HelpTOCNode Id="c84508d3-26ec-4ad4-bdac-ed1a9821d884" Title="SequenceEqualAsQuery Method " Url="html/1ff40fab-862b-4871-b578-5a8c908f1294.htm">
+        <HelpTOCNode Id="2f46cc50-64c7-4335-aec7-c0fabe836695" Title="SequenceEqualAsQuery Method " Url="html/1ff40fab-862b-4871-b578-5a8c908f1294.htm">
           <HelpTOCNode Title="SequenceEqualAsQuery(TSource) Method (IQueryable(TSource), IEnumerable(TSource))" Url="html/6b7ffd31-3415-fde1-d312-04dfc9a5f77c.htm" />
           <HelpTOCNode Title="SequenceEqualAsQuery(TSource) Method (IQueryable(TSource), IEnumerable(TSource), IEqualityComparer(TSource))" Url="html/918921e8-53b4-e2f1-7ae5-1f53de93c470.htm" />
         </HelpTOCNode>
-        <HelpTOCNode Id="8cb6c8f1-6162-4dc7-ab44-4d407f5f026a" Title="SingleAsQuery Method " Url="html/f8e0a412-97bc-99bb-d919-03e404d236b8.htm">
+        <HelpTOCNode Id="9e734caf-0b8c-4278-b5ec-b0cc72d4f037" Title="SingleAsQuery Method " Url="html/f8e0a412-97bc-99bb-d919-03e404d236b8.htm">
           <HelpTOCNode Title="SingleAsQuery(TSource) Method (IQueryable(TSource))" Url="html/84caf4f5-b0e4-74f6-d963-aa1ca5938162.htm" />
           <HelpTOCNode Title="SingleAsQuery(TSource) Method (IQueryable(TSource), Expression(Func(TSource, Boolean)))" Url="html/2149a903-bb1b-f36d-b008-0104996ad0b2.htm" />
         </HelpTOCNode>
         <HelpTOCNode Title="SlidingWindow(T1, T2) Method " Url="html/cf28149d-3737-b5e6-0fdb-8ad0d0a6a31b.htm" />
-        <HelpTOCNode Id="83e1b214-2a38-461d-a6a7-b36754244156" Title="Submit Method " Url="html/87ba860b-6c3b-dafe-6d00-0f2a05636b0c.htm">
+        <HelpTOCNode Id="e8134ebd-9eb9-40c5-a923-4442c6643b23" Title="Submit Method " Url="html/87ba860b-6c3b-dafe-6d00-0f2a05636b0c.htm">
           <HelpTOCNode Title="Submit Method (IQueryable[])" Url="html/49319178-53c6-777c-db3c-363ef3ba713b.htm" />
           <HelpTOCNode Title="Submit(TSource) Method (IQueryable(TSource))" Url="html/982efeb1-ac64-8ff8-0206-777c64143396.htm" />
         </HelpTOCNode>
-        <HelpTOCNode Id="e09642de-24e1-4bb4-b815-75d2ea9281e4" Title="SubmitAndWait Method " Url="html/afeb2773-3e8d-61d5-52be-00d2323d69c2.htm">
+        <HelpTOCNode Id="249e623a-6e7f-494c-930a-6b5c109b89ce" Title="SubmitAndWait Method " Url="html/afeb2773-3e8d-61d5-52be-00d2323d69c2.htm">
           <HelpTOCNode Title="SubmitAndWait Method (IQueryable[])" Url="html/1c211df7-7ad1-840b-c9e5-09655a6b3714.htm" />
           <HelpTOCNode Title="SubmitAndWait(TSource) Method (IQueryable(TSource))" Url="html/d45d4d97-7905-ce0f-3fa8-869ce07618aa.htm" />
         </HelpTOCNode>
-        <HelpTOCNode Id="8979914f-c4c1-4c5d-92df-41273f4fa45a" Title="SumAsQuery Method " Url="html/f7353d8f-b53e-4485-3a32-a47d26df83b2.htm">
+        <HelpTOCNode Id="be1c0a2d-e93d-4ce6-9333-5ed1f5ff1b3b" Title="SumAsQuery Method " Url="html/f7353d8f-b53e-4485-3a32-a47d26df83b2.htm">
           <HelpTOCNode Title="SumAsQuery Method (IQueryable(Decimal))" Url="html/407d2527-770f-e326-302a-08a588a1daf0.htm" />
           <HelpTOCNode Title="SumAsQuery Method (IQueryable(Double))" Url="html/c801b334-7ddf-00e4-720c-24997727b5d8.htm" />
           <HelpTOCNode Title="SumAsQuery Method (IQueryable(Int32))" Url="html/64047514-813f-1713-31c4-0abd6abdc91d.htm" />
@@ -391,45 +391,45 @@
           <HelpTOCNode Title="SumAsQuery(TSource) Method (IQueryable(TSource), Expression(Func(TSource, Nullable(Single))))" Url="html/dbb05e44-bc2d-3de2-74fa-223d17988e6c.htm" />
           <HelpTOCNode Title="SumAsQuery(TSource) Method (IQueryable(TSource), Expression(Func(TSource, Single)))" Url="html/6dc77fa3-12cd-84ed-f44f-63a1998fa91c.htm" />
         </HelpTOCNode>
-        <HelpTOCNode Id="e0d09be0-70b7-4818-9c33-22632a334371" Title="ToStore Method " Url="html/dfd04264-0973-a546-1ef7-4971c13a4d71.htm">
+        <HelpTOCNode Id="f5c1c8ac-c09c-4e39-9457-099d3a8814c9" Title="ToStore Method " Url="html/dfd04264-0973-a546-1ef7-4971c13a4d71.htm">
           <HelpTOCNode Title="ToStore(TSource) Method (IQueryable(TSource), String, Boolean)" Url="html/292965e4-9552-d4c2-7aad-4399a5f7b7b9.htm" />
           <HelpTOCNode Title="ToStore(TSource) Method (IQueryable(TSource), Uri, Boolean)" Url="html/4d8f9c65-fcdb-aa55-9e46-530c97c98518.htm" />
         </HelpTOCNode>
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="c12d99e1-7d0a-4620-ac21-32d5901f0251" Title="DryadLinqStreamInfo Class" Url="html/562bb8ee-21e0-0f88-c57c-64a244256648.htm">
+    <HelpTOCNode Id="0f02ff05-c178-4c89-a508-031c7c3aa34c" Title="DryadLinqStreamInfo Class" Url="html/562bb8ee-21e0-0f88-c57c-64a244256648.htm">
       <HelpTOCNode Title="DryadLinqStreamInfo Constructor " Url="html/6a718b44-1263-26e8-e829-1655a3522217.htm" />
       <HelpTOCNode Title="DryadLinqStreamInfo Methods" Url="html/ae015e95-d81a-201e-6de7-510487303ba6.htm" />
-      <HelpTOCNode Id="da76239e-7883-4e82-90b0-ebb9174fe414" Title="DryadLinqStreamInfo Properties" Url="html/95c22eeb-6433-b0f9-9157-956dfd5a95c4.htm">
+      <HelpTOCNode Id="6353c2ad-f7c5-485e-99e3-9de35cc0cfaf" Title="DryadLinqStreamInfo Properties" Url="html/95c22eeb-6433-b0f9-9157-956dfd5a95c4.htm">
         <HelpTOCNode Title="DataSize Property " Url="html/da53c4f0-d5ab-702f-e073-ec9b6ea2f82b.htm" />
         <HelpTOCNode Title="PartitionCount Property " Url="html/7e6c6d5f-35f2-347f-167b-f0ca16f56723.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
     <HelpTOCNode Title="ExecutorKind Enumeration" Url="html/e652bfe9-c973-2744-87c1-e63cf9db4f56.htm" />
-    <HelpTOCNode Id="7a0f4ec9-e179-441f-9221-8abf6c890f27" Title="ForkTuple(T1, T2) Structure" Url="html/28af6b37-22b3-448f-cf9f-ea15b5aa90d6.htm">
+    <HelpTOCNode Id="ce2c8a02-f239-489d-b0b6-74eb8bf407fe" Title="ForkTuple(T1, T2) Structure" Url="html/28af6b37-22b3-448f-cf9f-ea15b5aa90d6.htm">
       <HelpTOCNode Title="ForkTuple(T1, T2) Constructor " Url="html/d0234465-a912-65ea-e636-04db408de8f1.htm" />
-      <HelpTOCNode Id="389f6c66-edd8-4777-af3b-bbf36901f0a8" Title="ForkTuple(T1, T2) Methods" Url="html/c1a6a21b-2155-acfa-4bd7-1243fe9fba30.htm">
-        <HelpTOCNode Id="c87b7083-b716-4851-8d9d-443704271afb" Title="Equals Method " Url="html/7ce32f0b-e400-2a96-52b0-65238b7eb283.htm">
+      <HelpTOCNode Id="fd78a5e5-871f-4e53-8d4a-957c38eb7069" Title="ForkTuple(T1, T2) Methods" Url="html/c1a6a21b-2155-acfa-4bd7-1243fe9fba30.htm">
+        <HelpTOCNode Id="8e729dfb-ad38-49b8-995d-69ed3d460387" Title="Equals Method " Url="html/7ce32f0b-e400-2a96-52b0-65238b7eb283.htm">
           <HelpTOCNode Title="Equals Method (ForkTuple(T1, T2))" Url="html/f8959d6f-d36f-70dc-5fb4-71346b35319f.htm" />
         </HelpTOCNode>
         <HelpTOCNode Title="GetHashCode Method " Url="html/e33687f3-591a-54e8-2a3d-bd80ccac7e76.htm" />
       </HelpTOCNode>
-      <HelpTOCNode Id="80c8f5cb-daa3-4011-a2c4-59e913a43b83" Title="ForkTuple(T1, T2) Properties" Url="html/76957065-5630-1667-884c-3ce88290abd8.htm">
+      <HelpTOCNode Id="4f3574ce-25b1-4a89-ac30-c474b08e7a3a" Title="ForkTuple(T1, T2) Properties" Url="html/76957065-5630-1667-884c-3ce88290abd8.htm">
         <HelpTOCNode Title="First Property " Url="html/6b32278a-6d75-3882-83b0-0e33a98fb7c8.htm" />
         <HelpTOCNode Title="HasFirst Property " Url="html/c93f543e-84c2-3fe0-95c2-0e2b81b2e1e2.htm" />
         <HelpTOCNode Title="HasSecond Property " Url="html/d33e8f73-7da3-dbdd-4617-4ea75998fdab.htm" />
         <HelpTOCNode Title="Second Property " Url="html/e91d270e-8169-d4e6-5c47-e01fddea6886.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="e3e0fc28-f1d1-4be0-b9a0-dd6b1831a93f" Title="ForkTuple(T1, T2, T3) Structure" Url="html/07206258-2e2e-6aa3-4c79-0c0674875849.htm">
+    <HelpTOCNode Id="d7e67a3c-b8c5-48b0-afe8-adda85fde5ee" Title="ForkTuple(T1, T2, T3) Structure" Url="html/07206258-2e2e-6aa3-4c79-0c0674875849.htm">
       <HelpTOCNode Title="ForkTuple(T1, T2, T3) Constructor " Url="html/83e9427c-d320-6f1e-69a7-07bf990f5552.htm" />
-      <HelpTOCNode Id="26272fdc-76d6-4bba-b176-4bf59a8773f3" Title="ForkTuple(T1, T2, T3) Methods" Url="html/35cb81e7-7eae-c2c8-5bda-4c84f96bf377.htm">
-        <HelpTOCNode Id="3fb61638-28a3-4083-9916-6274dd87e23c" Title="Equals Method " Url="html/7b13d2e9-7ea4-d4aa-20da-c76cb5dfa135.htm">
+      <HelpTOCNode Id="bbfe0848-37df-4ebb-87a6-a22bde29f523" Title="ForkTuple(T1, T2, T3) Methods" Url="html/35cb81e7-7eae-c2c8-5bda-4c84f96bf377.htm">
+        <HelpTOCNode Id="0e35a257-7225-49a8-b61c-91f65f9ecdf9" Title="Equals Method " Url="html/7b13d2e9-7ea4-d4aa-20da-c76cb5dfa135.htm">
           <HelpTOCNode Title="Equals Method (ForkTuple(T1, T2, T3))" Url="html/c4b2ccbe-fcea-9746-7d03-7deea5de820e.htm" />
         </HelpTOCNode>
         <HelpTOCNode Title="GetHashCode Method " Url="html/56301ca8-b00b-32b5-1da3-bba21860db99.htm" />
       </HelpTOCNode>
-      <HelpTOCNode Id="6d7f2f93-7ac7-4063-a64e-577b8222d000" Title="ForkTuple(T1, T2, T3) Properties" Url="html/aed82465-569c-2eaf-b541-2e9cb274c89a.htm">
+      <HelpTOCNode Id="e0a3a897-940f-4bc4-9a31-9e9a3154a5e4" Title="ForkTuple(T1, T2, T3) Properties" Url="html/aed82465-569c-2eaf-b541-2e9cb274c89a.htm">
         <HelpTOCNode Title="First Property " Url="html/3ede29b7-a419-b762-7c5f-f617c3ad4ea0.htm" />
         <HelpTOCNode Title="HasFirst Property " Url="html/4e4b1e20-e630-adfc-12f4-e999aa73e5d3.htm" />
         <HelpTOCNode Title="HasSecond Property " Url="html/9258db36-5e75-9efc-e607-ef6f5ba67a4a.htm" />
@@ -438,27 +438,27 @@
         <HelpTOCNode Title="Third Property " Url="html/c90df8c7-3a30-7c79-ce29-c37b9def4567.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="3622df84-e51a-4752-9181-bba6a7bcd66b" Title="ForkValue(T) Structure" Url="html/3d9c6034-3028-09ed-9ec6-6af9101c0f52.htm">
+    <HelpTOCNode Id="d9096cb5-97dd-40f1-ad00-0511c19e148d" Title="ForkValue(T) Structure" Url="html/3d9c6034-3028-09ed-9ec6-6af9101c0f52.htm">
       <HelpTOCNode Title="ForkValue(T) Constructor " Url="html/891a0064-76fe-27f2-836d-c59419bf7956.htm" />
-      <HelpTOCNode Id="7983049a-9caf-47a0-b7f1-ad2f8c202232" Title="ForkValue(T) Methods" Url="html/2c7c3b94-2666-db95-15bd-37e0f37f68a9.htm">
-        <HelpTOCNode Id="59892495-0d8a-4a90-8e93-d4d41600d337" Title="Equals Method " Url="html/277744cf-bbc7-5ee4-c3b2-7f4052963441.htm">
+      <HelpTOCNode Id="a125217d-9559-4334-9631-a9ba030aa346" Title="ForkValue(T) Methods" Url="html/2c7c3b94-2666-db95-15bd-37e0f37f68a9.htm">
+        <HelpTOCNode Id="54e89359-82d6-4eaf-9f34-d6623d2895fa" Title="Equals Method " Url="html/277744cf-bbc7-5ee4-c3b2-7f4052963441.htm">
           <HelpTOCNode Title="Equals Method (ForkValue(T))" Url="html/fd5bf5ee-af4b-9a5f-582f-89fdb53dee75.htm" />
         </HelpTOCNode>
         <HelpTOCNode Title="GetHashCode Method " Url="html/1418da77-2d3c-0a21-3c41-ba2ea3abb075.htm" />
       </HelpTOCNode>
-      <HelpTOCNode Id="b2c5007f-79ac-41a8-8ef6-39198f9103b9" Title="ForkValue(T) Properties" Url="html/8f1173ea-7a80-f5d2-a86a-c9817ff59ba4.htm">
+      <HelpTOCNode Id="51b1caeb-cf05-4a6f-a844-92fad2d15a88" Title="ForkValue(T) Properties" Url="html/8f1173ea-7a80-f5d2-a86a-c9817ff59ba4.htm">
         <HelpTOCNode Title="HasValue Property " Url="html/8ebdf81f-127f-f1d9-4eb8-1cab9ef04768.htm" />
         <HelpTOCNode Title="Value Property " Url="html/901dcf86-c65c-a976-7b3b-e334fc1d93cf.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="edd5fd20-6d29-417c-9d47-6bba43872ede" Title="GenericAssociative(TAssoc, TAccumulate) Class" Url="html/a49d01fb-8518-8fe8-02b4-7fd06cec7ed4.htm">
-      <HelpTOCNode Id="9dfff814-0e92-4633-bc91-54f95941a1c1" Title="GenericAssociative(TAssoc, TAccumulate) Methods" Url="html/e025b172-58a2-5b6b-48c0-0c33ee321a3d.htm">
+    <HelpTOCNode Id="a2f0f686-cb73-4c68-9a47-7fd394c87626" Title="GenericAssociative(TAssoc, TAccumulate) Class" Url="html/a49d01fb-8518-8fe8-02b4-7fd06cec7ed4.htm">
+      <HelpTOCNode Id="72792a28-bc8c-4831-9676-d0ad6cf5229a" Title="GenericAssociative(TAssoc, TAccumulate) Methods" Url="html/e025b172-58a2-5b6b-48c0-0c33ee321a3d.htm">
         <HelpTOCNode Title="RecursiveAccumulate Method " Url="html/f8d20d20-bbec-a340-6200-48866b0ac7d0.htm" />
         <HelpTOCNode Title="Seed Method " Url="html/97df1d63-3677-417d-8007-20899312a1a3.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="e57e6175-d725-4527-81fd-cd9b67f9b0a1" Title="GenericDecomposable(TDecomposable, TSource, TAccumulate, TResult) Class" Url="html/11c77de4-bb21-4879-6a37-daaf58adb3cf.htm">
-      <HelpTOCNode Id="1bee3d8b-6a08-4dde-830a-212f47f119f5" Title="GenericDecomposable(TDecomposable, TSource, TAccumulate, TResult) Methods" Url="html/09b7f762-48da-5a16-77e3-8b841c6f83ea.htm">
+    <HelpTOCNode Id="735177d3-cc46-4f83-a94c-d50d45b4b1c3" Title="GenericDecomposable(TDecomposable, TSource, TAccumulate, TResult) Class" Url="html/11c77de4-bb21-4879-6a37-daaf58adb3cf.htm">
+      <HelpTOCNode Id="17ca60a3-3bfe-4ee4-95fa-7bb7f31d0362" Title="GenericDecomposable(TDecomposable, TSource, TAccumulate, TResult) Methods" Url="html/09b7f762-48da-5a16-77e3-8b841c6f83ea.htm">
         <HelpTOCNode Title="Accumulate Method " Url="html/ffa4b6ac-5e03-29aa-ec10-7aab8893edd2.htm" />
         <HelpTOCNode Title="FinalReduce Method " Url="html/982d658a-3590-02e2-e86c-5d1603e2ff7b.htm" />
         <HelpTOCNode Title="Initialize Method " Url="html/7ad863dd-2b05-4189-31b3-b8e3fe344c31.htm" />
@@ -466,14 +466,14 @@
         <HelpTOCNode Title="Seed Method " Url="html/3f7c6b9f-b02f-4152-9d67-ce663a9710f7.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="8768a6e5-25bc-4ded-9999-8792f8fec1dc" Title="IAssociative(TAccumulate) Interface" Url="html/8ac439be-5f1e-cce5-eea2-11de7aa46929.htm">
-      <HelpTOCNode Id="e80592b8-698a-4473-96eb-db621d41532e" Title="IAssociative(TAccumulate) Methods" Url="html/5a59b1a7-a6fe-8353-948c-6aadb3e190e0.htm">
+    <HelpTOCNode Id="db271e17-ac23-4bf2-b43a-cd561a22edaa" Title="IAssociative(TAccumulate) Interface" Url="html/8ac439be-5f1e-cce5-eea2-11de7aa46929.htm">
+      <HelpTOCNode Id="20952317-d0b9-45cb-ba52-688ad6f92951" Title="IAssociative(TAccumulate) Methods" Url="html/5a59b1a7-a6fe-8353-948c-6aadb3e190e0.htm">
         <HelpTOCNode Title="RecursiveAccumulate Method " Url="html/262f7961-aa38-363a-4625-9557322dc386.htm" />
         <HelpTOCNode Title="Seed Method " Url="html/5d92709d-0db3-49af-421e-4a66042819b0.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="45756523-f4cd-4f8e-8ca0-f4547fd1aece" Title="IDecomposable(TSource, TAccumulate, TResult) Interface" Url="html/28f10369-ddd1-2090-d4e2-16e5c7b34795.htm">
-      <HelpTOCNode Id="c35e6de7-b655-4e04-add5-17dd314c5c53" Title="IDecomposable(TSource, TAccumulate, TResult) Methods" Url="html/3390d7bc-a985-7d93-b154-971bf1dfd33f.htm">
+    <HelpTOCNode Id="3757370b-1cec-4451-94ca-868ef4518898" Title="IDecomposable(TSource, TAccumulate, TResult) Interface" Url="html/28f10369-ddd1-2090-d4e2-16e5c7b34795.htm">
+      <HelpTOCNode Id="173ede3d-63ed-44c9-9cb4-715882e17221" Title="IDecomposable(TSource, TAccumulate, TResult) Methods" Url="html/3390d7bc-a985-7d93-b154-971bf1dfd33f.htm">
         <HelpTOCNode Title="Accumulate Method " Url="html/f7141b46-f316-6b6b-13dd-b38da64deda1.htm" />
         <HelpTOCNode Title="FinalReduce Method " Url="html/a3a06fa4-5372-405f-85b2-947afeb79561.htm" />
         <HelpTOCNode Title="Initialize Method " Url="html/a65ccdbb-51b0-b1a1-1e8d-ccfd30971385.htm" />
@@ -481,79 +481,79 @@
         <HelpTOCNode Title="Seed Method " Url="html/51aa8653-daf8-c05e-f659-99046cd343ed.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="78cd832c-be0d-4572-ae37-d34188ef414d" Title="IDryadLinqSerializer(T) Interface" Url="html/21f7cc37-f1d3-ac9c-873a-e5e80c2b6f3c.htm">
-      <HelpTOCNode Id="aeeed445-71d0-4f4e-8528-fa34503d510f" Title="IDryadLinqSerializer(T) Methods" Url="html/2c560717-db20-fd22-d9b5-7582fe3cdf36.htm">
+    <HelpTOCNode Id="bf68014d-b9a5-41ad-b6e9-94246dcfa714" Title="IDryadLinqSerializer(T) Interface" Url="html/21f7cc37-f1d3-ac9c-873a-e5e80c2b6f3c.htm">
+      <HelpTOCNode Id="6f7f7306-e3e8-4bd7-9ef8-50bb05698d9e" Title="IDryadLinqSerializer(T) Methods" Url="html/2c560717-db20-fd22-d9b5-7582fe3cdf36.htm">
         <HelpTOCNode Title="Read Method " Url="html/2bfc09c6-4fdc-09e9-91ef-8aa7972d8966.htm" />
         <HelpTOCNode Title="Write Method " Url="html/db0e2036-b46e-fba5-8502-62da411025b2.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="1f5fea90-760a-4bc5-99ce-792e662e08ab" Title="IKeyedMultiQueryable(T, K) Interface" Url="html/721bf2e3-dc55-bf0a-0873-d5a6b711d57a.htm">
+    <HelpTOCNode Id="58158b75-2210-4ce7-bbab-8e104c48e8de" Title="IKeyedMultiQueryable(T, K) Interface" Url="html/721bf2e3-dc55-bf0a-0873-d5a6b711d57a.htm">
       <HelpTOCNode Title="IKeyedMultiQueryable(T, K) Methods" Url="html/44091b80-27bf-7412-5652-95460aecbab8.htm" />
-      <HelpTOCNode Id="42a9c8b9-ea51-4fd9-8b5f-96af66ad95ec" Title="IKeyedMultiQueryable(T, K) Properties" Url="html/655dc54c-7773-7fab-3311-a7d07d84b414.htm">
+      <HelpTOCNode Id="2baab495-fcb7-44ae-b01c-2d28b1ec3caf" Title="IKeyedMultiQueryable(T, K) Properties" Url="html/655dc54c-7773-7fab-3311-a7d07d84b414.htm">
         <HelpTOCNode Title="Item Property " Url="html/15c1c542-c2b5-4b49-86c9-d939b43ae22e.htm" />
         <HelpTOCNode Title="Keys Property " Url="html/22264f86-180e-2fa8-6fe6-791984d633a7.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="1c7ee84e-3ca2-4fab-9ddc-5bc8487629d9" Title="IMultiQueryable Interface" Url="html/1a74f3d6-9e33-6ea7-b3c2-2bf6ecbc5d89.htm">
-      <HelpTOCNode Id="16c3ff55-4c93-408d-850d-1f4d4b8fe1c0" Title="IMultiQueryable Methods" Url="html/740766d6-28e1-ef88-071b-b0e3cc7e4d17.htm">
+    <HelpTOCNode Id="39d7a6f1-f039-41a5-ba4b-d26903ec78ff" Title="IMultiQueryable Interface" Url="html/1a74f3d6-9e33-6ea7-b3c2-2bf6ecbc5d89.htm">
+      <HelpTOCNode Id="9f9786e5-f0f3-4944-ad3b-432380e20d3f" Title="IMultiQueryable Methods" Url="html/740766d6-28e1-ef88-071b-b0e3cc7e4d17.htm">
         <HelpTOCNode Title="ElementType Method " Url="html/b2f8d418-599c-d187-da9e-38de1cb3b178.htm" />
       </HelpTOCNode>
-      <HelpTOCNode Id="00d0f005-1a60-455e-8026-3661205432ae" Title="IMultiQueryable Properties" Url="html/4253bc32-68d5-de96-33df-baedee2a46d7.htm">
+      <HelpTOCNode Id="0886f350-2462-43c0-9a5f-9e312a48aa05" Title="IMultiQueryable Properties" Url="html/4253bc32-68d5-de96-33df-baedee2a46d7.htm">
         <HelpTOCNode Title="Expression Property " Url="html/3406300d-cd1d-f797-61e3-7d00b2abd387.htm" />
         <HelpTOCNode Title="NumberOfInputs Property " Url="html/f6c4c853-03b8-57aa-cf35-5e7884f6d55b.htm" />
         <HelpTOCNode Title="Provider Property " Url="html/da94daa0-4711-ab61-cba5-c5474946b285.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="66b2f387-7da4-4fa3-a0a4-8457ce186119" Title="IMultiQueryable(T1, T2) Interface" Url="html/2f4da221-3f06-8d95-c5ef-20eef2574124.htm">
+    <HelpTOCNode Id="d3792327-4ca8-44ed-b8ab-043e1ec39b94" Title="IMultiQueryable(T1, T2) Interface" Url="html/2f4da221-3f06-8d95-c5ef-20eef2574124.htm">
       <HelpTOCNode Title="IMultiQueryable(T1, T2) Methods" Url="html/c8738882-e0f7-d2b6-5abb-d06f70250454.htm" />
-      <HelpTOCNode Id="1076f872-5ca3-41bd-9e6d-5f381a7baf94" Title="IMultiQueryable(T1, T2) Properties" Url="html/e9ec9d82-ea4a-a9c4-68ea-23b4cc77679a.htm">
+      <HelpTOCNode Id="a34e9539-30b1-4dee-9eb7-2d667dccc0c9" Title="IMultiQueryable(T1, T2) Properties" Url="html/e9ec9d82-ea4a-a9c4-68ea-23b4cc77679a.htm">
         <HelpTOCNode Title="First Property " Url="html/fdba9172-7ef3-7e37-2e6e-bb5fe43cd4b5.htm" />
         <HelpTOCNode Title="Second Property " Url="html/2200738b-a9b9-cecc-43ba-e6aa4e268ce4.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="70959c8a-37e3-4a00-9de9-039dfc9a0a1d" Title="IMultiQueryable(T1, T2, T3) Interface" Url="html/cfec878f-f774-d543-961d-ea6185530786.htm">
+    <HelpTOCNode Id="22d8d281-c481-47f9-8b99-432510a19573" Title="IMultiQueryable(T1, T2, T3) Interface" Url="html/cfec878f-f774-d543-961d-ea6185530786.htm">
       <HelpTOCNode Title="IMultiQueryable(T1, T2, T3) Methods" Url="html/7c4caea1-1929-465c-6da6-2b3c28429644.htm" />
-      <HelpTOCNode Id="dcd02471-4eea-4305-ab19-f20a6fc96acc" Title="IMultiQueryable(T1, T2, T3) Properties" Url="html/5dad9835-111b-f58f-1034-59b33c2f3552.htm">
+      <HelpTOCNode Id="0ae6cbcd-4bb4-478e-b3a6-1a311be332cf" Title="IMultiQueryable(T1, T2, T3) Properties" Url="html/5dad9835-111b-f58f-1034-59b33c2f3552.htm">
         <HelpTOCNode Title="First Property " Url="html/41619f5b-5228-e834-205f-f4e03e769d15.htm" />
         <HelpTOCNode Title="Second Property " Url="html/c4489d10-17bc-56a7-e82c-d551352d2b96.htm" />
         <HelpTOCNode Title="Third Property " Url="html/8ed8b95d-2db1-67a2-d98c-c9192b2e0bc4.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="862b55f4-8ec9-4a2f-bc53-e3b7d640eb27" Title="LineRecord Structure" Url="html/b077f955-9bc6-1e0b-e710-00cc784bccf1.htm">
+    <HelpTOCNode Id="6ff7f52e-4a18-4e96-89eb-8090c9dae51e" Title="LineRecord Structure" Url="html/b077f955-9bc6-1e0b-e710-00cc784bccf1.htm">
       <HelpTOCNode Title="LineRecord Constructor " Url="html/21757897-eca5-a7a0-b1a8-4d0d9a870df1.htm" />
-      <HelpTOCNode Id="29cf183c-47af-4289-8d58-f36409348df4" Title="LineRecord Methods" Url="html/7652caec-215c-720a-52b5-10bf7c56f005.htm">
-        <HelpTOCNode Id="2fa4fa6c-3999-4a2d-ae11-b73be2389801" Title="CompareTo Method " Url="html/62af3731-c551-19e3-10bc-dab7b3edc7ed.htm">
+      <HelpTOCNode Id="5566250f-adf1-43c7-9d68-23716968ecae" Title="LineRecord Methods" Url="html/7652caec-215c-720a-52b5-10bf7c56f005.htm">
+        <HelpTOCNode Id="3a81b81a-b3c9-4954-8719-80e4e43348ec" Title="CompareTo Method " Url="html/62af3731-c551-19e3-10bc-dab7b3edc7ed.htm">
           <HelpTOCNode Title="CompareTo Method (Object)" Url="html/f9d0c5a3-9022-d8da-9bbe-986bce0eb0e6.htm" />
           <HelpTOCNode Title="CompareTo Method (LineRecord)" Url="html/a5e2cfd6-331b-05c7-7ce2-df50e5fa01ea.htm" />
         </HelpTOCNode>
-        <HelpTOCNode Id="b77df4e0-1e39-4967-a41d-9638e8d257d7" Title="Equals Method " Url="html/6bb38453-9d1d-3ec5-507f-cf38853cffed.htm">
+        <HelpTOCNode Id="79af761d-5f34-4681-bde3-f6f7cb92395a" Title="Equals Method " Url="html/6bb38453-9d1d-3ec5-507f-cf38853cffed.htm">
           <HelpTOCNode Title="Equals Method (Object)" Url="html/f514a92a-9405-c18e-0523-32d27f2d9592.htm" />
           <HelpTOCNode Title="Equals Method (LineRecord)" Url="html/eceeab1f-db32-c774-dd76-f0f4603073d6.htm" />
         </HelpTOCNode>
         <HelpTOCNode Title="GetHashCode Method " Url="html/b1f41ee4-8457-0b3d-4a50-692888f6d306.htm" />
         <HelpTOCNode Title="ToString Method " Url="html/e45f62f1-20db-4823-babb-6e0310fa18d7.htm" />
       </HelpTOCNode>
-      <HelpTOCNode Id="ddb91a94-096d-4e86-938f-c6be516b5fdd" Title="LineRecord Operators" Url="html/16daaf7e-3114-85a5-746f-9b39bda27cb9.htm">
+      <HelpTOCNode Id="188eee54-0cc5-4002-a4a0-4ea77f633832" Title="LineRecord Operators" Url="html/16daaf7e-3114-85a5-746f-9b39bda27cb9.htm">
         <HelpTOCNode Title="Equality Operator " Url="html/85b0619b-7cb3-8abb-41a0-e721890b4b4b.htm" />
         <HelpTOCNode Title="GreaterThan Operator " Url="html/ed798443-81e0-6dcd-be4f-27eb558511a4.htm" />
         <HelpTOCNode Title="Inequality Operator " Url="html/417d2a6e-1f42-50c2-9fc9-25877bf4f0c5.htm" />
         <HelpTOCNode Title="LessThan Operator " Url="html/52db89c1-d554-4ea0-8823-03e81b8bcf68.htm" />
       </HelpTOCNode>
-      <HelpTOCNode Id="6984b41a-6fab-42ac-8b3e-749bc66f4bc5" Title="LineRecord Properties" Url="html/eddcf25c-9bc1-baa0-eafa-34b988e8b52b.htm">
+      <HelpTOCNode Id="c2d3d78f-857f-4885-b43d-98733342104e" Title="LineRecord Properties" Url="html/eddcf25c-9bc1-baa0-eafa-34b988e8b52b.htm">
         <HelpTOCNode Title="Line Property " Url="html/44d81f82-621f-45fe-49c0-0ce97fd2d81b.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="87b4b25a-5a52-43bb-a566-9641426c3c97" Title="NullableAttribute Class" Url="html/d38002f5-8220-c873-ca1b-5c99e45e5007.htm">
+    <HelpTOCNode Id="5a21715e-7683-479b-9e43-c336f42f2837" Title="NullableAttribute Class" Url="html/d38002f5-8220-c873-ca1b-5c99e45e5007.htm">
       <HelpTOCNode Title="NullableAttribute Constructor " Url="html/3d9008bb-980e-9fdb-7522-d29320396ef8.htm" />
       <HelpTOCNode Title="NullableAttribute Methods" Url="html/1576a427-e89d-6a22-37c1-96d064b3065a.htm" />
-      <HelpTOCNode Id="e8fb3a09-f085-4b2a-9eec-98e8c1ca7d3d" Title="NullableAttribute Properties" Url="html/753e9527-e465-fd00-179a-7bdc6462db53.htm">
+      <HelpTOCNode Id="c9bacd7c-800b-41c6-856e-670903731a43" Title="NullableAttribute Properties" Url="html/753e9527-e465-fd00-179a-7bdc6462db53.htm">
         <HelpTOCNode Title="CanBeNull Property " Url="html/4cf712fd-ccc7-ba39-e732-6fdaf9453187.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
-    <HelpTOCNode Id="2e62142a-9471-4d53-aa32-2d12ed089265" Title="Pair(T1, T2) Structure" Url="html/4937c0d0-14bc-0943-1166-e434ec5c8dfd.htm">
+    <HelpTOCNode Id="ae81e038-b1c5-4fb1-9f1e-04c5291e269e" Title="Pair(T1, T2) Structure" Url="html/4937c0d0-14bc-0943-1166-e434ec5c8dfd.htm">
       <HelpTOCNode Title="Pair(T1, T2) Constructor " Url="html/1516e01c-7658-2623-7a8f-ee4df625d7f6.htm" />
-      <HelpTOCNode Id="09d80841-2466-43d9-892d-9e61b17afdd0" Title="Pair(T1, T2) Methods" Url="html/46e8932b-d478-eb06-fa1c-ef9d3cc74caa.htm">
-        <HelpTOCNode Id="a5b99325-6143-456d-a284-cd96a6f245bc" Title="Equals Method " Url="html/5e55be13-9e9b-2600-32d3-ba9ca745aa61.htm">
+      <HelpTOCNode Id="12b2bfd8-b4f8-433c-b19a-9e004ad8419b" Title="Pair(T1, T2) Methods" Url="html/46e8932b-d478-eb06-fa1c-ef9d3cc74caa.htm">
+        <HelpTOCNode Id="52bb979c-974c-44a1-83d0-7e21afa7f761" Title="Equals Method " Url="html/5e55be13-9e9b-2600-32d3-ba9ca745aa61.htm">
           <HelpTOCNode Title="Equals Method (Object)" Url="html/b7529ec5-aa93-4535-c680-514876bfefd6.htm" />
           <HelpTOCNode Title="Equals Method (Pair(T1, T2))" Url="html/7ac66fd1-9da2-fc0e-16a0-cb9e126c9ee4.htm" />
           <HelpTOCNode Title="Equals Method (Pair(T1, T2), Pair(T1, T2))" Url="html/d765426f-362d-8a80-9759-867dd963e0ab.htm" />
@@ -561,21 +561,21 @@
         <HelpTOCNode Title="GetHashCode Method " Url="html/6823bc5e-464f-8c0f-48e5-219730a0087e.htm" />
         <HelpTOCNode Title="ToString Method " Url="html/cc3a4b94-829d-7c14-e4b8-5502f3f48564.htm" />
       </HelpTOCNode>
-      <HelpTOCNode Id="390706e7-b739-4e4b-9db6-8599141a4da3" Title="Pair(T1, T2) Operators" Url="html/c826392f-ec40-9563-7ba3-86d6d58eb217.htm">
+      <HelpTOCNode Id="ceb9af3a-596f-4cc0-a65e-81d0507bd247" Title="Pair(T1, T2) Operators" Url="html/c826392f-ec40-9563-7ba3-86d6d58eb217.htm">
         <HelpTOCNode Title="Equality Operator " Url="html/eb7302d8-bade-88ab-7153-3e08f8902454.htm" />
         <HelpTOCNode Title="Inequality Operator " Url="html/3bf777a3-e426-ee8f-f3de-10021739d621.htm" />
       </HelpTOCNode>
-      <HelpTOCNode Id="5d0dd20e-f21f-4d98-a5af-f263009d0657" Title="Pair(T1, T2) Properties" Url="html/f308d9e3-9559-30ab-60d9-96d07c0a5c32.htm">
+      <HelpTOCNode Id="9ed82e75-74f0-4b14-bb88-4a370e158049" Title="Pair(T1, T2) Properties" Url="html/f308d9e3-9559-30ab-60d9-96d07c0a5c32.htm">
         <HelpTOCNode Title="Key Property " Url="html/3455cc4c-9167-df7a-419d-73f08bc8d22b.htm" />
         <HelpTOCNode Title="Value Property " Url="html/851049b8-d045-8c03-239a-552bbc87e72d.htm" />
       </HelpTOCNode>
     </HelpTOCNode>
     <HelpTOCNode Title="PlatformKind Enumeration" Url="html/db48824c-598d-a2a7-24db-a422d19467b1.htm" />
     <HelpTOCNode Title="QueryTraceLevel Enumeration" Url="html/7f48283a-3fd5-7bf1-1b43-e0164f893f54.htm" />
-    <HelpTOCNode Id="119ede75-917f-4562-8f82-2787983c238a" Title="ResourceAttribute Class" Url="html/f48da9e0-e74d-da3a-ca41-d3afe376271d.htm">
+    <HelpTOCNode Id="4c923f4b-7810-4a22-979d-a16a0acdb2de" Title="ResourceAttribute Class" Url="html/f48da9e0-e74d-da3a-ca41-d3afe376271d.htm">
       <HelpTOCNode Title="ResourceAttribute Constructor " Url="html/86d920ef-97e4-e664-37e7-3a578a6147f8.htm" />
       <HelpTOCNode Title="ResourceAttribute Methods" Url="html/af8cd2ea-66ae-25d1-e6d6-72bdc1970c4b.htm" />
-      <HelpTOCNode Id="07af1c9f-3132-4065-9a71-ed271debab0c" Title="ResourceAttribute Properties" Url="html/62294aa3-632b-d83c-211b-ce7c7c1e006f.htm">
+      <HelpTOCNode Id="a690b194-60ba-4364-b951-90357d2c3965" Title="ResourceAttribute Properties" Url="html/62294aa3-632b-d83c-211b-ce7c7c1e006f.htm">
         <HelpTOCNode Title="IsExpensive Property " Url="html/86c25f2d-0f68-e003-8d8d-67563fc07e67.htm" />
         <HelpTOCNode Title="IsStateful Property " Url="html/ddb9ef54-f5d0-5fcf-b1b7-c71c7966b4f1.htm" />
       </HelpTOCNode>
