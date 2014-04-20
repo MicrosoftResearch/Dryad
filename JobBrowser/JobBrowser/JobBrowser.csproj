@@ -115,10 +115,12 @@
     <Reference Include="Microsoft.Research.Peloponnese.HadoopBridge, Version=0.0.0.0, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.Research.Peloponnese.0.7.2-beta\lib\net45\Microsoft.Research.Peloponnese.HadoopBridge.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Research.Peloponnese.Utils, Version=0.7.2.0, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.Research.Peloponnese.0.7.2-beta\lib\net45\Microsoft.Research.Peloponnese.Utils.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Threading.Tasks">
       <HintPath>..\packages\Microsoft.Bcl.Async.1.0.166\lib\net40\Microsoft.Threading.Tasks.dll</HintPath>

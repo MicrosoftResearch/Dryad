@@ -137,7 +137,7 @@ namespace Microsoft.Research.Dryad.LocalScheduler
         public void DecrementQueueCount()
         {
             Debug.Assert(queueCount > 0);
-            ++queueCount;
+            --queueCount;
             if (owner == null && !scheduling && queueCount == 0)
             {
                 // the queue count has dropped to zero without the process being matched

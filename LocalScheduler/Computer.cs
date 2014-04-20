@@ -95,6 +95,14 @@ namespace Microsoft.Research.Dryad.LocalScheduler
         private TaskCompletionSource<Process> finishWaiter;
 
         /// <summary>
+        /// children that will be cancelled when finishWaiter is unblocked. These are materialized into a
+        /// separate set so that they can be discarded when they are no longer needed. Otherwise, when
+        /// used in WhenAny internally, they lead to the GC holding onto any other tasks in the WhenAny
+        /// clause until finishWaiter completes, which is a huge memory leak
+        /// </summary>
+        private HashSet<TaskCompletionSource<Process>> childFinishWaiters;
+
+        /// <summary>
         /// this blocks until the command loop exits
         /// </summary>
         private TaskCompletionSource<bool> exited;
@@ -140,6 +148,8 @@ namespace Microsoft.Research.Dryad.LocalScheduler
             // make the Task that CommandLoop blocks on; when finishWaiter is started it returns null
             // causing CommandLoop to exit.
             finishWaiter = new TaskCompletionSource<Process>();
+            childFinishWaiters = new HashSet<TaskCompletionSource<Process>>();
+            finishWaiter.Task.ContinueWith((t) => Task.Run(() => SetChildFinishWaiters()));
 
             // this is started when the Command Loop exits
             exited = new TaskCompletionSource<bool>();
@@ -201,9 +211,54 @@ namespace Microsoft.Research.Dryad.LocalScheduler
         }
 
         /// <summary>
-        /// a task that can be awaited and will asynchronously unblock when the finishWaiter result is set
+        /// set all the pending cancellations from the master finishWaiter
         /// </summary>
-        private Task<Process> AsyncFinishWaiter { get { return finishWaiter.Task.ContinueWith((t) => t.Result); } }
+        private void SetChildFinishWaiters()
+        {
+            lock (this)
+            {
+                foreach (TaskCompletionSource<Process> waiter in childFinishWaiters)
+                {
+                    waiter.SetResult(finishWaiter.Task.Result);
+                }
+                childFinishWaiters = null;
+            }
+        }
+
+        /// <summary>
+        /// get a task that can be awaited and will asynchronously unblock when the finishWaiter result is set
+        /// </summary>
+        private TaskCompletionSource<Process> GetAsyncFinishWaiter()
+        {
+            TaskCompletionSource<Process> thisCompletion = new TaskCompletionSource<Process>();
+            lock (this)
+            {
+                if (childFinishWaiters == null)
+                {
+                    thisCompletion.SetResult(finishWaiter.Task.Result);
+                }
+                else
+                {
+                    childFinishWaiters.Add(thisCompletion);
+                }
+            }
+            return thisCompletion;
+        }
+
+        /// <summary>
+        /// take the finish waiter out of the list of pending waiters, since its target has completed
+        /// </summary>
+        /// <param name="waiter">waiter to remove</param>
+        private void RemoveAsyncFinishWaiter(TaskCompletionSource<Process> waiter)
+        {
+            lock (this)
+            {
+                if (childFinishWaiters != null)
+                {
+                    childFinishWaiters.Remove(waiter);
+                }
+            }
+        }
 
         /// <summary>
         /// (asynchronously) block until there is a process available on the local queue, the rack queue
@@ -248,7 +303,9 @@ namespace Microsoft.Research.Dryad.LocalScheduler
 
             // we want to wait either for waiter to be matched with a Process in one of the three queues, or
             // for ShutDown to be called, so make an array of tasks and wait for the first one to be unblocked.
-            var unblocked = await Task.WhenAny(blocker, AsyncFinishWaiter);
+            TaskCompletionSource<Process> thisWaiter = GetAsyncFinishWaiter();
+            var unblocked = await Task.WhenAny(blocker, thisWaiter.Task);
+            RemoveAsyncFinishWaiter(thisWaiter);
 
             if (unblocked.Result != null)
             {
@@ -341,7 +398,9 @@ namespace Microsoft.Research.Dryad.LocalScheduler
                     {
                         logger.Log("Computer " + name + " reporting match with process " + process.Id);
 
-                        await process.OnScheduled(this, nextTask, AsyncFinishWaiter, null);
+                        TaskCompletionSource<Process> thisWaiter = GetAsyncFinishWaiter();
+                        await process.OnScheduled(this, nextTask, thisWaiter.Task, null);
+                        RemoveAsyncFinishWaiter(thisWaiter);
 
                         logger.Log("Computer " + name + " waiting for process " + process.Id + " to complete");
 

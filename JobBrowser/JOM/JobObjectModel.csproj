@@ -77,7 +77,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.Research.Peloponnese.0.7.2-beta\lib\net45\Microsoft.Research.Peloponnese.HadoopBridge.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Research.Peloponnese.Utils, Version=0.7.0.0, Culture=neutral, processorArchitecture=AMD64">
+    <Reference Include="Microsoft.Research.Peloponnese.Utils, Version=0.7.2.0, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.Research.Peloponnese.0.7.2-beta\lib\net45\Microsoft.Research.Peloponnese.Utils.dll</HintPath>
     </Reference>

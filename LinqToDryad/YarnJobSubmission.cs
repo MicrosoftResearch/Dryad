@@ -267,7 +267,7 @@ namespace Microsoft.Research.DryadLinq
         {
             if (Context.PeloponneseHomeDirectory == null)
             {
-                throw new ApplicationException("No Peloponnese home directory is set");
+                Context.PeloponneseHomeDirectory = Context.DryadHomeDirectory;
             }
             if (Context.DryadHomeDirectory == null)
             {

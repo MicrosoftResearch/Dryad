@@ -127,6 +127,11 @@
           a completed application. We have tried to report errors in user application code back so that they are visible in the
           <link xlink:href="91822db3-8a00-4307-ad8a-595c94f449b0">DryadLINQ Job Browser</link> to avoid the need to consult
           the logs.</para>
+          <para>
+            <mediaLinkInline>
+              <image xlink:href="Dryad on Azure Architecture"/>
+            </mediaLinkInline>
+          </para>
         </content>
       </conclusion>
     </procedure>

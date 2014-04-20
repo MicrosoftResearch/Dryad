@@ -131,6 +131,11 @@ namespace Microsoft.Research.Dryad.LocalScheduler
         {
             processQueue = new Queue<Process>();
             waiterQueue = new Queue<ProcessWaiter>();
+
+            // start background cleaning tasks
+            CleanProcessQueue();
+            CleanWaiterQueue();
+
             active = true;
         }
 
@@ -161,6 +166,76 @@ namespace Microsoft.Research.Dryad.LocalScheduler
                         p.DecrementQueueCount();
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// background thread to periodically remove any claimed processes, so we don't
+        /// hang on to memory indefinitely
+        /// </summary>
+        private async void CleanProcessQueue()
+        {
+            while (true)
+            {
+                lock (this)
+                {
+                    if (processQueue == null)
+                    {
+                        // we have shut down, so exit this daemon
+                        return;
+                    }
+
+                    Queue<Process> cleanedQueue = new Queue<Process>();
+                    foreach (Process p in processQueue)
+                    {
+                        lock (p)
+                        {
+                            if (p.Unclaimed)
+                            {
+                                cleanedQueue.Enqueue(p);
+                            }
+                        }
+                    }
+                    processQueue = cleanedQueue;
+                }
+
+                // clean again in a second
+                await Task.Delay(1000);
+            }
+        }
+
+        /// <summary>
+        /// background thread to periodically remove any claimed waiters, so we don't
+        /// hang on to memory indefinitely
+        /// </summary>
+        private async void CleanWaiterQueue()
+        {
+            while (true)
+            {
+                lock (this)
+                {
+                    if (processQueue == null)
+                    {
+                        // we have shut down, so exit this daemon
+                        return;
+                    }
+
+                    Queue<ProcessWaiter> cleanedQueue = new Queue<ProcessWaiter>();
+                    foreach (ProcessWaiter w in waiterQueue)
+                    {
+                        lock (w)
+                        {
+                            if (w.Unclaimed)
+                            {
+                                cleanedQueue.Enqueue(w);
+                            }
+                        }
+                    }
+                    waiterQueue = cleanedQueue;
+                }
+
+                // clean again in a second
+                await Task.Delay(1000);
             }
         }
 
@@ -305,7 +380,7 @@ namespace Microsoft.Research.Dryad.LocalScheduler
                     }
                 }
 
-                // even if there are processes, they may have been claimed by ther computers
+                // even if there are processes, they may have been claimed by other computers
                 // already, so use a loop here
                 while (active && processQueue.Count > 0 && !claimed)
                 {
