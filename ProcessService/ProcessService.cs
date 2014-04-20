@@ -135,10 +135,12 @@ namespace Microsoft.Research.Dryad.ProcessService
         private Int64 startTime;
         private Int64 stopTime;
         private Process process;
+        private Action collector;
 
-        public ProcessRecord(int i, ILogger l)
+        public ProcessRecord(int i, ILogger l, Action collect)
         {
             logger = l;
+            collector = collect;
             id = i;
             status = ProcessStatus.Queued;
             exitCode = unchecked((int)Constants.WinError_StillActive);
@@ -161,6 +163,14 @@ namespace Microsoft.Research.Dryad.ProcessService
 
         // Always accessed when process is locked
         public Int64 StopTime { get { return stopTime; } }
+
+        private void SetCompletedStatus()
+        {
+            status = ProcessStatus.Completed;
+            stopTime = process.ExitTime.ToFileTimeUtc();
+            // after 30 seconds, call our parent to garbage collect the record and its mailboxes
+            Task.Delay(30 * 1000).ContinueWith((t) => collector());
+        }
 
         public void OnExited(object obj, EventArgs args)
         {
@@ -272,13 +282,13 @@ namespace Microsoft.Research.Dryad.ProcessService
                 else
                 {
                     logger.Log("Process " + id + " failed to start");
-                    status = ProcessStatus.Completed;
+                    SetCompletedStatus();
                 }
             }
             catch (Exception e)
             {
                 logger.Log("Error starting process " + id + ": " + e.ToString());
-                status = ProcessStatus.Completed;
+                SetCompletedStatus();
             }
 
             UnblockMailboxes();
@@ -313,7 +323,7 @@ namespace Microsoft.Research.Dryad.ProcessService
 
             logger.Log("setting queued process " + id + " to completed");
             exitCode = unchecked((int)Constants.DrError_VertexReceivedTermination);
-            status = ProcessStatus.Completed;
+            SetCompletedStatus();
 
             UnblockMailboxes();
         }
@@ -336,8 +346,7 @@ namespace Microsoft.Research.Dryad.ProcessService
                 logger.Log("setting canceling process " + id + " to completed exit code " + exitCode + " real code " + process.ExitCode);
             }
 
-            status = ProcessStatus.Completed;
-            stopTime = process.ExitTime.ToFileTimeUtc();
+            SetCompletedStatus();
 
             UnblockMailboxes();
         }
@@ -523,9 +532,25 @@ namespace Microsoft.Research.Dryad.ProcessService
             return true;
         }
 
+        public void GarbageCollectProcess(int processId)
+        {
+            lock (processTable)
+            {
+                if (processTable.ContainsKey(processId))
+                {
+                    logger.Log("Garbage collecting process id " + processId);
+                    processTable.Remove(processId);
+                }
+                else
+                {
+                    logger.Log("Unable to garbage collect unknown process id " + processId);
+                }
+            }
+        }
+
         public bool Create(int processId)
         {
-            ProcessRecord process = new ProcessRecord(processId, logger);
+            ProcessRecord process = new ProcessRecord(processId, logger, () => GarbageCollectProcess(processId));
 
             lock (processTable)
             {
