@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/01/nuspec.xsd">
     <metadata minClientVersion="2.5">
         <id>Microsoft.Research.Dryad</id>
-        <version>0.1.2-beta</version>
+        <version>0.1.3-beta</version>
         <title>Dryad and DryadLINQ for YARN</title>
         <authors>bigdatadev@microsoft.com</authors>
         <owners>bigdatadev@microsoft.com,Microsoft</owners>

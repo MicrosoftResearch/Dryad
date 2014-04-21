@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/01/nuspec.xsd">
     <metadata minClientVersion="2.5">
         <id>Microsoft.Research.DryadLinq.Samples</id>
-        <version>0.1.2-beta</version>
+        <version>0.1.3-beta</version>
         <title>Sample DryadLINQ Programs</title>
         <authors>bigdatadev@microsoft.com</authors>
         <owners>bigdatadev@microsoft.com,Microsoft</owners>
@@ -14,7 +14,7 @@
         <language>en-US</language>
         <dependencies>
             <group targetFramework=".NETFramework4.5">
-                <dependency id="Microsoft.Research.Dryad" version="0.1.2-beta" />
+                <dependency id="Microsoft.Research.Dryad" version="0.1.3-beta" />
             </group>
         </dependencies>
         <frameworkAssemblies>
