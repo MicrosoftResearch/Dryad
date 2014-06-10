@@ -4,159 +4,286 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 
 namespace DryadLinqTests
 {
     public static class GroupByReduceTests
     {
-        public static bool Decomposition_Average()
+        public static void Run(DryadLinqContext context, string matchPattern)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            TestLog.Message(" **********************");
+            TestLog.Message(" GroupByReduceTests ");
+            TestLog.Message(" **********************");
+
+
+            var tests = new Dictionary<string, Action>()
+              {
+                  {"Decomposition_Average", () => Decomposition_Average(context) },
+                  {"DistributiveResultSelector_1", () => DistributiveResultSelector_1(context) },
+                  {"DistributiveSelect_1", () => DistributiveSelect_1(context) },
+                  {"BuiltInCountIsDistributable", () => BuiltInCountIsDistributable(context) },
+                  {"Bug12078_GroupByReduceWithResultSelectingAggregate", () => Bug12078_GroupByReduceWithResultSelectingAggregate(context) },
+                  {"GroupByReduceWithCustomDecomposableFunction_NonDistributableCombiner", () => GroupByReduceWithCustomDecomposableFunction_NonDistributableCombiner(context) },
+                  {"GroupByReduceWithCustomDecomposableFunction_DistributableCombiner", () => GroupByReduceWithCustomDecomposableFunction_DistributableCombiner(context) },
+                  {"GroupByReduceWithCustomDecomposableFunction_DistributableCombiner_DifferingTypes", () => GroupByReduceWithCustomDecomposableFunction_DistributableCombiner_DifferingTypes(context) },
+                  {"GroupByReduceWithCustomDecomposableFunction_DistributableCombiner_NoFinalizer", () => GroupByReduceWithCustomDecomposableFunction_DistributableCombiner_NoFinalizer(context) },
+                  {"GroupByReduce_UseAllInternalDecomposables", () => GroupByReduce_UseAllInternalDecomposables(context) },
+                  {"GroupByReduce_BuiltIn_First", () => GroupByReduce_BuiltIn_First(context) },
+                  {"GroupByReduce_ResultSelector_ComplexNewExpression", () => GroupByReduce_ResultSelector_ComplexNewExpression(context) },
+                  // ToDo {"GroupByReduce_ProgrammingManualExample", () => GroupByReduce_ProgrammingManualExample(context) },
+                  {"GroupByReduce_SameDecomposableUsedTwice", () => GroupByReduce_SameDecomposableUsedTwice(context) },
+                  {"GroupByReduce_APIMisuse", () => GroupByReduce_APIMisuse(context) },
+                  {"GroupByReduce_ListInitializerReducer", () => GroupByReduce_ListInitializerReducer(context) },
+                  {"GroupByReduce_CustomListInitializerReducer", () => GroupByReduce_CustomListInitializerReducer(context) },
+                  {"GroupByReduce_BitwiseNegationOperator", () => GroupByReduce_BitwiseNegationOperator(context) },
+              };
+
+
+            foreach (var test in tests)
+            {
+                if (Regex.IsMatch(test.Key, matchPattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+                {
+                    test.Value.Invoke();
+                }
+            }
+        }
+
+        public static bool Decomposition_Average(DryadLinqContext context)
+        {
+            string testName = "Decomposition_Average";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
+                IEnumerable<double>[] result = new IEnumerable<double>[2];
+                // cluster
+                {
+                    context.LocalDebug = false;
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    double[] aggregates = pt1.GroupBy(x => x % 2).Select(g => g.Average()).ToArray(); 
+                    result[0] = aggregates;
+                }
+                // local
+                {
+                    context.LocalDebug = true;
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    double[] aggregates = pt1.GroupBy(x => x % 2).Select(g => g.Average()).ToArray(); 
+                    result[1] = aggregates;
+                }
 
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
-
-                double[] aggregates = pt1.GroupBy(x => x % 2).Select(g => g.Average()).ToArray();
-                //int[] expected = new[] { 1 + 3 + 5 + 7 + 9 + 11, 2 + 4 + 6 + 8 + 10 + 12 };
-
-                ////note the order of the result elements is not guaranteed, so order them before testing
-                //int[] aggregatesOrdered = aggregates.OrderBy(x => x).ToArray();
-                //int[] expectedOrdered = expected.OrderBy(x => x).ToArray();
-
-                //passed &= aggregatesOrdered.SequenceEqual(expectedOrdered);
+                // compare result
+                try
+                {
+                    Validate.Check(result);
+                }
+                catch (Exception ex)
+                {
+                    TestLog.Message("Error: " + ex.Message);
+                    passed &= false;
+                }
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
-        public static bool DistributiveResultSelector_1()
+        public static bool DistributiveResultSelector_1(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "DistributiveResultSelector_1";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
+                IEnumerable<int>[] result = new IEnumerable<int>[2];
 
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
+                // cluster
+                {
+                    context.LocalDebug = false;
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    // this result selector satisfies "DistributiveOverConcat"
+                    int[] aggregates = pt1.GroupBy(x => x % 2, (key, seq) => seq.Sum()).ToArray();
+                    result[0] = aggregates;
+                }
+                // local
+                {
+                    context.LocalDebug = true;
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    // this result selector satisfies "DistributiveOverConcat"
+                    int[] aggregates = pt1.GroupBy(x => x % 2, (key, seq) => seq.Sum()).ToArray();
+                    result[1] = aggregates;
+                }
 
-                // this result selector satisfies "DistributiveOverConcat"
-                int[] aggregates = pt1.GroupBy(x => x % 2, (key, seq) => seq.Sum()).ToArray();
-                int[] expected = new[] { 1 + 3 + 5 + 7 + 9 + 11, 2 + 4 + 6 + 8 + 10 + 12 };
-
-                //note the order of the result elements is not guaranteed, so order them before testing
-                int[] aggregatesOrdered = aggregates.OrderBy(x => x).ToArray();
-                int[] expectedOrdered = expected.OrderBy(x => x).ToArray();
-
-                passed &= aggregatesOrdered.SequenceEqual(expectedOrdered);
+                // compare result
+                try
+                {
+                    Validate.Check(result);
+                }
+                catch (Exception ex)
+                {
+                    TestLog.Message("Error: " + ex.Message);
+                    passed &= false;
+                }
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
-        public static bool DistributiveSelect_1()
+        public static bool DistributiveSelect_1(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "DistributiveSelect_1";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
+                IEnumerable<int>[] result = new IEnumerable<int>[2];
 
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
+                // cluster
+                {
+                    context.LocalDebug = false;
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    // this result selector satisfies "DistributiveOverConcat"
+                    int[] aggregates = pt1.GroupBy(x => x % 2).Select(group => group.Sum()).ToArray();
+                    result[0] = aggregates;
+                }
+                // local
+                {
+                    context.LocalDebug = true;
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    // this result selector satisfies "DistributiveOverConcat"
+                    int[] aggregates = pt1.GroupBy(x => x % 2).Select(group => group.Sum()).ToArray();
+                    result[1] = aggregates;
+                }
 
-                // this result selector satisfies "DistributiveOverConcat"
-                int[] aggregates = pt1.GroupBy(x => x % 2).Select(group => group.Sum()).ToArray();
-                int[] expected = new[] { 1 + 3 + 5 + 7 + 9 + 11, 2 + 4 + 6 + 8 + 10 + 12 };
-
-                //note the order of the result elements is not guaranteed, so order them before testing
-                int[] aggregatesOrdered = aggregates.OrderBy(x => x).ToArray();
-                int[] expectedOrdered = expected.OrderBy(x => x).ToArray();
-
-                passed &= aggregatesOrdered.SequenceEqual(expectedOrdered);
+                // compare result
+                try
+                {
+                    Validate.Check(result);
+                }
+                catch (Exception ex)
+                {
+                    TestLog.Message("Error: " + ex.Message);
+                    passed &= false;
+                }
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
-        public static bool BuiltInCountIsDistributable()
+        public static bool BuiltInCountIsDistributable(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "BuiltInCountIsDistributable";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
+                IEnumerable<int>[] result = new IEnumerable<int>[2];
 
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
+                // cluster
+                {
+                    context.LocalDebug = false;
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    // Built in Count is Distributable as built-in logic knows to use Sum() as the combiner function.
+                    // Count(a,b,c,d) = Sum(Count(a,b), Count(c,d))
+                    int[] aggregates = pt1.GroupBy(x => x % 2, (key, seq) => seq.Count()).ToArray();
+                    result[0] = aggregates;
+                }
+                // local
+                {
+                    context.LocalDebug = true;
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    // Built in Count is Distributable as built-in logic knows to use Sum() as the combiner function.
+                    // Count(a,b,c,d) = Sum(Count(a,b), Count(c,d))
+                    int[] aggregates = pt1.GroupBy(x => x % 2, (key, seq) => seq.Count()).ToArray();
+                    result[1] = aggregates;
+                }
 
-                // Built in Count is Distributable as built-in logic knows to use Sum() as the combiner function.
-                // Count(a,b,c,d) = Sum(Count(a,b), Count(c,d))
-                int[] aggregates = pt1.GroupBy(x => x % 2, (key, seq) => seq.Count()).ToArray();
-                int[] expected = new[] { 6, 6 }; // six elements in each full group.
-
-                //note the order of the result elements is not guaranteed, so order them before testing
-                int[] aggregatesOrdered = aggregates.OrderBy(x => x).ToArray();
-                int[] expectedOrdered = expected.OrderBy(x => x).ToArray();
-
-                passed &= aggregatesOrdered.SequenceEqual(expectedOrdered);
+                // compare result
+                try
+                {
+                    Validate.Check(result); 
+                }
+                catch (Exception ex)
+                {
+                    TestLog.Message("Error: " + ex.Message);
+                    passed &= false;
+                }
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
-        public static bool Bug12078_GroupByReduceWithResultSelectingAggregate()
+        public static bool Bug12078_GroupByReduceWithResultSelectingAggregate(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "Bug12078_GroupByReduceWithResultSelectingAggregate";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
+                IEnumerable<double>[]result = new IEnumerable<double>[2];
 
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateGroupByReduceDataSet());
-                IQueryable<int> data = simple.Select(x => x.First());
-
-                double[] aggregates = data
-                                        .Select(x => (double)x)
-                                        .GroupBy(x => 0, (key, seq) => seq.Aggregate((double)0, (acc, item) => acc + item, val => val / 100)).ToArray();
-                double[] expected = new[] { Enumerable.Range(1, 200).Sum() / 100.0 };
-
-                //note the order of the result elements is not guaranteed, so order them before testing
-                double[] aggregatesOrdered = aggregates.OrderBy(x => x).ToArray();
-                double[] expectedOrdered = expected.OrderBy(x => x).ToArray();
-
-                passed &= aggregatesOrdered.SequenceEqual(expectedOrdered);
+                // cluster
+                {
+                    context.LocalDebug = false;
+                    IQueryable<int> pt1 = DataGenerator.GetGroupByReduceDataSet(context);
+                    double[] aggregates = pt1.Select(x => (double)x)
+                                            .GroupBy(x => 0, (key, seq) => seq.Aggregate((double)0, (acc, item) => acc + item, val => val / 100)).ToArray();
+                    result[0] = aggregates;
+                }
+                // local
+                {
+                    context.LocalDebug = true;
+                    IQueryable<int> pt1 = DataGenerator.GetGroupByReduceDataSet(context);
+                    double[] aggregates = pt1.Select(x => (double)x)
+                                            .GroupBy(x => 0, (key, seq) => seq.Aggregate((double)0, (acc, item) => acc + item, val => val / 100)).ToArray();
+                    result[1] = aggregates;
+                }
+                // compare result
+                try
+                {
+                    Validate.Check(result);
+                }
+                catch (Exception ex)
+                {
+                    TestLog.Message("Error: " + ex.Message);
+                    passed &= false;
+                }
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
@@ -193,35 +320,51 @@ namespace DryadLinqTests
             }
         }
 
-        public static bool GroupByReduceWithCustomDecomposableFunction_DistributableCombiner()
+        public static bool GroupByReduceWithCustomDecomposableFunction_DistributableCombiner(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "GroupByReduceWithCustomDecomposableFunction_DistributableCombiner";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
+                IEnumerable<double>[] result = new IEnumerable<double>[2];
 
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateGroupByReduceDataSet());
-                IQueryable<int> data = simple.Select(x => x.First());
+                // cluster
+                {
+                    context.LocalDebug = false;
+                    IQueryable<int> pt1 = DataGenerator.GetGroupByReduceDataSet(context);
+                    double[] aggregates = pt1.Select(x => (double)x)
+                                            .GroupBy(x => 0, (k, g) => DecomposableFunc(g))
+                                            .ToArray();
+                    result[0] = aggregates;
+                }
+                // local
+                {
+                    context.LocalDebug = true;
+                    IQueryable<int> pt1 = DataGenerator.GetGroupByReduceDataSet(context);
+                    double[] aggregates = pt1.Select(x => (double)x)
+                                            .GroupBy(x => 0, (k, g) => DecomposableFunc(g))
+                                            .ToArray();
+                    result[1] = aggregates;
+                }
 
-                double[] aggregates = data
-                                         .Select(x => (double)x)
-                                         .GroupBy(x => 0, (k, g) => DecomposableFunc(g))
-                                         .ToArray();
-                double[] expected = new[] { Enumerable.Range(1, 200).Sum() / 100.0 };
-
-                //note the order of the result elements is not guaranteed, so order them before testing
-                double[] aggregatesOrdered = aggregates.OrderBy(x => x).ToArray();
-                double[] expectedOrdered = expected.OrderBy(x => x).ToArray();
-
-                passed &= aggregatesOrdered.SequenceEqual(expectedOrdered);
+                // compare result
+                try
+                {
+                    Validate.Check(result); 
+                }
+                catch (Exception)
+                {
+                    passed &= false;
+                }
             }
-            catch (DryadLinqException)
+            catch (Exception)
             {
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
         
@@ -260,34 +403,48 @@ namespace DryadLinqTests
             }
         }
 
-        public static bool GroupByReduceWithCustomDecomposableFunction_DistributableCombiner_DifferingTypes()
+        public static bool GroupByReduceWithCustomDecomposableFunction_DistributableCombiner_DifferingTypes(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "GroupByReduceWithCustomDecomposableFunction_DistributableCombiner_DifferingTypes";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
+                IEnumerable<string>[] result = new IEnumerable<string>[2];
 
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateGroupByReduceDataSet());
-                IQueryable<int> data = simple.Select(x => x.First());
-
-                string[] aggregates = data
-                                         .Select(x => (double)x)
-                                         .GroupBy(x => 0, (key, seq) => DecomposableFunc2(seq)).ToArray();
-                string[] expected = new[] { "hello:" + Enumerable.Range(1, 200).Sum() };
-
-                //note the order of the result elements is not guaranteed, so order them before testing
-                string[] aggregatesOrdered = aggregates.OrderBy(x => x).ToArray();
-                string[] expectedOrdered = expected.OrderBy(x => x).ToArray();
-
-                passed &= aggregatesOrdered.SequenceEqual(expectedOrdered);
+                // cluster
+                {
+                    context.LocalDebug = false;
+                    IQueryable<int> pt1 = DataGenerator.GetGroupByReduceDataSet(context);
+                    string[] aggregates = pt1.Select(x => (double)x)
+                                            .GroupBy(x => 0, (key, seq) => DecomposableFunc2(seq)).ToArray();
+                    result[0] = aggregates;
+                }
+                // local
+                {
+                    context.LocalDebug = true;
+                    IQueryable<int> pt1 = DataGenerator.GetGroupByReduceDataSet(context);
+                    string[] aggregates = pt1.Select(x => (double)x)
+                                            .GroupBy(x => 0, (key, seq) => DecomposableFunc2(seq)).ToArray();
+                    result[1] = aggregates;
+                }
+                // compare result
+                try
+                {
+                    Validate.Check(result); 
+                }
+                catch (Exception)
+                {
+                    passed &= false;
+                }
             }
-            catch (DryadLinqException)
+            catch (Exception)
             {
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
@@ -328,34 +485,50 @@ namespace DryadLinqTests
             }
         }
 
-        public static bool GroupByReduceWithCustomDecomposableFunction_DistributableCombiner_NoFinalizer()
+        public static bool GroupByReduceWithCustomDecomposableFunction_DistributableCombiner_NoFinalizer(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "GroupByReduceWithCustomDecomposableFunction_DistributableCombiner_NoFinalizer";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
+                IEnumerable<string>[] result = new IEnumerable<string>[2];
 
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateGroupByReduceDataSet());
-                IQueryable<int> data = simple.Select(x => x.First());
-
-                string[] aggregates = data
-                                         .Select(x => (double)x)
-                                         .GroupBy(x => 0, (key, seq) => DecomposableFunc3(seq)).ToArray();
-                string[] expected = new[] { Enumerable.Range(1, 200).Sum().ToString() };
-
-                //note the order of the result elements is not guaranteed, so order them before testing
-                string[] aggregatesOrdered = aggregates.OrderBy(x => x).ToArray();
-                string[] expectedOrdered = expected.OrderBy(x => x).ToArray();
-
-                passed &= aggregatesOrdered.SequenceEqual(expectedOrdered);
+                // cluster
+                {
+                    context.LocalDebug = false;
+                    IQueryable<int> pt1 = DataGenerator.GetGroupByReduceDataSet(context);
+                    string[] aggregates = pt1.Select(x => (double)x)
+                                            .GroupBy(x => 0, (key, seq) => DecomposableFunc3(seq)).ToArray();
+                    result[0] = aggregates;
+                }
+                // local
+                {
+                    context.LocalDebug = true;
+                    IQueryable<int> pt1 = DataGenerator.GetGroupByReduceDataSet(context);
+                    string[] aggregates = pt1.Select(x => (double)x)
+                                            .GroupBy(x => 0, (key, seq) => DecomposableFunc3(seq)).ToArray();
+                    result[1] = aggregates;
+                }
+                // compare result
+                try
+                {
+                    Validate.Check(result);
+                }
+                catch (Exception ex)
+                {
+                    TestLog.Message("Error: " + ex.Message);
+                    passed &= false;
+                }
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
@@ -396,136 +569,196 @@ namespace DryadLinqTests
             }
         }
 
-        public static bool GroupByReduceWithCustomDecomposableFunction_NonDistributableCombiner()
+        public static bool GroupByReduceWithCustomDecomposableFunction_NonDistributableCombiner(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "GroupByReduceWithCustomDecomposableFunction_NonDistributableCombiner";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
+                IEnumerable<double>[] result = new IEnumerable<double>[2];
 
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateGroupByReduceDataSet());
-                IQueryable<int> data = simple.Select(x => x.First());
+                // cluster
+                {
+                    context.LocalDebug = false;
+                    IQueryable<int> pt1 = DataGenerator.GetGroupByReduceDataSet(context);
+                    double[] aggregates = pt1.Select(x => (double)x)
+                                              .GroupBy(x => 0, (key, seq) => DecomposableFunc4(seq)).ToArray();
+                    result[0] = aggregates;
+                }
+                // local
+                {
+                    context.LocalDebug = true;
+                    IQueryable<int> pt1 = DataGenerator.GetGroupByReduceDataSet(context);
+                    double[] aggregates = pt1.Select(x => (double)x)
+                                              .GroupBy(x => 0, (key, seq) => DecomposableFunc4(seq)).ToArray();
+                    result[1] = aggregates;
+                }
 
-                double[] aggregates = data
-                                         .Select(x => (double)x)
-                                         .GroupBy(x => 0, (key, seq) => DecomposableFunc4(seq)).ToArray();
-                double[] expected = new[] { Enumerable.Range(1, 200).Sum() / 100.0 };
+                // compare result
+                try
+                {
+                    Validate.Check(result);
+                }
+                catch (Exception)
+                {
+                    passed &= false;
+                }
 
-                //note the order of the result elements is not guaranteed, so order them before testing
-                double[] aggregatesOrdered = aggregates.OrderBy(x => x).ToArray();
-                double[] expectedOrdered = expected.OrderBy(x => x).ToArray();
-
-                passed &= aggregatesOrdered.SequenceEqual(expectedOrdered);
             }
-            catch (DryadLinqException)
+            catch (Exception)
             {
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
         #endregion GroupByReduceWithCustomDecomposableFunction_NonDistributableCombiner
 
-        public static bool GroupByReduce_BuiltIn_First()
+        public static bool GroupByReduce_UseAllInternalDecomposables(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "GroupByReduce_UseAllInternalDecomposables";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
-
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateGroupByReduceDataSet());
-                IQueryable<int> data = simple.Select(x => x.First());
-
-                int[] aggregates = data
-                                     .GroupBy(x => 0, (key, seq) => seq.First())
-                                     .ToArray();
-
-                // the output of First can be the first item of either partition.
-                passed &= aggregates.SequenceEqual(new[] { 1 }) || aggregates.SequenceEqual(new[] { 101 });
+                // cluster
+                {
+                    context.LocalDebug = false;
+                    IQueryable<int> pt1 = DataGenerator.GetGroupByReduceDataSet(context);
+                    var aggregates = pt1.Select(x => (double)x)
+                                         .GroupBy(x => 0, (key, seq) => seq.Count())
+                                         .GroupBy(x => 0, (key, seq) => seq.LongCount())
+                                         .GroupBy(x => 0, (key, seq) => seq.Max())
+                                         .GroupBy(x => 0, (key, seq) => seq.Min())
+                                         .GroupBy(x => 0, (key, seq) => seq.Sum())
+                                         .GroupBy(x => 0, (key, seq) => seq.Average())
+                                         .GroupBy(x => 0, (key, seq) => seq.Aggregate((x, y) => x + y))
+                                         .GroupBy(x => 0, (key, seq) => seq.Any(x => true))
+                                         .SelectMany(x => new[] { x })
+                                         .GroupBy(x => 0, (key, seq) => seq.All(x => true))
+                                         .SelectMany(x => new[] { x })
+                                         .GroupBy(x => 0, (key, seq) => seq.Contains(true))
+                                         .SelectMany(x => new[] { x })
+                                         .GroupBy(x => 0, (key, seq) => seq.Distinct())
+                                         .SelectMany(x => new[] { x })
+                                         .GroupBy(x => 0, (key, seq) => seq.First())
+                                         .ToArray();
+                }
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
-        public static bool GroupByReduce_ResultSelector_ComplexNewExpression()
+        public static bool GroupByReduce_BuiltIn_First(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "GroupByReduce_BuiltIn_First";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
+                // cluster
+                {
+                    context.LocalDebug = false;
+                    IQueryable<int> pt1 = DataGenerator.GetGroupByReduceDataSet(context);
+                    int[] aggregates = pt1.GroupBy(x => 0, (key, seq) => seq.First()).ToArray();
+                    // the output of First can be the first item of either partition.
+                    passed &= aggregates.SequenceEqual(new[] { 1 }) || aggregates.SequenceEqual(new[] { 101 }); // ToDo: remove hard coded
+                }
+            }
+            catch (Exception Ex)
+            {
+                TestLog.Message("Error: " + Ex.Message);
+                passed &= false;
+            }
 
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateGroupByReduceDataSet());
-                IQueryable<int> data = simple.Select(x => x.First());
+            TestLog.LogResult(new TestResult(testName, context, passed));
+            return passed;
+        }
 
-                var aggregates = data.GroupBy(x => 0, (key, seq) => new KeyValuePair<int, KeyValuePair<double, double>>(key, new KeyValuePair<double, double>(seq.Average(), seq.Average()))).ToArray();
+        public static bool GroupByReduce_ResultSelector_ComplexNewExpression(DryadLinqContext context)
+        {
+            string testName = "GroupByReduce_ResultSelector_ComplexNewExpression";
+            TestLog.TestStart(testName);
 
-                var expected = new KeyValuePair<int, KeyValuePair<double, double>>[] { new KeyValuePair<int, KeyValuePair<double, double>>(0, new KeyValuePair<double, double>(100.5, 100.5)) };
+            bool passed = true;
+            try
+            {
+                IEnumerable<int>[] result = new IEnumerable<int>[2];
+
+                // cluster
+                context.LocalDebug = false;
+                IQueryable<int> pt1 = DataGenerator.GetGroupByReduceDataSet(context);
+                var aggregates = pt1.GroupBy(x => 0, (key, seq) => new KeyValuePair<int, KeyValuePair<double, double>>(key, new KeyValuePair<double, double>(seq.Average(), seq.Average()))).ToArray();
+
+                // local
+                context.LocalDebug = true;
+                IQueryable<int> pt2 = DataGenerator.GetSimpleFileSets(context);
+                var expected = pt2.GroupBy(x => 0, (key, seq) => new KeyValuePair<int, KeyValuePair<double, double>>(key, new KeyValuePair<double, double>(seq.Average(), seq.Average()))).ToArray();
 
                 passed &= aggregates.SequenceEqual(expected);
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
         #region GroupByReduce_ProgrammingManualExample
 
-        public static bool GroupByReduce_ProgrammingManualExample()
-        {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
-            bool passed = true;
-            try
-            {
-                string filesetName = "DevUnitTest/0to999integers"; 
-                Utils.DeleteFile(Config.accountName, Config.storageKey, Config.containerName, filesetName, true);
+        // ToDo:
+        //public static bool GroupByReduce_ProgrammingManualExample(DryadLinqContext context)
+        //{
+        //    string testName = "GroupByReduce_ProgrammingManualExample";
+        //    TestLog.TestStart(testName);
 
-                IEnumerable<IEnumerable<int>> rawdata = new[] { Enumerable.Range(0, 334), Enumerable.Range(334, 333), Enumerable.Range(667, 333) };
-                // ??? DscIngressHelpers.AsDryadQueryPartitions(context, rawdata, filesetName, DscCompressionScheme.None);
-                var data = context.FromStore<int>(filesetName);
+        //    bool passed = true;
+        //    try
+        //    {
+        //        // cluster
+        //        {
+        //            context.LocalDebug = false;
+        //            IEnumerable<IEnumerable<int>> rawdata = new[] { Enumerable.Range(0, 334), Enumerable.Range(334, 333), Enumerable.Range(667, 333) };
+        //            IQueryable<IEnumerable<int>> data = context.FromEnumerable(rawdata);
 
-                var count = data.AsEnumerable().Count();
-                var sum = data.AsEnumerable().Sum();
-                var min = data.AsEnumerable().Min();
-                var max = data.AsEnumerable().Max();
-                var uniques = data.AsEnumerable().Distinct().Count();
+        //            var count = data.Count();
+        //            //decimal sum = data.Sum();
+        //            var min = data.Min();
+        //            var max = data.Max();
+        //            var uniques = data.Distinct().Count();
 
-                //Console.WriteLine("DATA:: count:{0} uniques:{1} sum:{2}, min:{3}, max:{4}", count, uniques, sum, min, max);
+        //            var results = data.GroupBy(x => x % 10, (key, seq) => new KeyValuePair<int, double>(key, seq.MyAverage()))
+        //                              .OrderBy(y => y.Key)
+        //                              .ToArray();
 
-                // ???
-                //var results = data
-                //                 .GroupBy(x => x % 10, (key, seq) => new KeyValuePair<int, double>(key, seq.MyAverage()))
-                //                 .OrderBy(y => y.Key)
-                //                 .ToArray();
+        //            passed &= (results.Count() == 10);
+        //            passed &= (results[0].Key == 0); // "first element should be key=0");
+        //            passed &= (results[0].Value == 495); // "first element should be value=495 ie avg(0,10,20,..,990)");
+        //        }
+        //    }
+        //    catch (Exception)
+        //    {
+        //        passed &= false;
+        //    }
 
-                ////foreach (var result in results)
-                ////    Console.WriteLine("For group {0} the average is {1}", result.Key, result.Value);
-
-                //passed &= (results.Count() == 10);
-                //passed &= (results[0].Key == 0); // "first element should be key=0");
-                //passed &= (results[0].Value == 495); // "first element should be value=495 ie avg(0,10,20,..,990)");
-
-            }
-            catch (DryadLinqException)
-            {
-                passed &= false;
-            }
-            return passed;
-        }
+        //    TestLog.LogResult(new TestResult(testName, context, passed));
+        //    return passed;
+        //}
 
         [Decomposable(typeof(Decomposer_5))]
         public static double MyAverage(this IEnumerable<int> recordSequence)
@@ -584,46 +817,46 @@ namespace DryadLinqTests
         
         #endregion GroupByReduce_ProgrammingManualExample
 
-
         #region GroupByReduce_SameDecomposableUsedTwice
 
-        public static bool GroupByReduce_SameDecomposableUsedTwice()
+        public static bool GroupByReduce_SameDecomposableUsedTwice(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "GroupByReduce_SameDecomposableUsedTwice";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
+                // cluster
+                context.LocalDebug = false;
+                IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                var results0 = pt1.GroupBy(x => x % 2, (k, g) => MyFunc(k, DecomposableFunc5(g), DecomposableFunc5(g), g.Average())).ToArray();
+                var results0_sorted = results0.OrderBy(x => x.Key).ToArray();
 
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateGroupByReduceDataSet());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
+                // local
+                context.LocalDebug = true;
+                IQueryable<int> pt2 = DataGenerator.GetSimpleFileSets(context);
+                var results1 = pt2.GroupBy(x => x % 2, (k, g) => MyFunc(k, DecomposableFunc5(g), DecomposableFunc5(g), g.Average())).ToArray();
+                var results1_sorted = results1.OrderBy(x => x.Key).ToArray();
 
-                var results = pt1.GroupBy(x => x % 2, (k, g) => MyFunc(k, DecomposableFunc5(g), DecomposableFunc5(g), g.Average())).ToArray();
+                passed &= (results0_sorted.Length == results1_sorted.Length);
+                passed &= (results0_sorted[0].Key == results1_sorted[0].Key);
+                passed &= (results0_sorted[0].A == results1_sorted[0].A); 
+                passed &= (results0_sorted[0].B == results1_sorted[0].B);
+                passed &= (results0_sorted[0].Av == results1_sorted[0].Av);
 
-                //key0: count = 6, av = av(2,4,6,8,10,12) = 7
-                //key1: count = 6, av = av(1,3,5,7,9,11) = 6
-
-                //local sort.. so that keys are in order.
-                var results_sorted = results.OrderBy(x => x.Key).ToArray();
-
-                passed &= (results_sorted.Length == 2); // "wrong results"
-
-                passed &= (results_sorted[0].Key == 0); // "wrong results"
-                passed &= (results_sorted[0].A == 6); // "wrong results"
-                passed &= (results_sorted[0].B == 6); // "wrong results"
-                passed &= (results_sorted[0].Av == 7.0); // "wrong results"
-
-                passed &= (results_sorted[1].Key == 1); // "wrong results"
-                passed &= (results_sorted[1].A == 6); // "wrong results"
-                passed &= (results_sorted[1].B == 6); // "wrong results"
-                passed &= (results_sorted[1].Av == 6.0); // "wrong results"
+                passed &= (results0_sorted[1].Key == results1_sorted[1].Key);
+                passed &= (results0_sorted[1].A == results1_sorted[1].A);
+                passed &= (results0_sorted[1].B == results1_sorted[1].B);
+                passed &= (results0_sorted[1].Av == results1_sorted[1].Av);
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
@@ -674,24 +907,16 @@ namespace DryadLinqTests
         #endregion GroupByReduce_SameDecomposableUsedTwice
 
         #region API_Misuse
-        internal static bool GroupByReduce_APIMisuse()
+        internal static bool GroupByReduce_APIMisuse(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "GroupByReduce_APIMisuse";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                if (context.LocalDebug)
-                {
-                    // "decomposition logic doesn't run in LocalDebug.. skipping";
-                    return true;
-                }
-
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
-
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateGroupByReduceDataSet());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
+                context.LocalDebug = false;
+                IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
 
                 // internal-visibility decomposable type should fail.
                 try
@@ -699,9 +924,9 @@ namespace DryadLinqTests
                     pt1.GroupBy(x => x, (k, g) => BadDecomposable1(g)).ToArray();
                     passed &= false; // "exception should be thrown"
                 }
-                catch (DryadLinqException)
+                catch (DryadLinqException Ex)
                 {
-                    //??? passed &= (Ex.ErrorCode == DryadLinqErrorCode.DecomposerTypeMustBePublic); // "error code is wrong"
+                    passed &= (Ex.ErrorCode == ReflectionHelper.GetDryadLinqErrorCode("DecomposerTypeMustBePublic"));
                 }
 
                 // decomposable type doesn't implement IDecomposable or IDecomposableRecursive
@@ -710,9 +935,9 @@ namespace DryadLinqTests
                     pt1.GroupBy(x => x, (k, g) => BadDecomposable2(g)).ToArray();
                     passed &= false; //"exception should be thrown");
                 }
-                catch (DryadLinqException)
+                catch (DryadLinqException Ex)
                 {
-                    //??? passed &= (Ex.ErrorCode == DryadLinqErrorCode.DecomposerTypeDoesNotImplementInterface);
+                    passed &= (Ex.ErrorCode == ReflectionHelper.GetDryadLinqErrorCode("DecomposerTypeDoesNotImplementInterface"));
                 }
 
                 // decomposable type implements more than one IDecomposable or IDecomposableRecursive
@@ -721,9 +946,9 @@ namespace DryadLinqTests
                     pt1.GroupBy(x => x, (k, g) => BadDecomposable3(g)).ToArray();
                     passed &= false;
                 }
-                catch (DryadLinqException)
+                catch (DryadLinqException Ex)
                 {
-                    //??? passed &= (Ex.ErrorCode == DryadLinqErrorCode.DecomposerTypeImplementsTooManyInterfaces);
+                    passed &= (Ex.ErrorCode == ReflectionHelper.GetDryadLinqErrorCode("DecomposerTypeImplementsTooManyInterfaces"));
                 }
 
                 // decomposable type doesn't have public default ctor
@@ -732,9 +957,9 @@ namespace DryadLinqTests
                     pt1.GroupBy(x => x, (k, g) => BadDecomposable4(g)).ToArray();
                     passed &= false;
                 }
-                catch (DryadLinqException)
+                catch (DryadLinqException Ex)
                 {
-                    //??? passed &= (Ex.ErrorCode == DryadLinqErrorCode.DecomposerTypeDoesNotHavePublicDefaultCtor);
+                    passed &= (Ex.ErrorCode == ReflectionHelper.GetDryadLinqErrorCode("DecomposerTypeDoesNotHavePublicDefaultCtor"));
                 }
 
                 // decomposable type input type doesn't match
@@ -743,9 +968,9 @@ namespace DryadLinqTests
                     pt1.GroupBy(x => x, (k, g) => BadDecomposable5(g)).ToArray();
                     passed &= false;
                 }
-                catch (DryadLinqException)
+                catch (DryadLinqException Ex)
                 {
-                    //??? passed &= (Ex.ErrorCode == DryadLinqErrorCode.DecomposerTypesDoNotMatch);
+                    passed &= (Ex.ErrorCode == ReflectionHelper.GetDryadLinqErrorCode("DecomposerTypesDoNotMatch"));
                 }
 
                 // decomposable type output type doesn't match
@@ -754,15 +979,18 @@ namespace DryadLinqTests
                     pt1.GroupBy(x => x, (k, g) => BadDecomposable6(g)).ToArray();
                     passed &= false;
                 }
-                catch (DryadLinqException)
+                catch (DryadLinqException Ex)
                 {
-                    //??? passed &= (Ex.ErrorCode == DryadLinqErrorCode.DecomposerTypesDoNotMatch);
+                    passed &= (Ex.ErrorCode == ReflectionHelper.GetDryadLinqErrorCode("DecomposerTypesDoNotMatch"));
                 }
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
@@ -844,76 +1072,83 @@ namespace DryadLinqTests
 
         #endregion API_Misuse
 
-        public static bool GroupByReduce_ListInitializerReducer()
+        public static bool GroupByReduce_ListInitializerReducer(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "GroupByReduce_ListInitializerReducer";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
+                // cluster
+                context.LocalDebug = false;
+                IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                var results0 = pt1.GroupBy(x => x % 2, (k, g) => new List<int>() { k, g.Count(), g.Sum() }).ToArray();
+                var resultsSorted0 = results0.OrderBy(list => list[0]).ToArray();
 
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateGroupByReduceDataSet());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
+                // local
+                context.LocalDebug = true;
+                IQueryable<int> pt2 = DataGenerator.GetSimpleFileSets(context);
+                var results1 = pt2.GroupBy(x => x % 2, (k, g) => new List<int>() { k, g.Count(), g.Sum() }).ToArray();
+                var resultsSorted1 = results1.OrderBy(list => list[0]).ToArray();
 
-                var results = pt1.GroupBy(x => x % 2, (k, g) => new List<int>() { k, g.Count(), g.Sum() }).ToArray();
+                passed &= (resultsSorted0[0][0] == resultsSorted1[0][0]); 
+                passed &= (resultsSorted0[0][1] == resultsSorted1[0][1]);
+                passed &= (resultsSorted0[0][2] == resultsSorted1[0][2]); 
 
-                //local sort.. so that keys are in order.
-                var resultsSorted = results.OrderBy(list => list[0]).ToArray();
-
-                //key0: count = 6, sum = 42
-                //key1: count = 6, sum = 36
-
-                passed &= (resultsSorted[0][0] == 0); // "incorrect results.1"
-                passed &= (resultsSorted[0][1] == 6); // "incorrect results.2"
-                passed &= (resultsSorted[0][2] == 42); // "incorrect results.3"
-
-                passed &= (resultsSorted[1][0] == 1); // "incorrect results.4"
-                passed &= (resultsSorted[1][1] == 6); // "incorrect results.5"
-                passed &= (resultsSorted[1][2] == 36); // "incorrect results.6"
+                passed &= (resultsSorted0[1][0] == resultsSorted1[1][0]);
+                passed &= (resultsSorted0[1][1] == resultsSorted1[1][1]); 
+                passed &= (resultsSorted0[1][2] == resultsSorted1[1][2]); 
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
-        public static bool GroupByReduce_CustomListInitializerReducer()
+        public static bool GroupByReduce_CustomListInitializerReducer(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "GroupByReduce_CustomListInitializerReducer";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
-
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateGroupByReduceDataSet());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
-
-                var results = pt1.GroupBy(x => x % 2, (k, g) => new MultiParamInitializerClass() { 
+                // cluster
+                context.LocalDebug = false;
+                IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                var results0 = pt1.GroupBy(x => x % 2, (k, g) => new MultiParamInitializerClass() { 
                                                                                     {k, g.Count(), g.Sum()} ,  // one item, comprising three components
                                                                                     }).ToArray();
-                //local sort.. so that keys are in order.
-                var resultsSorted = results.OrderBy(list => list.Key).ToArray();
+                var resultsSorted0 = results0.OrderBy(list => list.Key).ToArray();
 
-                //key0: count = 6, sum = 42
-                //key1: count = 6, sum = 36
+                // local
+                context.LocalDebug = true;
+                IQueryable<int> pt2 = DataGenerator.GetSimpleFileSets(context);
+                var results1 = pt2.GroupBy(x => x % 2, (k, g) => new MultiParamInitializerClass() { 
+                                                                                    {k, g.Count(), g.Sum()} ,  // one item, comprising three components
+                                                                                    }).ToArray();
+                var resultsSorted1 = results1.OrderBy(list => list.Key).ToArray();
 
-                passed &= (resultsSorted[0].Key == 0); // "incorrect results.1"
-                passed &= (resultsSorted[0].Count() == 6); // "incorrect results.2"
-                passed &= (resultsSorted[0].Sum() == 42); // "incorrect results.3"
+                passed &= (resultsSorted0[0].Key == resultsSorted1[0].Key); 
+                passed &= (resultsSorted0[0].Count() == resultsSorted1[0].Count());
+                passed &= (resultsSorted0[0].Sum() == resultsSorted1[0].Sum()); 
 
-                passed &= (resultsSorted[1].Key == 1); // "incorrect results.4"
-                passed &= (resultsSorted[1].Count() == 6); // "incorrect results.5"
-                passed &= (resultsSorted[1].Sum() == 36); // "incorrect results.6"
+                passed &= (resultsSorted0[1].Key == resultsSorted1[1].Key); 
+                passed &= (resultsSorted0[1].Count() == resultsSorted1[1].Count()); 
+                passed &= (resultsSorted0[1].Sum() == resultsSorted1[1].Sum()); 
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
@@ -944,60 +1179,41 @@ namespace DryadLinqTests
             }
         }
 
-        public static bool GroupByReduce_BitwiseNegationOperator()
+        public static bool GroupByReduce_BitwiseNegationOperator(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "GroupByReduce_BitwiseNegationOperator";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
+                // cluster
+                context.LocalDebug = false;
+                IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                var results0 = pt1.GroupBy(x => x % 2, (k, g) => new KeyValuePair<int, int>(k, ~g.Sum())).ToArray();
+                var resultsSorted0 = results0.OrderBy(list => list.Key).ToArray();
 
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateGroupByReduceDataSet());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
+                // local
+                context.LocalDebug = true;
+                IQueryable<int> pt2 = DataGenerator.GetSimpleFileSets(context);
+                var results1 = pt2.GroupBy(x => x % 2, (k, g) => new KeyValuePair<int, int>(k, ~g.Sum())).ToArray();
+                var resultsSorted1 = results1.OrderBy(list => list.Key).ToArray();
 
-                var results = pt1.GroupBy(x => x % 2, (k, g) => new KeyValuePair<int, int>(k, ~g.Sum())).ToArray();
+                passed &= (resultsSorted0[0].Key == resultsSorted1[0].Key);
+                passed &= (resultsSorted0[0].Value == resultsSorted1[0].Value);
 
-                //local sort.. so that keys are in order.
-                var resultsSorted = results.OrderBy(list => list.Key).ToArray();
-
-                //key0: count = 6, sum = 42
-                //key1: count = 6, sum = 36
-
-                passed &= (resultsSorted[0].Key == 0); // "incorrect results.1"
-                passed &= (resultsSorted[0].Value == ~42); // "incorrect results.2"
-
-                passed &= (resultsSorted[1].Key == 1); // "incorrect results.3"
-                passed &= (resultsSorted[1].Value == ~36); // "incorrect results.4"
+                passed &= (resultsSorted0[1].Key == resultsSorted1[1].Key);
+                passed &= (resultsSorted0[1].Value == resultsSorted1[1].Value);
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
-        public static bool template()
-        {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
-            bool passed = true;
-            try
-            {
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
-
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateGroupByReduceDataSet());
-                IQueryable<int> data = simple.Select(x => x.First());
-
-                //passed &= aggregatesOrdered.SequenceEqual(expectedOrdered);
-            }
-            catch (DryadLinqException)
-            {
-                passed &= false;
-            }
-            return passed;
-        }
     }
 }

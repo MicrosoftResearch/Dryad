@@ -412,54 +412,61 @@ namespace Microsoft.Research.DryadLinq
             HashSet<Assembly> assemblies = TypeSystem.GetAllAssemblies();
             foreach (Assembly asm in assemblies)
             {
-                foreach (Type type in asm.GetTypes())
+                try
                 {
-                    if (!type.IsInterface)
+                    foreach (Type type in asm.GetTypes())
                     {
-                        Type[] baseTypes = type.GetInterfaces();
-                        if (type.BaseType != null && type.BaseType != typeof(object))
+                        if (!type.IsInterface)
                         {
-                            Type[] newBaseTypes = new Type[baseTypes.Length + 1];
-                            Array.Copy(baseTypes, newBaseTypes, baseTypes.Length);
-                            newBaseTypes[baseTypes.Length] = type.BaseType;
-                            baseTypes = newBaseTypes;
-                        }
-                        for (int i = 0; i < baseTypes.Length; i++)
-                        {
-                            Type baseType = baseTypes[i];
-                            if (baseType.IsGenericType)
+                            Type[] baseTypes = type.GetInterfaces();
+                            if (type.BaseType != null && type.BaseType != typeof(object))
                             {
-                                baseType = baseType.GetGenericTypeDefinition();
-                                baseTypes[i] = baseType;
+                                Type[] newBaseTypes = new Type[baseTypes.Length + 1];
+                                Array.Copy(baseTypes, newBaseTypes, baseTypes.Length);
+                                newBaseTypes[baseTypes.Length] = type.BaseType;
+                                baseTypes = newBaseTypes;
                             }
-                            
-                            bool isNew = true;
-                            for (int j = 0; j < i; j++)
+                            for (int i = 0; i < baseTypes.Length; i++)
                             {
-                                if (baseTypes[j] == baseType)
+                                Type baseType = baseTypes[i];
+                                if (baseType.IsGenericType)
                                 {
-                                    isNew = false;
-                                    break;
+                                    baseType = baseType.GetGenericTypeDefinition();
+                                    baseTypes[i] = baseType;
                                 }
-                            }
-                            if (isNew)
-                            {
-                                Type[] deriveds = null;
-                                if (typeMap.TryGetValue(baseType, out deriveds))
+
+                                bool isNew = true;
+                                for (int j = 0; j < i; j++)
                                 {
-                                    Type[] newDeriveds = new Type[deriveds.Length + 1];
-                                    Array.Copy(deriveds, newDeriveds, deriveds.Length);
-                                    newDeriveds[deriveds.Length] = type;
-                                    deriveds = newDeriveds;
+                                    if (baseTypes[j] == baseType)
+                                    {
+                                        isNew = false;
+                                        break;
+                                    }
                                 }
-                                else
+                                if (isNew)
                                 {
-                                    deriveds = new Type[1] { type };
+                                    Type[] deriveds = null;
+                                    if (typeMap.TryGetValue(baseType, out deriveds))
+                                    {
+                                        Type[] newDeriveds = new Type[deriveds.Length + 1];
+                                        Array.Copy(deriveds, newDeriveds, deriveds.Length);
+                                        newDeriveds[deriveds.Length] = type;
+                                        deriveds = newDeriveds;
+                                    }
+                                    else
+                                    {
+                                        deriveds = new Type[1] { type };
+                                    }
+                                    typeMap[baseType] = deriveds;
                                 }
-                                typeMap[baseType] = deriveds;
                             }
                         }
                     }
+                }
+                catch (Exception)
+                {
+                    // Console.WriteLine("Warning: Could not retrieve the types in: " + asm.FullName);
                 }
             }
             s_typeMap = typeMap;

@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/01/nuspec.xsd">
     <metadata minClientVersion="2.5">
         <id>Microsoft.Research.Dryad</id>
-        <version>0.1.3-beta</version>
+        <version>0.1.5-beta</version>
         <title>Dryad and DryadLINQ for YARN</title>
         <authors>bigdatadev@microsoft.com</authors>
         <owners>bigdatadev@microsoft.com,Microsoft</owners>
@@ -17,7 +17,8 @@ Dryad provides reliable, distributed computing on thousands of servers for large
         <language>en-US</language>
         <dependencies>
             <group targetFramework=".NETFramework4.5">
-                <dependency id="Microsoft.Research.Peloponnese" version="0.7.2-beta" />
+                <dependency id="Microsoft.Research.Peloponnese" version="0.7.5-beta" />
+                <!--<dependency id="zlib" version="1.2.8.6" />-->
             </group>
         </dependencies>
         <frameworkAssemblies>
@@ -29,7 +30,7 @@ Dryad provides reliable, distributed computing on thousands of servers for large
             <frameworkAssembly assemblyName="System.Runtime.Serialization" targetFramework=".NETFramework4.5" />
             <frameworkAssembly assemblyName="System.ServiceModel" targetFramework=".NETFramework4.5" />
             <frameworkAssembly assemblyName="System.Xml" targetFramework=".NETFramework4.5" />
-          <frameworkAssembly assemblyName="System.Xml.Linq" targetFramework=".NETFramework4.5" />
+            <frameworkAssembly assemblyName="System.Xml.Linq" targetFramework=".NETFramework4.5" />
         </frameworkAssemblies>
       <references>
         <reference file="Microsoft.Research.DryadLinq.dll" />
@@ -60,7 +61,6 @@ Dryad provides reliable, distributed computing on thousands of servers for large
         <file src="bin\Release\VertexHost.exe.config" target="lib\net45\VertexHost.exe.config" />
         <file src="bin\signed\VertexHost.exe" target="lib\net45\VertexHost.exe" />
         <file src="bin\Release\VertexHost.pdb" target="lib\net45\VertexHost.pdb" />
-        <file src="Microsoft.Research.Dryad.targets" target="build\Microsoft.Research.Dryad.targets" />
-        <file src="Install.ps1" target="tools\Install.ps1" />
+        <file src="Microsoft.Research.Dryad.targets" target="build\Microsoft.Research.Dryad.targets" />        
     </files>
 </package>

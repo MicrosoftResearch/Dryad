@@ -15,7 +15,7 @@
       <para>Dryad, DryadLINQ, and the JobBrowser have been released as open source under the Apache 2.0 license. The
       source is hosted at the <externalLink>
         <linkText>Dryad GitHub repository</linkText>
-        <linkUri>https://github.com/MicrosoftResearchSVC/Dryad</linkUri>
+        <linkUri>https://github.com/MicrosoftResearch/Dryad</linkUri>
         <linkTarget>_blank</linkTarget>
       </externalLink>. There are also <externalLink>
         <linkText>Dryad NuGet packages</linkText>
@@ -39,7 +39,7 @@
         <para>See details on <link xlink:href="91822db3-8a00-4307-ad8a-595c94f449b0">Building the job browser</link>. More documentation
           is listed in the <externalLink>
           <linkText>DryadLINQ job browser manual</linkText>
-          <linkUri>https://github.com/MicrosoftResearchSVC/Dryad/wiki/Using%20the%20DryadLINQ%20job%20browser</linkUri>
+          <linkUri>https://github.com/MicrosoftResearch/Dryad/wiki/Using%20the%20DryadLINQ%20job%20browser</linkUri>
           <linkTarget>_blank</linkTarget>
         </externalLink>.</para>
       </content>

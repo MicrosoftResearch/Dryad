@@ -132,9 +132,9 @@ namespace Microsoft.Research.DryadLinq
         protected internal List<Pair<ParameterExpression, DLinqQueryNode>> m_referencedQueries;
 
         internal DLinqQueryNode(QueryNodeType nodeType,
-                              DryadLinqQueryGen queryGen,
-                              Expression queryExpr,
-                              params DLinqQueryNode[] children)
+                                DryadLinqQueryGen queryGen,
+                                Expression queryExpr,
+                                params DLinqQueryNode[] children)
         {
             this.m_nodeType = nodeType;
             this.m_queryGen = queryGen;

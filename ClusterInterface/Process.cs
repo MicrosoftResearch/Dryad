@@ -57,11 +57,6 @@ namespace Microsoft.Research.Dryad.ClusterInterface
         private State state;
 
         /// <summary>
-        /// string used to start the remote process
-        /// </summary>
-        private string commandLine;
-
-        /// <summary>
         /// this is the handle that the scheduler supplies that is used to refer
         /// to the process
         /// </summary>
@@ -114,11 +109,12 @@ namespace Microsoft.Research.Dryad.ClusterInterface
         /// <summary>
         /// construct a new object to represent the lifecycle of a process being scheduled
         /// </summary>
-        public Process(ISchedulerProcess p, IProcessWatcher w, string cmd, ILogger l)
+        public Process(ISchedulerProcess p, IProcessWatcher w, string cmd, string cmdLineArgs, ILogger l)
         {
             schedulerProcess = p;
             state = State.Initializing;
-            commandLine = cmd;
+            CommandLine = cmd;
+            CommandLineArguments = cmdLineArgs;
             watcher = w;
             cancelTask = new TaskCompletionSource<bool>();
             directory = null;
@@ -137,7 +133,12 @@ namespace Microsoft.Research.Dryad.ClusterInterface
         /// <summary>
         /// the string used to start the remote process
         /// </summary>
-        public string CommandLine { get { return commandLine; } }
+        public string CommandLine { get; private set; }
+
+        /// <summary>
+        /// arguments provided when starting the remote process
+        /// </summary>
+        public string CommandLineArguments { get; private set; }
 
         /// <summary>
         /// the local directory of the process at the daemon's host computer
@@ -198,9 +199,13 @@ namespace Microsoft.Research.Dryad.ClusterInterface
             logger.Log("Process " + Id + " scheduling itself as " + directory + " on computer " + computer.Name + " at " + computer.Host);
 
             ToMatched(computer, DateTime.Now.ToFileTimeUtc());
+            
+            StringBuilder payload = new StringBuilder();
+            payload.AppendLine(CommandLine);
+            payload.AppendLine(CommandLineArguments);
 
             Task<string> bail = interrupt.ContinueWith((t) => "");
-            Task<string> upload = PostRequest(computer, directory + "?op=create", Encoding.UTF8.GetBytes(commandLine));
+            Task<string> upload = PostRequest(computer, directory + "?op=create", Encoding.UTF8.GetBytes(payload.ToString()));
             Task<string> completed = await Task.WhenAny(bail, upload);
 
             if (completed == bail)

@@ -143,8 +143,13 @@ namespace Microsoft.Research.DryadLinq
             _clusterClient = null;
         }
 
-        public PlatformKind Kind { get { return PlatformKind.YARN_NATIVE; } }
-        public IDfsClient DfsClient {
+        public PlatformKind Kind 
+        {
+            get { return PlatformKind.YARN_NATIVE; } 
+        }
+
+        public IDfsClient DfsClient
+        {
             get
             {
                 if (_dfsClient == null)
@@ -195,7 +200,8 @@ namespace Microsoft.Research.DryadLinq
             // start fetching details about the subscriptions, available clusters, etc.
             _azureSubscriptions = new AzureSubscriptions();
             _cluster = _azureSubscriptions.GetClusterAsync(clusterName);
-            _dfsClient = _cluster.ContinueWith(c => new AzureDfsClient(c.Result.StorageAccount, c.Result.StorageKey, "staging"));
+            _dfsClient = _cluster.ContinueWith(
+                c => new AzureDfsClient(c.Result.StorageAccount, c.Result.StorageKey, "staging"));
         }
 
         /// <summary>
@@ -215,8 +221,10 @@ namespace Microsoft.Research.DryadLinq
                 _azureSubscriptions.AddAccount(storageAccount, storageKey);
             }
             _cluster = _azureSubscriptions.GetClusterAsync(clusterName)
-                                          .ContinueWith(t => { t.Result.SetStorageAccount(storageAccount, storageKey); return t.Result; });
-            _dfsClient = _cluster.ContinueWith(c => new AzureDfsClient(c.Result.StorageAccount, c.Result.StorageKey, storageContainer));
+                                          .ContinueWith(t => { t.Result.SetStorageAccount(storageAccount, storageKey);
+                                                               return t.Result; });
+            _dfsClient = _cluster.ContinueWith(
+                c => new AzureDfsClient(c.Result.StorageAccount, c.Result.StorageKey, storageContainer));
         }
 
         /// <summary>
@@ -248,7 +256,8 @@ namespace Microsoft.Research.DryadLinq
             _azureSubscriptions = new AzureSubscriptions();
             _azureSubscriptions.AddSubscription(subscriptionId, certificate);
             _cluster = _azureSubscriptions.GetClusterAsync(clusterName);
-            _dfsClient = _cluster.ContinueWith(c => new AzureDfsClient(c.Result.StorageAccount, c.Result.StorageKey, "staging"));
+            _dfsClient = _cluster.ContinueWith(
+                c => new AzureDfsClient(c.Result.StorageAccount, c.Result.StorageKey, "staging"));
         }
 
         /// <summary>
@@ -272,7 +281,8 @@ namespace Microsoft.Research.DryadLinq
             }
             _azureSubscriptions.AddCluster(clusterName, storageAccount, storageKey, subscriptionId, certificateThumbprint);
             _cluster = _azureSubscriptions.GetClusterAsync(clusterName);
-            _dfsClient = _cluster.ContinueWith(c => new AzureDfsClient(c.Result.StorageAccount, c.Result.StorageKey, storageContainer));
+            _dfsClient = _cluster.ContinueWith(
+                 c => new AzureDfsClient(c.Result.StorageAccount, c.Result.StorageKey, storageContainer));
         }
 
         /// <summary>
@@ -320,7 +330,8 @@ namespace Microsoft.Research.DryadLinq
 
         public Uri MakeDefaultUri(string path)
         {
-            return AzureUtils.ToAzureUri(_dfsClient.Result.AccountName, _dfsClient.Result.ContainerName, path, null, _dfsClient.Result.AccountKey);
+            return AzureUtils.ToAzureUri(
+                     _dfsClient.Result.AccountName, _dfsClient.Result.ContainerName, path, null, _dfsClient.Result.AccountKey);
         }
     }
 
@@ -363,7 +374,6 @@ namespace Microsoft.Research.DryadLinq
         private string _nodeGroup;
         private int? _jobRuntimeLimit;
         private bool _localDebug = false;
-        private bool _localExecution = false;
         private string _jobUsername = null;
         private string _jobPassword = null;
         private QueryTraceLevel _runtimeTraceLevel = QueryTraceLevel.Error;
@@ -371,11 +381,11 @@ namespace Microsoft.Research.DryadLinq
 
         private bool _enableSpeculativeDuplication = true;
         private bool _selectOrderPreserving = false;
-
         private bool _matchClientNetFrameworkVersion = true;
         private bool _multiThreading = true;
         private string _partitionUncPath = null;
         private string _storageSetScheme = null;
+
         private DryadLinqStringDictionary _jobEnvironmentVariables = new DryadLinqStringDictionary();
         private DryadLinqStringList _resourcesToAdd = new DryadLinqStringList();
         private DryadLinqStringList _resourcesToRemove = new DryadLinqStringList();
@@ -414,7 +424,6 @@ namespace Microsoft.Research.DryadLinq
         {
             this.CommonInit();
             this._platformKind = PlatformKind.LOCAL;
-            this._localExecution = true;
             this._headNode = "LocalExecution";
             this._storageSetScheme = storageSetScheme;
             if (String.IsNullOrEmpty(this._storageSetScheme))
@@ -567,7 +576,7 @@ namespace Microsoft.Research.DryadLinq
 
         /// <summary>
         /// Gets or sets the partition UNC path used when constructing a partitioned table.
-        /// </summary> 
+        /// </summary>
         public string PartitionUncPath
         {
             get { return _partitionUncPath; }
@@ -680,23 +689,6 @@ namespace Microsoft.Research.DryadLinq
         {
             get { return _localDebug; }
             set { _localDebug = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the value specifying whether to use Local execution mode.
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// If true, the DryadLINQ Query will execute by forking processes on the local
-        /// computer instead of using a cluster. LocalExecution mode accesses HDFS as usual for
-        /// input and output data.
-        /// </para>
-        /// <para>The default is false.</para>
-        /// </remarks>
-        public bool LocalExecution
-        {
-            get { return _localExecution; }
-            set { _localExecution = value; }
         }
 
         /// <summary>
@@ -881,13 +873,13 @@ namespace Microsoft.Research.DryadLinq
             switch (this.ExecutorKind)
             {
                 case ExecutorKind.DRYAD:
-                    {
-                        return new DryadLinqJobExecutor(this);
-                    }
+                {
+                    return new DryadLinqJobExecutor(this);
+                }
                 default:
-                    {
-                        throw new Exception("No implementation for scheduler: " + this.ExecutorKind.ToString());
-                    }
+                {
+                    throw new Exception("No implementation for scheduler: " + this.ExecutorKind.ToString());
+                }
             }
         }
 
@@ -922,7 +914,7 @@ namespace Microsoft.Research.DryadLinq
         {
             ThrowIfDisposed();
             DryadLinqQuery<T> q = DataProvider.GetPartitionedTable<T>(this, dataSetUri);
-            q.CheckAndInitialize();   // force the data-info checks.
+            q.CheckAndInitialize();   // Must initialize!
             return q;
         }
 
@@ -1018,7 +1010,6 @@ namespace Microsoft.Research.DryadLinq
                     this.JobRuntimeLimit == context.JobRuntimeLimit &&
                     this.EnableSpeculativeDuplication == context.EnableSpeculativeDuplication &&
                     this.LocalDebug == context.LocalDebug &&
-                    this.LocalExecution == context.LocalExecution &&
                     this.PlatformKind == context.PlatformKind &&
                     this.JobUsername == context.JobUsername &&
                     this.JobPassword == context.JobPassword &&

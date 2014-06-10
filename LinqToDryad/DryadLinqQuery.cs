@@ -221,6 +221,7 @@ namespace Microsoft.Research.DryadLinq
         {
             this.m_queryProvider = queryProvider;
             this.m_dataProvider = dataProvider;
+            this.m_isTemp = false;
             this.m_queryExecutor = null;
         }
 
@@ -259,7 +260,7 @@ namespace Microsoft.Research.DryadLinq
 
         public DryadLinqContext Context
         {
-            get { return m_queryProvider.Context; }
+            get { return this.m_queryProvider.Context; }
         }
 
         internal bool IsTemp
@@ -277,11 +278,11 @@ namespace Microsoft.Research.DryadLinq
         {
             if (otherQuery.m_queryProvider == null)
             {
-            otherQuery.m_queryProvider = this.m_queryProvider;
+                otherQuery.m_queryProvider = this.m_queryProvider;
             }
             if (otherQuery.m_dataProvider == null)
             {
-            otherQuery.m_dataProvider = this.m_dataProvider;
+                otherQuery.m_dataProvider = this.m_dataProvider;
             }
             otherQuery.m_isTemp = this.m_isTemp;
             otherQuery.m_queryExecutor = this.m_queryExecutor;
@@ -303,24 +304,27 @@ namespace Microsoft.Research.DryadLinq
         private Expression m_queryExpression;
         private Uri m_dataSourceUri;
         private DataSetInfo m_dataSetInfo;
-        private bool m_isDynamic;
         private DryadLinqQueryEnumerable<T> m_tableEnumerable;
+        private bool m_isDynamic;
+        private bool m_initialized;
 
         // Used by IQueryProvider. e.g., IQueryable<>.Select() and IQueryable<>.ToStore()
         internal DryadLinqQuery(DryadLinqProviderBase provider, Expression expression)
             : base(provider, null)
         {
             this.m_queryExpression = expression;
-            this.m_isDynamic = false;
+            this.m_dataSourceUri = null;
+            this.m_dataSetInfo = null;
             this.m_tableEnumerable = null;
+            this.m_isDynamic = false;
+            this.m_initialized = false;
         }
 
-        // Used by DryadLinqContext.LoadFrom(uri)
-        internal DryadLinqQuery(Expression queryExpression,
-                                DryadLinqProvider queryProvider,
+        // Used by DryadLinqContext.FromStore(uri)
+        internal DryadLinqQuery(DryadLinqContext context,
                                 DataProvider dataProvider,
                                 Uri dataSetUri)
-            : base(queryProvider, dataProvider)
+            : base(null, dataProvider)
         {
             if (!DataPath.IsValidDataPath(dataSetUri))
             {
@@ -328,10 +332,26 @@ namespace Microsoft.Research.DryadLinq
                                              String.Format(SR.UnrecognizedDataSource, dataSetUri.AbsoluteUri));
             }
 
-            this.m_queryExpression = queryExpression;
             this.m_dataSourceUri = dataSetUri;
+            this.m_dataSetInfo = null;
             this.m_isDynamic = false;
-            this.m_tableEnumerable = null;
+            this.m_initialized = false;
+
+            this.m_tableEnumerable
+                = new DryadLinqQueryEnumerable<T>(context, this.DataProvider, this.m_dataSourceUri);
+
+            // YY: query expression and provider are at least set consistently
+            if (context.LocalDebug)
+            {
+                this.m_queryExpression = Expression.Constant(this.m_tableEnumerable.AsQueryable());
+                IQueryProvider linqToObjectProvider = this.m_tableEnumerable.AsQueryable().Provider;
+                this.m_queryProvider = new DryadLinqLocalProvider(linqToObjectProvider, context);
+            }
+            else
+            {
+                this.m_queryExpression = Expression.Constant(this);
+                this.m_queryProvider = new DryadLinqProvider(context);
+            }
         }
 
         internal void Clone(DryadLinqQuery<T> otherQuery)
@@ -341,8 +361,9 @@ namespace Microsoft.Research.DryadLinq
             otherQuery.m_queryExpression = this.m_queryExpression;
             otherQuery.m_dataSourceUri = this.m_dataSourceUri;
             otherQuery.m_dataSetInfo = this.m_dataSetInfo;
-            otherQuery.m_isDynamic = this.m_isDynamic;
             otherQuery.m_tableEnumerable = this.m_tableEnumerable;
+            otherQuery.m_isDynamic = this.m_isDynamic;
+            otherQuery.m_initialized = this.m_initialized;
         }
 
         // returns true for DLQ that are pointing directly at plain data.
@@ -479,25 +500,23 @@ namespace Microsoft.Research.DryadLinq
 
         internal void Initialize()
         {
-            if (this.IsPlainData && this.m_tableEnumerable == null)
+            if (this.IsPlainData && !this.m_initialized)
             {
-                DryadLinqStreamInfo
-                    streamInfo = this.DataProvider.GetStreamInfo(this.Context, this.m_dataSourceUri);
+                DryadLinqStreamInfo streamInfo = this.DataProvider.GetStreamInfo(this.Context, this.m_dataSourceUri);
                 Int32 parCount = streamInfo.PartitionCount;
                 Int64 estSize = streamInfo.DataSize;
-                this.m_isDynamic = false;
 
                 // Finally load any stored metadata to check settings, extract compression-setting
                 // and initialize the DataInfo for this Query. It is uri.. have to convert to stream-name.
-                DryadLinqMetaData meta = DryadLinqMetaData.Get(Context, this.m_dataSourceUri);
+                DryadLinqMetaData meta = DryadLinqMetaData.Get(this.Context, this.m_dataSourceUri);
                 if (meta != null)
                 {
                     //check the record-type matches meta-data. (disabled until final API is determined)
                     //if (meta.ElemType != typeof(T))
                     //{
-                    //    throw new DisributedLinqException(DryadLinqErrorCode.MetadataRecordType,
-                    //                                      String.Format(SR.MetadataRecordType,
-                    //                                                    typeof(T), meta.ElemType));
+                    //    throw new DryadLinqException(DryadLinqErrorCode.MetadataRecordType,
+                    //                                 String.Format(SR.MetadataRecordType,
+                    //                                               typeof(T), meta.ElemType));
                     //}
 
                     //check the serialization flags match meta-data.
@@ -520,25 +539,7 @@ namespace Microsoft.Research.DryadLinq
                 DistinctInfo dinfo = DataSetInfo.NoDistinct;
                 this.m_dataSetInfo = new DataSetInfo(pinfo, oinfo, dinfo);
 
-                this.m_tableEnumerable
-                    = new DryadLinqQueryEnumerable<T>(this.Context, this.DataProvider, this.m_dataSourceUri);
-
-                // YY: query expression and provider are at least set consistently
-                if (Context.LocalDebug)
-                {
-                    this.m_queryExpression = Expression.Constant(this.m_tableEnumerable.AsQueryable());
-                    IQueryProvider linqToObjectProvider = this.m_tableEnumerable.AsQueryable().Provider;
-                    this.m_queryProvider = new DryadLinqLocalProvider(linqToObjectProvider, Context);
-                }
-                else
-                {
-                    this.m_queryExpression = Expression.Constant(this);
-                    if (this.m_queryProvider == null)
-                    {
-                        // Only set if not provided
-                        this.m_queryProvider = new DryadLinqProvider(this.Context);
-                    }
-                }
+                this.m_initialized = true;
             }
         }
 
@@ -566,9 +567,21 @@ namespace Microsoft.Research.DryadLinq
             }
             else
             {
-                DryadLinqQueryable.SubmitAndWait(this);
+                this.ToTemporary();
                 return this.m_backingData.GetEnumerator();
             }
+        }
+
+        private void ToTemporary()
+        {
+            // Execute this query and store the result in a temp location
+            Uri tableUri = this.Context.MakeTemporaryStreamUri();
+            DryadLinqQueryGen dryadGen = new DryadLinqQueryGen(
+                this.Context, this.GetVertexCodeGen(), this.m_queryExpression, tableUri, true);
+            DryadLinqQuery[] tables = dryadGen.Execute();
+
+            tables[0].IsTemp = true;
+            this.BackingData = tables[0];
         }
 
         // Generate the query plan as an XML file and return the file name.

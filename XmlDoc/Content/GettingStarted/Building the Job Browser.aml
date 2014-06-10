@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <topic id="91822db3-8a00-4307-ad8a-595c94f449b0" revisionNumber="1">
   <developerHowToDocument
     xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5"
@@ -36,8 +36,8 @@
         <step>
           <content>
             <para>Clone the Dryad sources from <externalLink>
-              <linkText>https://github.com/MicrosoftResearchSVC/Dryad.git</linkText>
-              <linkUri>https://github.com/MicrosoftResearchSVC/Dryad.git</linkUri>
+              <linkText>https://github.com/MicrosoftResearch/Dryad.git</linkText>
+              <linkUri>https://github.com/MicrosoftResearch/Dryad.git</linkUri>
               <linkTarget>_blank</linkTarget>
             </externalLink>.</para>
           </content>

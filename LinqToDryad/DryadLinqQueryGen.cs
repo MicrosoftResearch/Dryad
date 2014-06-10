@@ -850,7 +850,6 @@ namespace Microsoft.Research.DryadLinq
             queryDoc.DocumentElement.AppendChild(elem);
 
             // Add the visualization element
-            //@@TODO[p2]: remove this element from the queryXML.
             elem = queryDoc.CreateElement("Visualization");
             elem.InnerText = "none";
             queryDoc.DocumentElement.AppendChild(elem);

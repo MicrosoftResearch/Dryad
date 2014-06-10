@@ -24,6 +24,7 @@ using System.Text;
 using System.Linq.Expressions;
 using System.Runtime.Serialization;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.Research.DryadLinq
 {

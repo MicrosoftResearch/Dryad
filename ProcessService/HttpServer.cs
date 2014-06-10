@@ -236,12 +236,14 @@ namespace Microsoft.Research.Dryad.ProcessService
             try
             {
                 string commandLine;
+                string arguments;
 
                 using (var sr = new System.IO.StreamReader(context.Request.InputStream))
                 {
-                    commandLine = sr.ReadToEnd();
+                    commandLine = sr.ReadLine();
+                    arguments = sr.ReadLine();
                 }
-                logger.Log("Received create for process " + processId + " cmdline: " + commandLine);
+                logger.Log("Received create for process " + processId + " cmdline: " + commandLine + " arguments: " + arguments);
 
                 if (parent.Create(processId))
                 {
@@ -254,7 +256,7 @@ namespace Microsoft.Research.Dryad.ProcessService
                     await server.ReportError(context, HttpStatusCode.Conflict, "Process " + processId + " already exists");
                 }
 
-                parent.Launch(processId, commandLine);
+                parent.Launch(processId, commandLine, arguments);
 
                 return;
             }

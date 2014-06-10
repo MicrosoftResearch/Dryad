@@ -76,7 +76,7 @@ namespace Microsoft.Research.DryadLinq
         /// The scheme of this data provider.
         /// </summary>
         public abstract string Scheme { get; }
-        
+
         /// <summary>
         /// Gets the metadata of a specified dataset.
         /// </summary>
@@ -197,14 +197,13 @@ namespace Microsoft.Research.DryadLinq
         /// <typeparam name="T">The record type of the dataset.</typeparam>
         /// <param name="context">An instance of <see cref="DryadLinqContext"/></param>
         /// <param name="dataSetUri">The URI of the dataset</param>
-        /// <returns>A query object representing the dsc file set data.</returns>
+        /// <returns>A query object representing the specified dataset.</returns>
         internal static DryadLinqQuery<T> GetPartitionedTable<T>(DryadLinqContext context, Uri dataSetUri)
         {
             string scheme = DataPath.GetScheme(dataSetUri);
             DataProvider dataProvider = DataProvider.GetDataProvider(scheme);
-            DryadLinqProvider queryProvider = new DryadLinqProvider(context);
             dataSetUri = dataProvider.RewriteUri<T>(context, dataSetUri);
-            return new DryadLinqQuery<T>(null, queryProvider, dataProvider, dataSetUri);
+            return new DryadLinqQuery<T>(context, dataProvider, dataSetUri);
         }
 
         /// <summary>
@@ -244,7 +243,9 @@ namespace Microsoft.Research.DryadLinq
             DataProvider dataProvider = DataProvider.GetDataProvider(scheme);
             dataSetUri = dataProvider.RewriteUri<T>(context, dataSetUri);
             dataProvider.Ingress(context, source, dataSetUri, metaData, outputScheme, isTemp);
-            return DataProvider.GetPartitionedTable<T>(context, dataSetUri);
+            DryadLinqQuery<T> res = DataProvider.GetPartitionedTable<T>(context, dataSetUri);
+            res.CheckAndInitialize();    // must initialize
+            return res;
         }
     }
 
@@ -589,7 +590,6 @@ namespace Microsoft.Research.DryadLinq
             try
             {
                 AzureCollectionPartition partition = new AzureCollectionPartition(dataSetUri);
-
                 if (!partition.IsCollectionExists())
                 {
                     throw new DryadLinqException("Input collection " + dataSetUri + " does not exist");

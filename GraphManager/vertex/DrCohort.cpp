@@ -470,8 +470,7 @@ void DrCohort::StartProcess(DrGraphPtr graph, int version)
     processName.SetF("%s v.%d", m_description.GetChars(), version);
 
     DrString commandLine;
-    commandLine.SetF("%s --noredirect --startfrompn %d",
-                     m_processTemplate->GetCommandLineBase().GetChars(), m_list->Size());
+    commandLine.SetF("--noredirect --startfrompn %d", m_list->Size());
 
     for (i=0; i<m_list->Size(); ++i)
     {

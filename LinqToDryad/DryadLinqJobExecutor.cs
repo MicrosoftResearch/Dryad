@@ -57,7 +57,7 @@ namespace Microsoft.Research.DryadLinq
             // use a new job submission object for each query
             this.m_context = context;
             this.m_currentStatus = JobStatus.NotSubmitted;
-            if (context.LocalExecution)
+            if (context.PlatformKind == PlatformKind.LOCAL)
             {
                 this.m_jobSubmission = new LocalJobSubmission(context);
             }
@@ -86,8 +86,6 @@ namespace Microsoft.Research.DryadLinq
         /// <param name="file">Pathname to file to add as a resource.</param>
         private void AddResource(IDryadLinqJobSubmission jobSubmission, string file)
         {
-            // extract basename
-            string basename = Path.GetFileName(file);
             this.m_jobSubmission.AddLocalFile(file);
         }
 

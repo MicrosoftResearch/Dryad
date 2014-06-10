@@ -4232,7 +4232,10 @@ namespace Microsoft.Research.DryadLinq
                                                               BindingFlags.Static | BindingFlags.NonPublic);
                         Type elemType = mcExpr.Type.GetGenericArguments()[0];
                         minfo = minfo.MakeGenericMethod(elemType);
-                        mcExpr = Expression.Call(minfo, mcExpr, Expression.Constant(tableUri));
+                        mcExpr = Expression.Call(minfo,
+                                                 mcExpr,
+                                                 Expression.Constant(tableUri, typeof(Uri)),
+                                                 Expression.Constant(isTemp, typeof(bool)));
                     }
                     qList.Add(mcExpr);
                     isTempList.Add(isTemp);

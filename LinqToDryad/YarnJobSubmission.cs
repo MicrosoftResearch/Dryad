@@ -61,10 +61,10 @@ namespace Microsoft.Research.DryadLinq
             string logDirParam = Microsoft.Research.Peloponnese.Storage.AzureUtils.CmdLineEncode(jobDirectoryTemplate);
             string[] jmArgs = {"--dfs=" + logDirParam, "VertexHost.exe", qpPath }; // +" --break";
             return ConfigHelpers.MakeProcessGroup(
-                "jm", "local", 1, 1, true,
+                         "jm", "local", 1, 1, true,
                          jmPath, jmArgs, "LOG_DIRS", "graphmanager-stdout.txt",
                          "graphmanager-stderr.txt",
-                null, null);
+                         null, null);
         }
 
         protected override XElement MakeWorkerConfig(string configPath, XElement peloponneseResource)
@@ -117,9 +117,9 @@ namespace Microsoft.Research.DryadLinq
             string[]  psArgs = { Path.GetFileName(configPath) };
             int maxNodes = (Context.JobMaxNodes == null) ? -1 : Context.JobMaxNodes.Value;
             return ConfigHelpers.MakeProcessGroup(
-                "Worker", "yarn", -1, maxNodes, false,
-                psPath, psArgs, "LOG_DIRS", "processservice-stdout.txt", "processservice-stderr.txt",
-                resources, null);
+                         "Worker", "yarn", -1, maxNodes, false,
+                         psPath, psArgs, "LOG_DIRS", "processservice-stdout.txt", "processservice-stderr.txt",
+                         resources, null);
         }
 
         private string MakeProcessServiceConfig()
@@ -220,17 +220,17 @@ namespace Microsoft.Research.DryadLinq
         {
             get 
             {
-                if (m_job == null)
+                if (this.m_job == null)
                 {
                     return null;
                 }
-                return m_job.ErrorMsg;
+                return this.m_job.ErrorMsg;
             }
         }
 
         public override JobStatus GetStatus()
         {
-            if (m_job == null)
+            if (this.m_job == null)
             {
                 return JobStatus.NotSubmitted;
             }
@@ -261,7 +261,13 @@ namespace Microsoft.Research.DryadLinq
             }
         }
 
-        public string JobDirectory { get { return Context.Cluster.Client(Context).JobDirectoryTemplate.Replace("_BASELOCATION_", "dryad-jobs"); } }
+        private string JobDirectory
+        {
+            get
+            {
+                return Context.Cluster.Client(Context).JobDirectoryTemplate.Replace("_BASELOCATION_", "dryad-jobs");
+            }
+        }
 
         public override void SubmitJob()
         {
@@ -282,7 +288,7 @@ namespace Microsoft.Research.DryadLinq
 
             try
             {
-                m_job = Context.Cluster.Client(Context).Submit(config, JobDirectory);
+                this.m_job = Context.Cluster.Client(Context).Submit(config, JobDirectory);
             }
             catch (Exception e)
             {
@@ -292,19 +298,19 @@ namespace Microsoft.Research.DryadLinq
 
         public override JobStatus TerminateJob()
         {
-            m_job.Kill();
+            this.m_job.Kill();
             return GetStatus();
         }
 
         public override string GetJobId()
         {
-            if (m_job == null)
+            if (this.m_job == null)
             {
                 return "Unknown";
             }
             else
             {
-                return m_job.Id;
+                return this.m_job.Id;
             }
         }
     }

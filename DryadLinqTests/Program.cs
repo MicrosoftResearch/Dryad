@@ -17,14 +17,15 @@ See the Apache Version 2.0 License for specific language governing permissions a
 limitations under the License. 
 
 */
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
 using System.Threading.Tasks;
+using System.Reflection;
 using Microsoft.Research.DryadLinq;
-
 using Microsoft.Research.Peloponnese.Storage;
 
 namespace DryadLinqTests
@@ -33,32 +34,38 @@ namespace DryadLinqTests
     {
         public static void Main(string[] args)
         {
-            //BasicAPITests.ToStoreThrowsForNonQuery();
-            //BasicAPITests.ToStoreGetEnumeratorThrows();
-            //BasicAPITests.GetEnumeratorNonToStoreTerminated();
-            //BasicAPITests.ToStoreSubmitGetEnumerator();
-            //BasicAPITests.SubmitNonToStoreTerminated();
-            //BasicAPITests.MaterializeToStoreTerminated();
-            //BasicAPITests.MaterializeNonToStoreTerminated();
-            //BasicAPITests.EnumeratePlainData();
+            SimpleTests.Run(args);
 
-            //BasicAPITests.RepeatSubmit();
-            //BasicAPITests.RepeatMaterialize();
-            //BasicAPITests.MaterializeMentionsSameQueryTwice();
-            //BasicAPITests.QueryOnDataBackedDLQ();
-            //BasicAPITests.Bug11781_CountandFirstOrDefault();
-            //BasicAPITests.Bug11782_Aggregate();
-            //BasicAPITests.Bug11782_LowLevelQueryableManipulation();
-            //BasicAPITests.Bug11638_LongWhere();
-            //BasicAPITests.AssumeRangePartition();
-            //BasicAPITests.Bug11638_LongMethods();
-            //BasicAPITests.ContextConfigIsReadOnly();
-            //BasicAPITests.ToggleSpeculativeDuplication();
-            //BasicAPITests.Bug15068_ConfigResourcesAPI();
-            //BasicAPITests.Bug_16341_SubmitThrowsForDifferentContexts();
-            //BasicAPITests.Bug14449_ContextShouldExposeVersionIDs();
-            //BasicAPITests.Bug_16341_VariousTestsForSubmit();
+            /*
+             * 
+            Config conf = new Config("dryad-temp", "main1", @"d:\temp\TestLog\");
+            DryadLinqContext context = new DryadLinqContext(Config.cluster);
+
+            string matchPattern = @"";
+
+            TestLog.LogInit(Config.testLogPath + "BasicAPITests.txt");
+            BasicAPITests.Run(context, matchPattern);
+
+            TestLog.LogInit(Config.testLogPath + "ApplyAndForkTests.txt");
+            ApplyAndForkTests.Run(context, matchPattern);
+
+            TestLog.LogInit(Config.testLogPath + "GroupByReduceTests.txt");
+            GroupByReduceTests.Run(context, matchPattern);
+
+            TestLog.LogInit(Config.testLogPath + "RangePartitionAPICoverageTests.txt");
+            RangePartitionAPICoverageTests.Run(context, matchPattern);
+
+            TestLog.LogInit(Config.testLogPath + "TypesInQueryTests.txt");
+            TypesInQueryTests.Run(context, matchPattern);
+
+            TestLog.LogInit(Config.testLogPath + "SerializationTests.txt");
+            SerializationTests.Run(context, matchPattern);
+
+            TestLog.LogInit(Config.testLogPath + "MiscBugFixTests.txt");
+            MiscBugFixTests.Run(context, matchPattern);
+             */
 
         }
+
     }
 }

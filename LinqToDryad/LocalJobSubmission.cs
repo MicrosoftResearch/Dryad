@@ -41,8 +41,8 @@ namespace Microsoft.Research.DryadLinq
 
         public LocalJobSubmission(DryadLinqContext context) : base(context)
         {
-            m_status = JobStatus.NotSubmitted;
-            m_error = null;
+            this.m_status = JobStatus.NotSubmitted;
+            this.m_error = null;
         }
 
         public override string ErrorMsg
@@ -51,7 +51,7 @@ namespace Microsoft.Research.DryadLinq
             {
                 lock (this)
                 {
-                    return m_error;
+                    return this.m_error;
                 }
             }
         }
@@ -60,7 +60,7 @@ namespace Microsoft.Research.DryadLinq
         {
             lock (this)
             {
-                return m_status;
+                return this.m_status;
             }
         }
 
@@ -88,8 +88,8 @@ namespace Microsoft.Research.DryadLinq
             environment.Add("PELOPONNESE_ADDITIONAL_CLASSPATH", jarPath);
 
             // add the query plan to the JM directory so that job analysis tools can find it later
-            string queryPlanDirectory = Path.GetDirectoryName(QueryPlan);
-            string queryPlanFile = Path.GetFileName(QueryPlan);
+            string queryPlanDirectory = Path.GetDirectoryName(this.QueryPlan);
+            string queryPlanFile = Path.GetFileName(this.QueryPlan);
             HashSet<string> queryPlanSet = new HashSet<string>();
             queryPlanSet.Add(queryPlanFile);
             List<XElement> resources = new List<XElement>();
@@ -110,6 +110,9 @@ namespace Microsoft.Research.DryadLinq
 
         protected override XElement MakeWorkerConfig(string configPath, XElement peloponneseResource)
         {
+            Dictionary<string, string> environment = new Dictionary<string, string>(this.Context.JobEnvironmentVariables);
+            
+
             // add job-local resources to each worker directory, leaving out the standard Dryad files
             var resources = new List<XElement>();
             foreach (var rg in LocalResources)
@@ -126,7 +129,7 @@ namespace Microsoft.Research.DryadLinq
             return ConfigHelpers.MakeProcessGroup(
                            "Worker", "local", 2, numWorkerProcesses, false,
                            psPath, psArgs, null, "processservice-stdout.txt", "processservice-stderr.txt",
-                           resources, null);
+                           resources, environment);
         }
 
         private string MakeProcessServiceConfig()
@@ -242,7 +245,7 @@ namespace Microsoft.Research.DryadLinq
                 Console.WriteLine(m_error);
                 return;
             }
- 
+
             this.m_workingDirectory = wd;
         }
 

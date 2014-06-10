@@ -368,8 +368,9 @@ namespace Microsoft.Research.Dryad.ClusterInterface
         /// the application on the process' lifecycle</param>
         /// <param name="commandLine">the command line to use to start the process on the remote
         /// computer</param>
+        /// <param name="commandLineArguments">arguments to provide to the remote process</param>
         /// <returns>a handle to the new process</returns>
-        IProcess NewProcess(IProcessWatcher watcher, string commandLine);
+        IProcess NewProcess(IProcessWatcher watcher, string commandLine, string commandLineArguments);
 
         /// <summary>
         /// request that a Process object, return from NewProcess, be scheduled according

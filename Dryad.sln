@@ -78,8 +78,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalScheduler", "LocalSche
 		{A85853FB-AAAB-4F1F-AAAB-D051E8F0B2E6} = {A85853FB-AAAB-4F1F-AAAB-D051E8F0B2E6}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DryadLinqTests", "DryadLinqTests\DryadLinqTests.csproj", "{3F74DAD4-5758-4BCF-BEEB-F1898C5BDCCE}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -146,10 +144,6 @@ Global
 		{FA798DE2-A442-4D2B-B31A-FA9274308290}.Debug|x64.Build.0 = Debug|x64
 		{FA798DE2-A442-4D2B-B31A-FA9274308290}.Release|x64.ActiveCfg = Release|x64
 		{FA798DE2-A442-4D2B-B31A-FA9274308290}.Release|x64.Build.0 = Release|x64
-		{3F74DAD4-5758-4BCF-BEEB-F1898C5BDCCE}.Debug|x64.ActiveCfg = Debug|x64
-		{3F74DAD4-5758-4BCF-BEEB-F1898C5BDCCE}.Debug|x64.Build.0 = Debug|x64
-		{3F74DAD4-5758-4BCF-BEEB-F1898C5BDCCE}.Release|x64.ActiveCfg = Release|x64
-		{3F74DAD4-5758-4BCF-BEEB-F1898C5BDCCE}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

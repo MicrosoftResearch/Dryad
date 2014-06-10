@@ -45,9 +45,10 @@ public:
                                         DrResourcePtr srcResource, DrResourcePtr dstResource, int compressionMode) = 0;
 
     virtual void ScheduleProcess(DrAffinityListRef affinities,
-                                 DrString name, DrString commandLine,
+                                 DrString name, DrString commandLineArgs,
                                  DrProcessTemplatePtr processTemplate,
                                  DrPSRListenerPtr listener) = 0;
+
     virtual void CancelScheduleProcess(DrProcessHandlePtr process) = 0;
 
     virtual void WaitForStateChange(DrProcessHandlePtr process, DrPSRListenerPtr listener) = 0;

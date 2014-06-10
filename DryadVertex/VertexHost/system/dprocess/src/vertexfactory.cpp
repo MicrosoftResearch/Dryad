@@ -277,7 +277,6 @@ DrError VertexFactoryRegistry::MakeVertex(UInt32 vertexId,
                                           DryadVertexProgramRef* pProgram)
 {
     DryadVertexProgramBase* program;
-
     //
     // If factory is not supplied, try to get it from factory registry.
     // If still unable, fail with error.
@@ -294,6 +293,7 @@ DrError VertexFactoryRegistry::MakeVertex(UInt32 vertexId,
                                                    "Factory Registry called with no arguments");
             return DryadError_VertexInitialization;
         }
+		
 
         //
         // Get vertex factory. If one cannot be found, report initialization error
@@ -301,6 +301,7 @@ DrError VertexFactoryRegistry::MakeVertex(UInt32 vertexId,
         factory = LookUpFactory(argumentList[0]);
         if (factory == NULL)
         {
+			DrLogW("Factory Registry called with unknown factory UID %s.", argumentList[0].GetString());
             DrStr128 errorString;
             errorString.SetF("Factory Registry called with unknown factory UID %s",
                              argumentList[0].GetString());
@@ -309,7 +310,7 @@ DrError VertexFactoryRegistry::MakeVertex(UInt32 vertexId,
                                                    errorString);
             return DryadError_VertexInitialization;
         }
-
+		
         //
         // report new vertex creation
         //
