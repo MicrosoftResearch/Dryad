@@ -1,562 +1,73 @@
-﻿<html xmlns:MSHelp="http://msdn.microsoft.com/mshelp" xmlns:mshelp="http://msdn.microsoft.com/mshelp"><head><link rel="SHORTCUT ICON" href="./../icons/favicon.ico" /><style type="text/css">.OH_CodeSnippetContainerTabLeftActive, .OH_CodeSnippetContainerTabLeft,.OH_CodeSnippetContainerTabLeftDisabled { }.OH_CodeSnippetContainerTabRightActive, .OH_CodeSnippetContainerTabRight,.OH_CodeSnippetContainerTabRightDisabled { }.OH_footer { }</style><link rel="stylesheet" type="text/css" href="./../styles/branding.css" /><link rel="stylesheet" type="text/css" href="./../styles/branding-en-US.css" /><style type="text/css">
-			body
-			{
-			border-left:5px solid #e6e6e6;
-			overflow-x:scroll;
-			overflow-y:scroll;
-			}
-		</style><script src="./../scripts/branding.js" type="text/javascript"><!----></script><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>DryadLinqQueryable.SumAsQuery Method </title><meta name="Language" content="en-us" /><meta name="System.Keywords" content="SumAsQuery method" /><meta name="System.Keywords" content="DryadLinqQueryable.SumAsQuery method" /><meta name="Microsoft.Help.F1" content="Microsoft.Research.DryadLinq.DryadLinqQueryable.SumAsQuery" /><meta name="Microsoft.Help.F1" content="Microsoft.Research.DryadLinq.DryadLinqQueryable.SumAsQuery``1" /><meta name="Microsoft.Help.Id" content="Overload:Microsoft.Research.DryadLinq.DryadLinqQueryable.SumAsQuery" /><meta name="Microsoft.Help.ContentType" content="Reference" /><meta name="BrandingAware" content="'true'" /><meta name="container" content="Microsoft.Research.DryadLinq" /><meta name="file" content="f7353d8f-b53e-4485-3a32-a47d26df83b2" /><meta name="guid" content="f7353d8f-b53e-4485-3a32-a47d26df83b2" /><meta name="SelfBranded" content="true" /></head><body onload="onLoad()" class="primary-mtps-offline-document"><div class="OH_outerDiv"><div class="OH_outerContent"><table class="TitleTable"><tr><td class="OH_tdTitleColumn">DryadLinqQueryable<span id="ID0EBBABAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBBABAAA?vb=.|cpp=::|cs=.|fs=.|nu=.");
-				</script>SumAsQuery Method </td><td class="OH_tdRunningTitleColumn">DryadLINQ documentation</td></tr></table><div id="mainSection"><div id="mainBody"><span class="introStyle"></span><div class="OH_CollapsibleAreaRegion"><div class="OH_regiontitle">Overload List</div><div class="OH_CollapsibleArea_HrDiv"><hr class="OH_CollapsibleArea_Hr" /></div></div><div class="OH_clear"></div><table id="memberList" class="members"><tr><th class="ps_iconColumn">
-							 
-						</th><th class="ps_nameColumn">Name</th><th class="ps_descriptionColumn">Description</th></tr><tr data="public;static;declared;notNetfw;"><td><img src="./../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="./../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="407d2527-770f-e326-302a-08a588a1daf0.htm" target="">SumAsQuery(IQueryable<span id="ID0EDABTBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EDABTBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Decimal<span id="ID0EBABTBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBABTBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a></td><td><div class="summary">
-            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb156219" target="_blank">Sum(IQueryable<span id="ID0EDFAATBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EDFAATBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Decimal<span id="ID0EBFAATBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBFAATBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/1k2e8atx" target="_blank">Decimal</a>&gt;
+﻿<html><head><meta http-equiv="X-UA-Compatible" content="IE=edge" /><link rel="shortcut icon" href="../icons/favicon.ico" /><style type="text/css">.OH_CodeSnippetContainerTabLeftActive, .OH_CodeSnippetContainerTabLeft,.OH_CodeSnippetContainerTabLeftDisabled { }.OH_CodeSnippetContainerTabRightActive, .OH_CodeSnippetContainerTabRight,.OH_CodeSnippetContainerTabRightDisabled { }.OH_footer { }</style><link rel="stylesheet" type="text/css" href="../styles/branding.css" /><link rel="stylesheet" type="text/css" href="../styles/branding-en-US.css" /><script type="text/javascript" src="../scripts/branding.js"> </script><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>DryadLinqQueryable.SumAsQuery Method </title><meta name="Language" content="en-us" /><meta name="System.Keywords" content="SumAsQuery method" /><meta name="System.Keywords" content="DryadLinqQueryable.SumAsQuery method" /><meta name="Microsoft.Help.F1" content="Microsoft.Research.DryadLinq.DryadLinqQueryable.SumAsQuery" /><meta name="Microsoft.Help.F1" content="Microsoft.Research.DryadLinq.DryadLinqQueryable.SumAsQuery``1" /><meta name="Microsoft.Help.Id" content="Overload:Microsoft.Research.DryadLinq.DryadLinqQueryable.SumAsQuery" /><meta name="Microsoft.Help.ContentType" content="Reference" /><meta name="BrandingAware" content="true" /><meta name="container" content="Microsoft.Research.DryadLinq" /><meta name="file" content="f7353d8f-b53e-4485-3a32-a47d26df83b2" /><meta name="guid" content="f7353d8f-b53e-4485-3a32-a47d26df83b2" /></head><body onload="OnLoad('cs')"><input type="hidden" id="userDataCache" class="userDataStyle" /><div class="OH_outerDiv"><div class="OH_outerContent"><table class="TitleTable"><tr><td class="OH_tdTitleColumn">DryadLinqQueryable<span id="LSTD47BBCE1_0"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_0?cpp=::|nu=.");</script>SumAsQuery Method </td><td class="OH_tdRunningTitleColumn">DryadLINQ documentation</td></tr></table><div id="mainSection"><div id="mainBody"><span class="introStyle"></span><div class="OH_CollapsibleAreaRegion"><div class="OH_regiontitle">Overload List</div><div class="OH_CollapsibleArea_HrDiv"><hr class="OH_CollapsibleArea_Hr" /></div></div><div class="OH_clear"> </div><table id="memberList" class="members"><tr><th class="ps_iconColumn">
+								 
+							</th><th>Name</th><th>Description</th></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="407d2527-770f-e326-302a-08a588a1daf0.htm">SumAsQuery(IQueryable<span id="LSTD47BBCE1_1"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_1?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Decimal<span id="LSTD47BBCE1_2"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_2?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a></td><td><div class="summary">
+            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb156219" target="_blank">Sum(IQueryable<span id="LSTD47BBCE1_3"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_3?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Decimal<span id="LSTD47BBCE1_4"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_4?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/1k2e8atx" target="_blank">Decimal</a>&gt;
             containing a single element. Computes the sum of a set of decimal values.
-            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="./../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="./../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="c801b334-7ddf-00e4-720c-24997727b5d8.htm" target="">SumAsQuery(IQueryable<span id="ID0EDABSBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EDABSBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Double<span id="ID0EBABSBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBABSBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a></td><td><div class="summary">
-            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb337589" target="_blank">Sum(IQueryable<span id="ID0EDFAASBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EDFAASBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Double<span id="ID0EBFAASBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBFAASBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/643eft0t" target="_blank">Double</a>&gt;
+            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="c801b334-7ddf-00e4-720c-24997727b5d8.htm">SumAsQuery(IQueryable<span id="LSTD47BBCE1_5"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_5?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Double<span id="LSTD47BBCE1_6"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_6?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a></td><td><div class="summary">
+            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb337589" target="_blank">Sum(IQueryable<span id="LSTD47BBCE1_7"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_7?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Double<span id="LSTD47BBCE1_8"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_8?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/643eft0t" target="_blank">Double</a>&gt;
             containing a single element. Computes the sum of a set of double values.
-            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="./../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="./../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="64047514-813f-1713-31c4-0abd6abdc91d.htm" target="">SumAsQuery(IQueryable<span id="ID0EDABRBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EDABRBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Int32<span id="ID0EBABRBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBABRBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a></td><td><div class="summary">
-            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb345946" target="_blank">Sum(IQueryable<span id="ID0EDFAARBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EDFAARBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Int32<span id="ID0EBFAARBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBFAARBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/td2s409d" target="_blank">Int32</a>&gt;
+            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="64047514-813f-1713-31c4-0abd6abdc91d.htm">SumAsQuery(IQueryable<span id="LSTD47BBCE1_9"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_9?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Int32<span id="LSTD47BBCE1_10"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_10?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a></td><td><div class="summary">
+            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb345946" target="_blank">Sum(IQueryable<span id="LSTD47BBCE1_11"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_11?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Int32<span id="LSTD47BBCE1_12"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_12?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/td2s409d" target="_blank">Int32</a>&gt;
             containing a single element. Computes the sum of a set of Int32 values.
-            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="./../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="./../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="e8736e02-cf01-62af-5564-e1433e51d931.htm" target="">SumAsQuery(IQueryable<span id="ID0EDABQBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EDABQBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Int64<span id="ID0EBABQBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBABQBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a></td><td><div class="summary">
-            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb344173" target="_blank">Sum(IQueryable<span id="ID0EDFAAQBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EDFAAQBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Int64<span id="ID0EBFAAQBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBFAAQBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/6yy583ek" target="_blank">Int64</a>&gt;
+            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="e8736e02-cf01-62af-5564-e1433e51d931.htm">SumAsQuery(IQueryable<span id="LSTD47BBCE1_13"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_13?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Int64<span id="LSTD47BBCE1_14"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_14?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a></td><td><div class="summary">
+            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb344173" target="_blank">Sum(IQueryable<span id="LSTD47BBCE1_15"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_15?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Int64<span id="LSTD47BBCE1_16"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_16?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/6yy583ek" target="_blank">Int64</a>&gt;
             containing a single element. Computes the sum of a set of Int64 values.
-            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="./../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="./../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="61274f42-b4e5-5479-ead0-68efab6b7d88.htm" target="">SumAsQuery(IQueryable<span id="ID0EGABPBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EGABPBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Nullable<span id="ID0EEABPBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EEABPBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Decimal<span id="ID0ECABPBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECABPBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBABPBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBABPBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a></td><td><div class="summary">
-            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb342486" target="_blank">Sum(IQueryable<span id="ID0EGHAAPBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EGHAAPBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Nullable<span id="ID0EEHAAPBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EEHAAPBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Decimal<span id="ID0ECHAAPBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECHAAPBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBHAAPBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBHAAPBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/fs5xdbk8" target="_blank">Nullable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/1k2e8atx" target="_blank">Decimal</a>&gt;&gt;
+            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="61274f42-b4e5-5479-ead0-68efab6b7d88.htm">SumAsQuery(IQueryable<span id="LSTD47BBCE1_17"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_17?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Nullable<span id="LSTD47BBCE1_18"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_18?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Decimal<span id="LSTD47BBCE1_19"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_19?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_20"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_20?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a></td><td><div class="summary">
+            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb342486" target="_blank">Sum(IQueryable<span id="LSTD47BBCE1_21"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_21?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Nullable<span id="LSTD47BBCE1_22"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_22?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Decimal<span id="LSTD47BBCE1_23"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_23?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_24"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_24?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/fs5xdbk8" target="_blank">Nullable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/1k2e8atx" target="_blank">Decimal</a>&gt;&gt;
             containing a single element. Computes the sum of a set of nullable decimal values.
-            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="./../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="./../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="edab1cc4-df6b-a0e6-ac1c-aa090439ea5b.htm" target="">SumAsQuery(IQueryable<span id="ID0EGABOBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EGABOBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Nullable<span id="ID0EEABOBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EEABOBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Double<span id="ID0ECABOBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECABOBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBABOBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBABOBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a></td><td><div class="summary">
-            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb156404" target="_blank">Sum(IQueryable<span id="ID0EGHAAOBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EGHAAOBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Nullable<span id="ID0EEHAAOBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EEHAAOBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Double<span id="ID0ECHAAOBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECHAAOBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBHAAOBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBHAAOBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/fs5xdbk8" target="_blank">Nullable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/643eft0t" target="_blank">Double</a>&gt;&gt;
+            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="edab1cc4-df6b-a0e6-ac1c-aa090439ea5b.htm">SumAsQuery(IQueryable<span id="LSTD47BBCE1_25"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_25?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Nullable<span id="LSTD47BBCE1_26"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_26?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Double<span id="LSTD47BBCE1_27"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_27?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_28"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_28?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a></td><td><div class="summary">
+            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb156404" target="_blank">Sum(IQueryable<span id="LSTD47BBCE1_29"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_29?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Nullable<span id="LSTD47BBCE1_30"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_30?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Double<span id="LSTD47BBCE1_31"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_31?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_32"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_32?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/fs5xdbk8" target="_blank">Nullable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/643eft0t" target="_blank">Double</a>&gt;&gt;
             containing a single element. Computes the sum of a set of nullable double values.
-            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="./../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="./../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="569b8102-50a9-8bcb-d31c-9cce486ffe27.htm" target="">SumAsQuery(IQueryable<span id="ID0EGABNBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EGABNBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Nullable<span id="ID0EEABNBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EEABNBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Int32<span id="ID0ECABNBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECABNBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBABNBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBABNBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a></td><td><div class="summary">
-            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb339977" target="_blank">Sum(IQueryable<span id="ID0EGHAANBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EGHAANBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Nullable<span id="ID0EEHAANBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EEHAANBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Int32<span id="ID0ECHAANBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECHAANBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBHAANBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBHAANBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/fs5xdbk8" target="_blank">Nullable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/td2s409d" target="_blank">Int32</a>&gt;&gt;
+            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="569b8102-50a9-8bcb-d31c-9cce486ffe27.htm">SumAsQuery(IQueryable<span id="LSTD47BBCE1_33"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_33?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Nullable<span id="LSTD47BBCE1_34"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_34?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Int32<span id="LSTD47BBCE1_35"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_35?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_36"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_36?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a></td><td><div class="summary">
+            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb339977" target="_blank">Sum(IQueryable<span id="LSTD47BBCE1_37"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_37?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Nullable<span id="LSTD47BBCE1_38"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_38?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Int32<span id="LSTD47BBCE1_39"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_39?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_40"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_40?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/fs5xdbk8" target="_blank">Nullable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/td2s409d" target="_blank">Int32</a>&gt;&gt;
             containing a single element. Computes the sum of a set of nullable Int32 values.
-            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="./../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="./../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="9f5e1cf3-9397-db9d-93aa-b4a6c54e7683.htm" target="">SumAsQuery(IQueryable<span id="ID0EGABMBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EGABMBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Nullable<span id="ID0EEABMBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EEABMBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Int64<span id="ID0ECABMBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECABMBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBABMBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBABMBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a></td><td><div class="summary">
-            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb357484" target="_blank">Sum(IQueryable<span id="ID0EGHAAMBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EGHAAMBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Nullable<span id="ID0EEHAAMBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EEHAAMBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Int64<span id="ID0ECHAAMBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECHAAMBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBHAAMBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBHAAMBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/fs5xdbk8" target="_blank">Nullable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/6yy583ek" target="_blank">Int64</a>&gt;&gt;
+            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="9f5e1cf3-9397-db9d-93aa-b4a6c54e7683.htm">SumAsQuery(IQueryable<span id="LSTD47BBCE1_41"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_41?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Nullable<span id="LSTD47BBCE1_42"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_42?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Int64<span id="LSTD47BBCE1_43"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_43?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_44"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_44?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a></td><td><div class="summary">
+            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb357484" target="_blank">Sum(IQueryable<span id="LSTD47BBCE1_45"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_45?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Nullable<span id="LSTD47BBCE1_46"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_46?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Int64<span id="LSTD47BBCE1_47"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_47?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_48"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_48?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/fs5xdbk8" target="_blank">Nullable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/6yy583ek" target="_blank">Int64</a>&gt;&gt;
             containing a single element. Computes the sum of a set of nullable Int64 values.
-            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="./../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="./../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="de199fbd-fd52-83f1-6605-1dd8bdc344b4.htm" target="">SumAsQuery(IQueryable<span id="ID0EGABLBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EGABLBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Nullable<span id="ID0EEABLBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EEABLBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Single<span id="ID0ECABLBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECABLBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBABLBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBABLBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a></td><td><div class="summary">
-            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb338404" target="_blank">Sum(IQueryable<span id="ID0EGHAALBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EGHAALBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Nullable<span id="ID0EEHAALBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EEHAALBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Single<span id="ID0ECHAALBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECHAALBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBHAALBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBHAALBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/fs5xdbk8" target="_blank">Nullable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/3www918f" target="_blank">Single</a>&gt;&gt;
+            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="de199fbd-fd52-83f1-6605-1dd8bdc344b4.htm">SumAsQuery(IQueryable<span id="LSTD47BBCE1_49"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_49?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Nullable<span id="LSTD47BBCE1_50"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_50?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Single<span id="LSTD47BBCE1_51"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_51?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_52"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_52?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a></td><td><div class="summary">
+            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb338404" target="_blank">Sum(IQueryable<span id="LSTD47BBCE1_53"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_53?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Nullable<span id="LSTD47BBCE1_54"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_54?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Single<span id="LSTD47BBCE1_55"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_55?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_56"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_56?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/fs5xdbk8" target="_blank">Nullable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/3www918f" target="_blank">Single</a>&gt;&gt;
             containing a single element. Computes the sum of a set of nullable float values.
-            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="./../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="./../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="fe23cc18-a9ed-e8dc-486d-6eb432ed678c.htm" target="">SumAsQuery(IQueryable<span id="ID0EDABKBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EDABKBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Single<span id="ID0EBABKBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBABKBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a></td><td><div class="summary">
-            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb355361" target="_blank">Sum(IQueryable<span id="ID0EDFAAKBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EDFAAKBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Single<span id="ID0EBFAAKBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBFAAKBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/3www918f" target="_blank">Single</a>&gt;
+            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="fe23cc18-a9ed-e8dc-486d-6eb432ed678c.htm">SumAsQuery(IQueryable<span id="LSTD47BBCE1_57"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_57?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Single<span id="LSTD47BBCE1_58"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_58?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a></td><td><div class="summary">
+            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb355361" target="_blank">Sum(IQueryable<span id="LSTD47BBCE1_59"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_59?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Single<span id="LSTD47BBCE1_60"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_60?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/3www918f" target="_blank">Single</a>&gt;
             containing a single element. Computes the sum of a set of float values.
-            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="./../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="./../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="23a66ef5-c8d3-e343-8da8-d0143087de55.htm" target="">SumAsQuery<span id="ID0EOABJBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EOABJBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EMABJBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EMABJBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>(IQueryable<span id="ID0EKABJBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EKABJBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EIABJBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EIABJBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>, Expression<span id="ID0EGABJBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EGABJBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Func<span id="ID0EEABJBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EEABJBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource, Decimal<span id="ID0ECABJBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECABJBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBABJBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBABJBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a></td><td><div class="summary">
-            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb534801" target="_blank">Sum<span id="ID0EOFAAJBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EOFAAJBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EMFAAJBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EMFAAJBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>(IQueryable<span id="ID0EKFAAJBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EKFAAJBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EIFAAJBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EIFAAJBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>, Expression<span id="ID0EGFAAJBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EGFAAJBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Func<span id="ID0EEFAAJBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EEFAAJBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource, Decimal<span id="ID0ECFAAJBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECFAAJBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBFAAJBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBFAAJBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/1k2e8atx" target="_blank">Decimal</a>&gt;
+            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="23a66ef5-c8d3-e343-8da8-d0143087de55.htm">SumAsQuery<span id="LSTD47BBCE1_61"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_61?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_62"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_62?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>(IQueryable<span id="LSTD47BBCE1_63"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_63?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_64"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_64?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>, Expression<span id="LSTD47BBCE1_65"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_65?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Func<span id="LSTD47BBCE1_66"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_66?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource, Decimal<span id="LSTD47BBCE1_67"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_67?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_68"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_68?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a></td><td><div class="summary">
+            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb534801" target="_blank">Sum<span id="LSTD47BBCE1_69"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_69?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_70"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_70?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>(IQueryable<span id="LSTD47BBCE1_71"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_71?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_72"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_72?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>, Expression<span id="LSTD47BBCE1_73"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_73?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Func<span id="LSTD47BBCE1_74"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_74?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource, Decimal<span id="LSTD47BBCE1_75"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_75?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_76"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_76?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/1k2e8atx" target="_blank">Decimal</a>&gt;
             containing a single element. Computes the sum of a set of decimal values that
             is obtained by applying a function to each element of the input dataset.
-            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="./../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="./../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="d0bd94b3-9f60-0bdc-9570-a351b6fdd984.htm" target="">SumAsQuery<span id="ID0EOABIBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EOABIBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EMABIBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EMABIBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>(IQueryable<span id="ID0EKABIBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EKABIBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EIABIBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EIABIBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>, Expression<span id="ID0EGABIBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EGABIBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Func<span id="ID0EEABIBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EEABIBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource, Double<span id="ID0ECABIBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECABIBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBABIBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBABIBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a></td><td><div class="summary">
-            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb549069" target="_blank">Sum<span id="ID0EOFAAIBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EOFAAIBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EMFAAIBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EMFAAIBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>(IQueryable<span id="ID0EKFAAIBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EKFAAIBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EIFAAIBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EIFAAIBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>, Expression<span id="ID0EGFAAIBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EGFAAIBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Func<span id="ID0EEFAAIBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EEFAAIBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource, Double<span id="ID0ECFAAIBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECFAAIBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBFAAIBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBFAAIBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/643eft0t" target="_blank">Double</a>&gt;
+            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="d0bd94b3-9f60-0bdc-9570-a351b6fdd984.htm">SumAsQuery<span id="LSTD47BBCE1_77"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_77?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_78"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_78?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>(IQueryable<span id="LSTD47BBCE1_79"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_79?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_80"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_80?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>, Expression<span id="LSTD47BBCE1_81"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_81?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Func<span id="LSTD47BBCE1_82"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_82?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource, Double<span id="LSTD47BBCE1_83"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_83?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_84"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_84?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a></td><td><div class="summary">
+            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb549069" target="_blank">Sum<span id="LSTD47BBCE1_85"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_85?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_86"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_86?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>(IQueryable<span id="LSTD47BBCE1_87"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_87?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_88"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_88?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>, Expression<span id="LSTD47BBCE1_89"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_89?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Func<span id="LSTD47BBCE1_90"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_90?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource, Double<span id="LSTD47BBCE1_91"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_91?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_92"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_92?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/643eft0t" target="_blank">Double</a>&gt;
             containing a single element. Computes the sum of a set of double values that
             is obtained by applying a function to each element of the input dataset.
-            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="./../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="./../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="815539da-44d3-6f8c-914c-1015bc0489c3.htm" target="">SumAsQuery<span id="ID0EOABHBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EOABHBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EMABHBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EMABHBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>(IQueryable<span id="ID0EKABHBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EKABHBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EIABHBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EIABHBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>, Expression<span id="ID0EGABHBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EGABHBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Func<span id="ID0EEABHBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EEABHBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource, Int32<span id="ID0ECABHBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECABHBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBABHBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBABHBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a></td><td><div class="summary">
-            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb549204" target="_blank">Sum<span id="ID0EOFAAHBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EOFAAHBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EMFAAHBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EMFAAHBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>(IQueryable<span id="ID0EKFAAHBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EKFAAHBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EIFAAHBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EIFAAHBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>, Expression<span id="ID0EGFAAHBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EGFAAHBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Func<span id="ID0EEFAAHBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EEFAAHBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource, Int32<span id="ID0ECFAAHBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECFAAHBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBFAAHBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBFAAHBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/td2s409d" target="_blank">Int32</a>&gt;
+            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="815539da-44d3-6f8c-914c-1015bc0489c3.htm">SumAsQuery<span id="LSTD47BBCE1_93"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_93?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_94"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_94?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>(IQueryable<span id="LSTD47BBCE1_95"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_95?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_96"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_96?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>, Expression<span id="LSTD47BBCE1_97"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_97?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Func<span id="LSTD47BBCE1_98"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_98?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource, Int32<span id="LSTD47BBCE1_99"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_99?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_100"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_100?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a></td><td><div class="summary">
+            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb549204" target="_blank">Sum<span id="LSTD47BBCE1_101"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_101?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_102"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_102?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>(IQueryable<span id="LSTD47BBCE1_103"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_103?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_104"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_104?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>, Expression<span id="LSTD47BBCE1_105"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_105?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Func<span id="LSTD47BBCE1_106"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_106?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource, Int32<span id="LSTD47BBCE1_107"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_107?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_108"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_108?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/td2s409d" target="_blank">Int32</a>&gt;
             containing a single element. Computes the sum of a set of Int32 values that
             is obtained by applying a function to each element of the input dataset.
-            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="./../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="./../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="fac7312b-dad8-df66-30e7-260990cbf990.htm" target="">SumAsQuery<span id="ID0EOABGBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EOABGBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EMABGBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EMABGBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>(IQueryable<span id="ID0EKABGBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EKABGBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EIABGBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EIABGBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>, Expression<span id="ID0EGABGBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EGABGBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Func<span id="ID0EEABGBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EEABGBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource, Int64<span id="ID0ECABGBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECABGBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBABGBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBABGBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a></td><td><div class="summary">
-            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb535185" target="_blank">Sum<span id="ID0EOFAAGBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EOFAAGBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EMFAAGBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EMFAAGBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>(IQueryable<span id="ID0EKFAAGBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EKFAAGBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EIFAAGBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EIFAAGBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>, Expression<span id="ID0EGFAAGBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EGFAAGBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Func<span id="ID0EEFAAGBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EEFAAGBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource, Int64<span id="ID0ECFAAGBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECFAAGBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBFAAGBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBFAAGBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/6yy583ek" target="_blank">Int64</a>&gt;
+            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="fac7312b-dad8-df66-30e7-260990cbf990.htm">SumAsQuery<span id="LSTD47BBCE1_109"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_109?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_110"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_110?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>(IQueryable<span id="LSTD47BBCE1_111"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_111?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_112"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_112?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>, Expression<span id="LSTD47BBCE1_113"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_113?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Func<span id="LSTD47BBCE1_114"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_114?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource, Int64<span id="LSTD47BBCE1_115"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_115?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_116"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_116?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a></td><td><div class="summary">
+            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb535185" target="_blank">Sum<span id="LSTD47BBCE1_117"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_117?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_118"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_118?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>(IQueryable<span id="LSTD47BBCE1_119"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_119?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_120"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_120?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>, Expression<span id="LSTD47BBCE1_121"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_121?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Func<span id="LSTD47BBCE1_122"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_122?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource, Int64<span id="LSTD47BBCE1_123"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_123?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_124"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_124?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/6yy583ek" target="_blank">Int64</a>&gt;
             containing a single element. Computes the sum of a set of Int64 values that
             is obtained by applying a function to each element of the input dataset.
-            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="./../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="./../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="75b2011d-c769-2039-d36a-4763831c7376.htm" target="">SumAsQuery<span id="ID0ERABFBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ERABFBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EPABFBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EPABFBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>(IQueryable<span id="ID0ENABFBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ENABFBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0ELABFBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ELABFBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>, Expression<span id="ID0EJABFBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EJABFBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Func<span id="ID0EHABFBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EHABFBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource, Nullable<span id="ID0EFABFBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EFABFBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Decimal<span id="ID0EDABFBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EDABFBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0ECABFBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECABFBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBABFBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBABFBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a></td><td><div class="summary">
-            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb549409" target="_blank">Sum<span id="ID0ERFAAFBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ERFAAFBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EPFAAFBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EPFAAFBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>(IQueryable<span id="ID0ENFAAFBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ENFAAFBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0ELFAAFBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ELFAAFBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>, Expression<span id="ID0EJFAAFBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EJFAAFBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Func<span id="ID0EHFAAFBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EHFAAFBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource, Nullable<span id="ID0EFFAAFBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EFFAAFBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Decimal<span id="ID0EDFAAFBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EDFAAFBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0ECFAAFBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECFAAFBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBFAAFBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBFAAFBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/1k2e8atx" target="_blank">Decimal</a>&gt;
+            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="75b2011d-c769-2039-d36a-4763831c7376.htm">SumAsQuery<span id="LSTD47BBCE1_125"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_125?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_126"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_126?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>(IQueryable<span id="LSTD47BBCE1_127"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_127?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_128"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_128?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>, Expression<span id="LSTD47BBCE1_129"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_129?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Func<span id="LSTD47BBCE1_130"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_130?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource, Nullable<span id="LSTD47BBCE1_131"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_131?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Decimal<span id="LSTD47BBCE1_132"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_132?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_133"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_133?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_134"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_134?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a></td><td><div class="summary">
+            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb549409" target="_blank">Sum<span id="LSTD47BBCE1_135"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_135?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_136"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_136?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>(IQueryable<span id="LSTD47BBCE1_137"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_137?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_138"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_138?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>, Expression<span id="LSTD47BBCE1_139"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_139?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Func<span id="LSTD47BBCE1_140"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_140?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource, Nullable<span id="LSTD47BBCE1_141"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_141?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Decimal<span id="LSTD47BBCE1_142"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_142?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_143"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_143?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_144"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_144?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/1k2e8atx" target="_blank">Decimal</a>&gt;
             containing a single element. Computes the sum of a set of nullable decimal values that
             is obtained by applying a function to each element of the input dataset.
-            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="./../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="./../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="862da0de-392f-dc39-4bc9-31af392e2786.htm" target="">SumAsQuery<span id="ID0ERABEBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ERABEBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EPABEBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EPABEBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>(IQueryable<span id="ID0ENABEBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ENABEBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0ELABEBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ELABEBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>, Expression<span id="ID0EJABEBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EJABEBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Func<span id="ID0EHABEBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EHABEBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource, Nullable<span id="ID0EFABEBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EFABEBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Double<span id="ID0EDABEBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EDABEBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0ECABEBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECABEBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBABEBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBABEBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a></td><td><div class="summary">
-            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb549148" target="_blank">Sum<span id="ID0ERFAAEBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ERFAAEBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EPFAAEBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EPFAAEBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>(IQueryable<span id="ID0ENFAAEBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ENFAAEBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0ELFAAEBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ELFAAEBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>, Expression<span id="ID0EJFAAEBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EJFAAEBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Func<span id="ID0EHFAAEBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EHFAAEBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource, Nullable<span id="ID0EFFAAEBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EFFAAEBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Double<span id="ID0EDFAAEBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EDFAAEBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0ECFAAEBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECFAAEBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBFAAEBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBFAAEBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/643eft0t" target="_blank">Double</a>&gt;
+            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="862da0de-392f-dc39-4bc9-31af392e2786.htm">SumAsQuery<span id="LSTD47BBCE1_145"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_145?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_146"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_146?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>(IQueryable<span id="LSTD47BBCE1_147"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_147?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_148"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_148?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>, Expression<span id="LSTD47BBCE1_149"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_149?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Func<span id="LSTD47BBCE1_150"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_150?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource, Nullable<span id="LSTD47BBCE1_151"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_151?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Double<span id="LSTD47BBCE1_152"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_152?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_153"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_153?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_154"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_154?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a></td><td><div class="summary">
+            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb549148" target="_blank">Sum<span id="LSTD47BBCE1_155"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_155?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_156"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_156?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>(IQueryable<span id="LSTD47BBCE1_157"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_157?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_158"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_158?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>, Expression<span id="LSTD47BBCE1_159"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_159?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Func<span id="LSTD47BBCE1_160"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_160?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource, Nullable<span id="LSTD47BBCE1_161"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_161?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Double<span id="LSTD47BBCE1_162"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_162?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_163"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_163?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_164"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_164?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/643eft0t" target="_blank">Double</a>&gt;
             containing a single element. Computes the sum of a set of nullable double values that
             is obtained by applying a function to each element of the input dataset.
-            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="./../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="./../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="1ada303f-80bd-0b5c-656e-d984ddee2d16.htm" target="">SumAsQuery<span id="ID0ERABDBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ERABDBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EPABDBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EPABDBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>(IQueryable<span id="ID0ENABDBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ENABDBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0ELABDBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ELABDBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>, Expression<span id="ID0EJABDBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EJABDBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Func<span id="ID0EHABDBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EHABDBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource, Nullable<span id="ID0EFABDBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EFABDBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Int32<span id="ID0EDABDBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EDABDBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0ECABDBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECABDBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBABDBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBABDBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a></td><td><div class="summary">
-            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb549400" target="_blank">Sum<span id="ID0ERHAADBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ERHAADBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EPHAADBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EPHAADBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>(IQueryable<span id="ID0ENHAADBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ENHAADBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0ELHAADBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ELHAADBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>, Expression<span id="ID0EJHAADBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EJHAADBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Func<span id="ID0EHHAADBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EHHAADBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource, Nullable<span id="ID0EFHAADBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EFHAADBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Int32<span id="ID0EDHAADBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EDHAADBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0ECHAADBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECHAADBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBHAADBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBHAADBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/fs5xdbk8" target="_blank">Nullable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/td2s409d" target="_blank">Int32</a>&gt;&gt;
+            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="1ada303f-80bd-0b5c-656e-d984ddee2d16.htm">SumAsQuery<span id="LSTD47BBCE1_165"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_165?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_166"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_166?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>(IQueryable<span id="LSTD47BBCE1_167"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_167?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_168"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_168?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>, Expression<span id="LSTD47BBCE1_169"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_169?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Func<span id="LSTD47BBCE1_170"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_170?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource, Nullable<span id="LSTD47BBCE1_171"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_171?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Int32<span id="LSTD47BBCE1_172"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_172?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_173"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_173?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_174"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_174?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a></td><td><div class="summary">
+            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb549400" target="_blank">Sum<span id="LSTD47BBCE1_175"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_175?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_176"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_176?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>(IQueryable<span id="LSTD47BBCE1_177"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_177?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_178"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_178?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>, Expression<span id="LSTD47BBCE1_179"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_179?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Func<span id="LSTD47BBCE1_180"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_180?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource, Nullable<span id="LSTD47BBCE1_181"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_181?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Int32<span id="LSTD47BBCE1_182"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_182?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_183"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_183?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_184"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_184?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/fs5xdbk8" target="_blank">Nullable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/td2s409d" target="_blank">Int32</a>&gt;&gt;
             containing a single element. Computes the sum of a set of nullable Int32 values that
             is obtained by applying a function to each element of the input dataset.
-            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="./../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="./../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="39e9e2f9-d97a-1571-51e1-8b3f6b60c4c8.htm" target="">SumAsQuery<span id="ID0ERABCBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ERABCBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EPABCBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EPABCBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>(IQueryable<span id="ID0ENABCBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ENABCBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0ELABCBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ELABCBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>, Expression<span id="ID0EJABCBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EJABCBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Func<span id="ID0EHABCBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EHABCBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource, Nullable<span id="ID0EFABCBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EFABCBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Int64<span id="ID0EDABCBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EDABCBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0ECABCBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECABCBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBABCBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBABCBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a></td><td><div class="summary">
-            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb534866" target="_blank">Sum<span id="ID0ERFAACBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ERFAACBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EPFAACBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EPFAACBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>(IQueryable<span id="ID0ENFAACBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ENFAACBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0ELFAACBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ELFAACBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>, Expression<span id="ID0EJFAACBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EJFAACBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Func<span id="ID0EHFAACBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EHFAACBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource, Nullable<span id="ID0EFFAACBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EFFAACBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Int64<span id="ID0EDFAACBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EDFAACBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0ECFAACBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECFAACBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBFAACBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBFAACBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/6yy583ek" target="_blank">Int64</a>&gt;
+            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="39e9e2f9-d97a-1571-51e1-8b3f6b60c4c8.htm">SumAsQuery<span id="LSTD47BBCE1_185"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_185?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_186"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_186?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>(IQueryable<span id="LSTD47BBCE1_187"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_187?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_188"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_188?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>, Expression<span id="LSTD47BBCE1_189"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_189?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Func<span id="LSTD47BBCE1_190"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_190?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource, Nullable<span id="LSTD47BBCE1_191"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_191?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Int64<span id="LSTD47BBCE1_192"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_192?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_193"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_193?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_194"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_194?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a></td><td><div class="summary">
+            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb534866" target="_blank">Sum<span id="LSTD47BBCE1_195"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_195?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_196"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_196?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>(IQueryable<span id="LSTD47BBCE1_197"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_197?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_198"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_198?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>, Expression<span id="LSTD47BBCE1_199"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_199?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Func<span id="LSTD47BBCE1_200"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_200?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource, Nullable<span id="LSTD47BBCE1_201"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_201?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Int64<span id="LSTD47BBCE1_202"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_202?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_203"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_203?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_204"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_204?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/6yy583ek" target="_blank">Int64</a>&gt;
             containing a single element. Computes the sum of a set of nullable Int64 values that
             is obtained by applying a function to each element of the input dataset.
-            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="./../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="./../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="dbb05e44-bc2d-3de2-74fa-223d17988e6c.htm" target="">SumAsQuery<span id="ID0ERABBBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ERABBBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EPABBBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EPABBBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>(IQueryable<span id="ID0ENABBBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ENABBBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0ELABBBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ELABBBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>, Expression<span id="ID0EJABBBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EJABBBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Func<span id="ID0EHABBBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EHABBBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource, Nullable<span id="ID0EFABBBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EFABBBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Single<span id="ID0EDABBBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EDABBBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0ECABBBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECABBBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBABBBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBABBBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a></td><td><div class="summary">
-            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb534860" target="_blank">Sum<span id="ID0ERFAABBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ERFAABBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EPFAABBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EPFAABBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>(IQueryable<span id="ID0ENFAABBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ENFAABBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0ELFAABBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ELFAABBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>, Expression<span id="ID0EJFAABBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EJFAABBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Func<span id="ID0EHFAABBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EHFAABBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource, Nullable<span id="ID0EFFAABBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EFFAABBCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Single<span id="ID0EDFAABBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EDFAABBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0ECFAABBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECFAABBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBFAABBCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBFAABBCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/3www918f" target="_blank">Single</a>&gt;
+            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="dbb05e44-bc2d-3de2-74fa-223d17988e6c.htm">SumAsQuery<span id="LSTD47BBCE1_205"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_205?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_206"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_206?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>(IQueryable<span id="LSTD47BBCE1_207"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_207?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_208"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_208?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>, Expression<span id="LSTD47BBCE1_209"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_209?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Func<span id="LSTD47BBCE1_210"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_210?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource, Nullable<span id="LSTD47BBCE1_211"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_211?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Single<span id="LSTD47BBCE1_212"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_212?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_213"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_213?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_214"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_214?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a></td><td><div class="summary">
+            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb534860" target="_blank">Sum<span id="LSTD47BBCE1_215"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_215?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_216"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_216?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>(IQueryable<span id="LSTD47BBCE1_217"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_217?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_218"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_218?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>, Expression<span id="LSTD47BBCE1_219"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_219?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Func<span id="LSTD47BBCE1_220"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_220?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource, Nullable<span id="LSTD47BBCE1_221"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_221?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Single<span id="LSTD47BBCE1_222"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_222?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_223"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_223?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_224"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_224?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/3www918f" target="_blank">Single</a>&gt;
             containing a single element. Computes the sum of a set of nullable float values that
             is obtained by applying a function to each element of the input dataset.
-            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="./../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="./../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="6dc77fa3-12cd-84ed-f44f-63a1998fa91c.htm" target="">SumAsQuery<span id="ID0EOABABCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EOABABCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EMABABCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EMABABCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>(IQueryable<span id="ID0EKABABCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EKABABCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EIABABCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EIABABCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>, Expression<span id="ID0EGABABCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EGABABCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Func<span id="ID0EEABABCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EEABABCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource, Single<span id="ID0ECABABCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECABABCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBABABCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBABABCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a></td><td><div class="summary">
-            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb548540" target="_blank">Sum<span id="ID0EOFAAABCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EOFAAABCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EMFAAABCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EMFAAABCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>(IQueryable<span id="ID0EKFAAABCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EKFAAABCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource<span id="ID0EIFAAABCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EIFAAABCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>, Expression<span id="ID0EGFAAABCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EGFAAABCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>Func<span id="ID0EEFAAABCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EEFAAABCAAAAA?vb=(Of |cpp=&lt;|cs=&lt;|fs=&lt;'|nu=(");
-				</script>TSource, Single<span id="ID0ECFAAABCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0ECFAAABCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script><span id="ID0EBFAAABCAAAAA"> </span><script type="text/javascript">
-					addToLanSpecTextIdSet("ID0EBFAAABCAAAAA?vb=)|cpp=&gt;|cs=&gt;|fs=&gt;|nu=)");
-				</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/3www918f" target="_blank">Single</a>&gt;
+            </div></td></tr><tr data="public;static;declared;notNetfw;"><td><img src="../icons/pubmethod.gif" alt="Public method" title="Public method" /><img src="../icons/static.gif" alt="Static member" title="Static member" /></td><td><a href="6dc77fa3-12cd-84ed-f44f-63a1998fa91c.htm">SumAsQuery<span id="LSTD47BBCE1_225"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_225?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_226"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_226?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>(IQueryable<span id="LSTD47BBCE1_227"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_227?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_228"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_228?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>, Expression<span id="LSTD47BBCE1_229"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_229?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Func<span id="LSTD47BBCE1_230"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_230?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource, Single<span id="LSTD47BBCE1_231"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_231?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_232"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_232?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a></td><td><div class="summary">
+            Same as <a href="http://msdn2.microsoft.com/en-us/library/bb548540" target="_blank">Sum<span id="LSTD47BBCE1_233"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_233?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_234"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_234?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>(IQueryable<span id="LSTD47BBCE1_235"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_235?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource<span id="LSTD47BBCE1_236"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_236?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>, Expression<span id="LSTD47BBCE1_237"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_237?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>Func<span id="LSTD47BBCE1_238"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_238?cs=&lt;|vb=(Of |cpp=&lt;|fs=&lt;'|nu=(");</script>TSource, Single<span id="LSTD47BBCE1_239"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_239?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script><span id="LSTD47BBCE1_240"></span><script type="text/javascript">AddLanguageSpecificTextSet("LSTD47BBCE1_240?cs=&gt;|vb=)|cpp=&gt;|fs=&gt;|nu=)");</script>)</a>, but returns an <a href="http://msdn2.microsoft.com/en-us/library/bb495796" target="_blank">IQueryable</a>&lt;<a href="http://msdn2.microsoft.com/en-us/library/3www918f" target="_blank">Single</a>&gt;
             containing a single element. Computes the sum of a set of float values that
             is obtained by applying a function to each element of the input dataset.
-            </div></td></tr></table><a href="#mainBody" target="">Top</a><a name="seeAlsoSection"><!----></a><div class="OH_CollapsibleAreaRegion"><div class="OH_regiontitle">See Also</div><div class="OH_CollapsibleArea_HrDiv"><hr class="OH_CollapsibleArea_Hr" /></div></div><div class="OH_clear"></div><div class="seeAlsoStyle"><a href="6d67ec6b-96ed-0a8b-0ad4-1c0568c7bf91.htm" target="">DryadLinqQueryable Class</a></div><div class="seeAlsoStyle"><a href="efe6507e-9fd8-bbd3-8227-fd6ba9e289c1.htm" target="">Microsoft.Research.DryadLinq Namespace</a></div></div></div></div></div><div id="OH_footer" class="OH_footer"><p /><div class="OH_feedbacklink"><a href="mailto:?subject=DryadLINQ+documentation+DryadLinqQueryable.SumAsQuery+Method++100+EN-US&amp;body=Your%20feedback%20is%20used%20to%20improve%20the%20documentation%20and%20the%20product.%20Your%20e-mail%20address%20will%20not%20be%20used%20for%20any%20other%20purpose%20and%20is%20disposed%20of%20after%20the%20issue%20you%20report%20is%20resolved.%20While%20working%20to%20resolve%20the%20issue%20that%20you%20report%2c%20you%20may%20be%20contacted%20via%20e-mail%20to%20get%20further%20details%20or%20clarification%20on%20the%20feedback%20you%20sent.%20After%20the%20issue%20you%20report%20has%20been%20addressed%2c%20you%20may%20receive%20an%20e-mail%20to%20let%20you%20know%20that%20your%20feedback%20has%20been%20addressed.">Send Feedback</a> on this topic.</div></div></body></html>
+            </div></td></tr></table><a href="#mainBody">Top</a><div class="OH_CollapsibleAreaRegion" id="seeAlsoSection"><div class="OH_regiontitle">See Also</div><div class="OH_CollapsibleArea_HrDiv"><hr class="OH_CollapsibleArea_Hr" /></div></div><div class="OH_clear"> </div><h4 class="subHeading">Reference</h4><div class="seeAlsoStyle"><a href="6d67ec6b-96ed-0a8b-0ad4-1c0568c7bf91.htm">DryadLinqQueryable Class</a></div><div class="seeAlsoStyle"><a href="efe6507e-9fd8-bbd3-8227-fd6ba9e289c1.htm">Microsoft.Research.DryadLinq Namespace</a></div></div></div></div></div><div id="OH_footer" class="OH_footer"> </div></body></html>

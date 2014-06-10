@@ -181,7 +181,6 @@
   <HelpKINode Title="DryadLinqContext.JobRuntimeLimit property" Url="html/abece889-c5a1-aa62-d2c6-6e371273a12e.htm" />
   <HelpKINode Title="DryadLinqContext.JobUsername property" Url="html/024262a5-8d35-80f8-1b76-7a6242ad400b.htm" />
   <HelpKINode Title="DryadLinqContext.LocalDebug property" Url="html/bb832ac9-26e2-8dcf-6e10-da1f43571fc8.htm" />
-  <HelpKINode Title="DryadLinqContext.LocalExecution property" Url="html/f49487bb-3b0f-4054-0c17-ffdca967af5e.htm" />
   <HelpKINode Title="DryadLinqContext.MatchClientNetFrameworkVersion property" Url="html/646b413a-cfac-0795-0766-86606d8a5410.htm" />
   <HelpKINode Title="DryadLinqContext.NodeGroup property" Url="html/3bcf5415-69d6-0f64-fa4f-fa1ba7cade31.htm" />
   <HelpKINode Title="DryadLinqContext.OutputDataCompressionScheme property" Url="html/1b4bb2db-3cb5-2bb3-22b7-d0d1f24eb7a6.htm" />
@@ -642,7 +641,6 @@
   <HelpKINode Title="LineRecord.ToString method" Url="html/e45f62f1-20db-4823-babb-6e0310fa18d7.htm" />
   <HelpKINode Title="LOCAL enumeration member" Url="html/db48824c-598d-a2a7-24db-a422d19467b1.htm" />
   <HelpKINode Title="LocalDebug property" Url="html/bb832ac9-26e2-8dcf-6e10-da1f43571fc8.htm" />
-  <HelpKINode Title="LocalExecution property" Url="html/f49487bb-3b0f-4054-0c17-ffdca967af5e.htm" />
   <HelpKINode Title="LongCountAsQuery method" Url="html/6bc2eb5c-4e5c-228f-d4e6-420163ae5b5d.htm" />
   <HelpKINode Title="LongSelect(Of TSource, TResult) method" Url="html/4479c8c4-d7b5-0a9a-f6ad-740afffa2969.htm" />
   <HelpKINode Title="LongSelect&lt;TSource, TResult&gt; method" Url="html/4479c8c4-d7b5-0a9a-f6ad-740afffa2969.htm" />
@@ -848,6 +846,7 @@
   </HelpKINode>
   <HelpKINode Title="Verbose enumeration member" Url="html/7f48283a-3fd5-7bf1-1b43-e0164f893f54.htm" />
   <HelpKINode Title="version">
+    <HelpKINode Title="Version 0.1.5" Url="html/48b50bec-3e7d-4a00-97bc-9c673d3cad41.htm" />
     <HelpKINode Title="1.0.0.0" Url="html/a2eaaf5d-f1d8-4319-844e-a458cc72e4db.htm" />
     <HelpKINode Title="history" Url="html/a5d9b686-8282-4120-ae0e-5a9f11a2ac0b.htm" />
   </HelpKINode>
