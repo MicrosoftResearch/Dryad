@@ -19,3 +19,5 @@ x64/
 build/
 [Bb]in/
 [Oo]bj/
+
+LastBuild.log
