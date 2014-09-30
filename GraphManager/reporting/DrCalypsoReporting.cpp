@@ -24,7 +24,8 @@ limitations under the License.
 #include <msclr\lock.h>
 
 using namespace System::IO;
-using namespace Microsoft::Research::Peloponnese::Storage;
+using namespace Microsoft::Research::Peloponnese::Azure;
+using namespace Microsoft::Research::Peloponnese::Hdfs;
 using namespace msclr;
 
 //
@@ -126,7 +127,7 @@ public:
 DrCalypsoReporter::DrCalypsoReporter(DrNativeString uriString)
 {
     System::Uri^ uri = DrNew System::Uri(uriString);
-    if (uri->Scheme == AzureUtils::BlobScheme)
+    if (uri->Scheme == Utils::BlobScheme)
     {
         m_logStream = DrNew AzureLogAppendStream(uri, 0x20, false, false, gcnew PeloponneseLogger());
         m_flushInterval = 1000;

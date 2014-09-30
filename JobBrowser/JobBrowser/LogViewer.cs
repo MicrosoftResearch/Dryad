@@ -127,7 +127,7 @@ namespace Microsoft.Research.DryadAnalysis
 
             this.Initialize(text, basefilename);
             //ISharedStreamReader sr = new FileSharedStreamReader(filename);
-            ISharedStreamReader sr = file.GetStream();
+            ISharedStreamReader sr = file.GetStream(false);
             long lineno = 0;
             long bytes = 0;
 

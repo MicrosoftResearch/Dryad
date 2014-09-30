@@ -19,14 +19,20 @@ limitations under the License.
 
 */
 
+
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Diagnostics;
-using Microsoft.Research.Peloponnese.Storage;
+using Microsoft.Research.Peloponnese.Azure;
 using Microsoft.Research.Tools;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.Research.Peloponnese.Shared;
+using Microsoft.Research.Peloponnese.WebHdfs;
+using Microsoft.Research.Peloponnese.Hdfs;
 
 namespace Microsoft.Research.JobObjectModel
 {
@@ -43,7 +49,8 @@ namespace Microsoft.Research.JobObjectModel
         /// Returns a stream that can be used to access the contents of the object, if the object is not a folder.
         /// </summary>
         /// <returns>A stream that can be used to access the object contents.</returns>
-        ISharedStreamReader GetStream();
+        /// <param name="keepNewline">If true the streamReader will not strip the newlines.</param>
+        ISharedStreamReader GetStream(bool keepNewline);
         /// <summary>
         /// If the current object is a folder, it returns the contained objects.
         /// </summary>
@@ -203,12 +210,13 @@ namespace Microsoft.Research.JobObjectModel
         /// A stream to the local cache, or null if the file is not cached.
         /// </summary>
         /// <returns>A stream to access the file.</returns>
-        public virtual ISharedStreamReader GetStream()
+        /// <param name="keepNewline">If true keep newlines.</param>
+        public virtual ISharedStreamReader GetStream(bool keepNewline)
         {
             if (this.LocalCachePath != null && File.Exists(this.LocalCachePath))
             {
                 CachedClusterResidentObject.Record(this);
-                return new FileSharedStreamReader(this.LocalCachePath);
+                return new FileSharedStreamReader(this.LocalCachePath, keepNewline);
             }
             return null;
         }
@@ -355,14 +363,15 @@ namespace Microsoft.Research.JobObjectModel
         /// The stream with the file contents.
         /// </summary>
         /// <returns>A stream reder.</returns>
-        public override ISharedStreamReader GetStream()
+        /// <param name="keepNewlines">If true keep the newlines.</param>
+        public override ISharedStreamReader GetStream(bool keepNewlines)
         {
             try
             {
                 if (!this.RepresentsAFolder)
                 {
                     //this.LocalCachePath = this.CachePath(this.Pathname);
-                    ISharedStreamReader baseStream = base.GetStream();
+                    ISharedStreamReader baseStream = base.GetStream(keepNewlines);
                     if (baseStream != null)
                     {
                         // file is cached
@@ -378,12 +387,12 @@ namespace Microsoft.Research.JobObjectModel
                         throw new ClusterException("Cannot cache folders");
 
                     StreamWriter writer = this.CreateTempStream();
-                    return new FileSharedStreamReader(this.Pathname.ToString(), writer, this.OnClose);
+                    return new FileSharedStreamReader(this.Pathname.ToString(), writer, keepNewlines, this.OnClose);
                 }
                 else
                 {
                     // dont cache it
-                    return new FileSharedStreamReader(this.Pathname.ToString());
+                    return new FileSharedStreamReader(this.Pathname.ToString(), keepNewlines);
                 }
             }
             catch (Exception ex)
@@ -650,9 +659,10 @@ namespace Microsoft.Research.JobObjectModel
         /// The contents of the folder.
         /// </summary>
         /// <returns>The contents of the folder.</returns>
-        public override ISharedStreamReader GetStream()
+        /// <param name="keepNewline">If true keep newlines.</param>
+        public override ISharedStreamReader GetStream(bool keepNewline)
         {
-            return this.OriginalFolder.GetStream();
+            return this.OriginalFolder.GetStream(keepNewline);
         }
 
         /// <summary>
@@ -720,9 +730,10 @@ namespace Microsoft.Research.JobObjectModel
         /// A stream returning the contents.
         /// </summary>
         /// <returns>The contents of this object.</returns>
-        public ISharedStreamReader GetStream()
+        /// <param name="keepNewlines">If true keep newlines.</param>
+        public ISharedStreamReader GetStream(bool keepNewlines)
         {
-            return new StringIteratorStreamReader(this.contents);
+            return new StringIteratorStreamReader(this.contents, keepNewlines);
         }
 
         /// <summary>
@@ -835,9 +846,10 @@ namespace Microsoft.Research.JobObjectModel
         /// Returns a stream that can be used to access the contents of the object, if the object is not a folder.
         /// </summary>
         /// <returns>A stream that can be used to access the object contents.</returns>
-        public ISharedStreamReader GetStream()
+        /// <param name="keepNewlines">If true keep the newlines.</param>
+        public ISharedStreamReader GetStream(bool keepNewlines)
         {
-            return new FileSharedStreamReader(this.path);
+            return new FileSharedStreamReader(this.path, keepNewlines);
         }
 
         /// <summary>
@@ -969,8 +981,8 @@ namespace Microsoft.Research.JobObjectModel
             this.RepresentsAFolder = isFolder;
             this.size = -1;
 
-            if (!string.IsNullOrEmpty(CachedClusterResidentObject.CacheDirectory))
-                this.LocalCachePath = Path.Combine(CachedClusterResidentObject.CacheDirectory, this.path);
+            if (!String.IsNullOrEmpty(CacheDirectory))
+                this.LocalCachePath = Path.Combine(CacheDirectory, this.path);
         }
 
         /// <summary>
@@ -983,13 +995,45 @@ namespace Microsoft.Research.JobObjectModel
         }
 
         /// <summary>
+        /// Create a File URI from a file path.
+        /// </summary>
+        /// <param name="path">Path to file.</param>
+        /// <returns>The File uri.</returns>
+        /// <param name="config">Azure cluster configuration.</param>
+        public static Uri UriFromPath(AzureDfsClusterConfiguration config, string path)
+        {
+            if (path.StartsWith(config.Container))
+                throw new InvalidOperationException("Path contains container name");
+            var retval = Microsoft.Research.Peloponnese.Azure.Utils.ToAzureUri(config.AccountName, config.Container, path, null, config.AccountKey);
+            //Console.WriteLine("Uri {0}", retval);
+            return retval;
+        }
+
+        /// <summary>
+        /// Create a path from a URI.
+        /// </summary>
+        /// <param name="uri">URI of an HDFS file.</param>
+        /// <returns>The path to the file.</returns>
+        /// <param name="config">Azure cluster configuration.</param>
+        public static string PathFromUri(AzureDfsClusterConfiguration config, Uri uri)
+        {
+            string path = uri.LocalPath;
+            path = path.Trim('/');
+            if (path.StartsWith(config.Container))
+                path = path.Substring(config.Container.Length);
+            path = path.Trim('/'); 
+            return path;
+        }
+
+        /// <summary>
         /// Returns a stream that can be used to access the contents of the object, if the object is not a folder.
         /// </summary>
         /// <returns>A stream that can be used to access the object contents.</returns>
-        public override ISharedStreamReader GetStream()
+        /// <param name="keepNewlines">If true keep the newlines.</param>
+        public override ISharedStreamReader GetStream(bool keepNewlines)
         {
 
-            ISharedStreamReader baseStream = base.GetStream();
+            ISharedStreamReader baseStream = base.GetStream(keepNewlines);
             if (baseStream != null)
             {
                 // file is cached
@@ -1000,29 +1044,30 @@ namespace Microsoft.Research.JobObjectModel
             Stream stream;
             if (this.IsDfsStream)
             {
-                var dfsFileStream = this.client.GetDfsFileStream(this.path);
-                stream = dfsFileStream.Stream;
+                Uri uri = UriFromPath(this.Config as AzureDfsClusterConfiguration, this.path);
+                stream = this.client.GetDfsStreamReader(uri);
             }
             else
             {
+                string p = AzureDfsClusterStatus.GetBlobName(this.client.ContainerName,this.path);
                 stream = new AzureLogReaderStream(
                     this.client.AccountName,
                     this.client.AccountKey,
                     this.client.ContainerName,
-                    this.path);
+                    p);
             }
 
-            long size = this.Size;
+            long sz = this.Size;
             int bufferSize = 1024*1024;
-            if (size >= 0)
+            if (sz >= 0)
             {
-                bufferSize = (int)(size/10);
+                bufferSize = (int)(sz/10);
                 if (bufferSize < 1024*1024)
                     bufferSize = 1024*1024;
                 if (bufferSize > 20*1024*1024)
                     bufferSize = 20*1024*1024;
             }
-            StreamReader reader = new StreamReader(stream, System.Text.Encoding.UTF8, false, bufferSize);
+            SimpleStreamReader reader = new SimpleStreamReader(stream, true, Encoding.UTF8, false, bufferSize);
 
             if (this.ShouldCacheLocally && this.LocalCachePath != null)
             {
@@ -1030,12 +1075,12 @@ namespace Microsoft.Research.JobObjectModel
                 if (this.RepresentsAFolder)
                     throw new ClusterException("Cannot cache folders");
                 StreamWriter writer = this.CreateTempStream();
-                return new SharedStreamReader(reader, writer, this.OnClose);
+                return new SharedStreamReader(reader, writer, keepNewlines, this.OnClose);
             }
             else
             {
                 // dont cache it
-                return new SharedStreamReader(reader);
+                return new SharedStreamReader(reader, keepNewlines);
             }
         }
 
@@ -1060,7 +1105,7 @@ namespace Microsoft.Research.JobObjectModel
                     if (item is CloudBlockBlob)
                     {
                         CloudBlockBlob blob = (CloudBlockBlob)item;
-                        blocks.Add(blob.Name, blob.Properties.Length);
+                        this.blocks.Add(blob.Name, blob.Properties.Length);
                     }
                     else if (item is CloudPageBlob)
                     {
@@ -1072,8 +1117,8 @@ namespace Microsoft.Research.JobObjectModel
                         if (metadata.ContainsKey("writePosition"))
                         {
                             long sz;
-                            if (long.TryParse(metadata["writePosition"], out sz))
-                                pages.Add(pageBlob.Name, sz);
+                            if (Int64.TryParse(metadata["writePosition"], out sz))
+                                this.pages.Add(pageBlob.Name, sz);
                         }
                     }
                     else if (item is CloudBlobDirectory)
@@ -1094,29 +1139,28 @@ namespace Microsoft.Research.JobObjectModel
             this.PopulateCache();
             long length = -1;
 
-            foreach (var child in this.client.EnumerateDirectory(this.path))
+            Uri uri = UriFromPath(this.Config as AzureDfsClusterConfiguration, this.path);
+            Console.WriteLine("AzureDfsFile.GetFileAndFolders({0}) -> {1}", this.path, uri);
+            foreach (var child in this.client.ExpandFileOrDirectory(uri))
             {
                 Regex re = Utilities.RegexFromSearchPattern(match);
-                if (!re.IsMatch(child)) continue;
+                if (!re.IsMatch(child.AbsolutePath)) continue;
                 
                 bool isFolder = false;
                 bool isDfsStream = false;
 
-                if (blocks.ContainsKey(child))
+                if (this.blocks.ContainsKey(child.AbsolutePath))
                 {
                     isDfsStream = true;
-                    length = blocks[child];
+                    length = this.blocks[child.AbsolutePath];
                 }
-                else if (pages.ContainsKey(child))
+                else if (this.pages.ContainsKey(child.AbsolutePath))
                 {
                     isDfsStream = false;
-                    length = pages[child];
+                    length = this.pages[child.AbsolutePath];
                 }
-                else if (this.client != null)
-                    // otherwise this information may be incorrect
-                    isFolder = true;
 
-                var file = new AzureDfsFile(this.Config, this.Job, this.client, child, this.ShouldCacheLocally, isFolder);
+                var file = new AzureDfsFile(this.Config, this.Job, this.client, PathFromUri(this.Config as AzureDfsClusterConfiguration, child), this.ShouldCacheLocally, isFolder);
                 file.IsDfsStream = isDfsStream;
                 file.size = length;
                 
@@ -1158,30 +1202,24 @@ namespace Microsoft.Research.JobObjectModel
         {
             this.PopulateCache();
 
-            string filepath;
-            if (this.client != null)
-                filepath = this.client.Combine(this.path, filename);
-            else
-                filepath = Path.Combine(this.path, filename);
+            string combined = Path.Combine(this.path, filename);
+            Uri filepath = UriFromPath(this.Config as AzureDfsClusterConfiguration, combined);
             bool isFolder = false;
             bool isDfsStream = false;
             long sz = -1;
 
-            if (blocks.ContainsKey(filepath))
+            if (this.blocks.ContainsKey(combined))
             {
                 isDfsStream = true;
-                sz = blocks[filepath];
+                sz = this.blocks[filepath.AbsolutePath];
             }
-            else if (pages.ContainsKey(filepath))
+            else if (this.pages.ContainsKey(combined))
             {
                 isDfsStream = false;
-                sz = pages[filepath];
+                sz = this.pages[filepath.AbsolutePath];
             }
-            else if (this.client != null)
-                // if the client is null the information may be incorrect
-                isFolder = true;
 
-            var file = new AzureDfsFile(this.Config, this.Job, this.client, filepath, this.ShouldCacheLocally, isFolder);
+            var file = new AzureDfsFile(this.Config, this.Job, this.client, combined, this.ShouldCacheLocally, isFolder);
             file.IsDfsStream = isDfsStream;
             file.size = sz;
             return file;
@@ -1211,6 +1249,234 @@ namespace Microsoft.Research.JobObjectModel
         public override string ToString()
         {
             return this.path;
+        }
+    }
+
+    /// <summary>
+    /// A file residing on HDFS (accessed either using HDFS or WebHdfs).
+    /// </summary>
+    public class DfsFile : CachedClusterResidentObject
+    {
+        private Uri baseUri;
+        private Uri uri;
+        private HdfsClientBase client;
+
+        /// <summary>
+        /// A file with the specified path.
+        /// </summary>
+        /// <param name="path">Path to the file.</param>
+        /// <param name="client">Azure client.</param>
+        /// <param name="config">Cluster configuration.</param>
+        /// <param name="job">Job accessing this file.</param>
+        /// <param name="jobFolderUri">Uri to base folder.</param>
+        /// <param name="isFolder">If true this must be a folder.</param>
+        /// <param name="canCache">True if the file can be cached (it is immutable for sure).</param>
+        public DfsFile(ClusterConfiguration config, Uri jobFolderUri, DryadLinqJobSummary job, HdfsClientBase client, string path, bool canCache, bool isFolder)
+            : base(config, job)
+        {
+            this.client = client;
+            this.Exception = null;
+            this.baseUri = jobFolderUri;
+            this.uri = UriFromPath(jobFolderUri, path);
+            this.ShouldCacheLocally = canCache;
+            this.RepresentsAFolder = isFolder;
+            this.size = -1;
+
+            Console.WriteLine("DfsFile Uri={0}", this.uri);
+            if (!string.IsNullOrEmpty(CachedClusterResidentObject.CacheDirectory))
+                this.LocalCachePath = Path.Combine(CachedClusterResidentObject.CacheDirectory, PathFromUri(this.baseUri, this.uri));
+        }
+
+        /// <summary>
+        /// Create a File URI from a file path.
+        /// </summary>
+        /// <param name="baseUri">Base URI point to jobs folder.</param>
+        /// <param name="path">Path to file.</param>
+        /// <returns>The File uri.</returns>
+        public static Uri UriFromPath(Uri baseUri, string path)
+        {
+            UriBuilder builder = new UriBuilder(baseUri);
+            builder.Path = builder.Path.TrimEnd('/') + "/" + path.TrimStart('/');
+            return builder.Uri;
+        }
+
+        /// <summary>
+        /// Create a path from a URI.
+        /// </summary>
+        /// <param name="uri">URI of an HDFS file.</param>
+        /// <param name="baseUri">Base URI (should be a prefix of the other uri).</param>
+        /// <returns>The path to the file.</returns>
+        public static string PathFromUri(Uri baseUri, Uri uri)
+        {
+            string path = uri.PathAndQuery;
+            if (path.StartsWith(baseUri.PathAndQuery))
+                path = path.Substring(baseUri.PathAndQuery.Length);
+            path = path.Trim('/');
+            return path;
+        }
+
+        private DfsFile(ClusterConfiguration config, DryadLinqJobSummary job, Exception ex)
+            : base(config, job)
+        {
+            this.Exception = ex;
+        }
+
+        /// <summary>
+        /// True if the object is a folder.
+        /// </summary>
+        public override bool RepresentsAFolder
+        {
+            get;
+            protected set;
+        }
+
+        /// <summary>
+        /// Returns a stream that can be used to access the contents of the object, if the object is not a folder.
+        /// </summary>
+        /// <returns>A stream that can be used to access the object contents.</returns>
+        /// <param name="keepNewlines">If true keep the newlines.</param>
+        public override ISharedStreamReader GetStream(bool keepNewlines)
+        {
+
+            ISharedStreamReader baseStream = base.GetStream(keepNewlines);
+            if (baseStream != null)
+            {
+                // file is cached
+                Trace.TraceInformation("Reading from local cache {0}", baseStream);
+                return baseStream;
+            }
+
+            Stream stream = this.client.GetDfsStreamReader(this.uri);
+            long sz = this.Size;
+            int bufferSize = 1024 * 1024;
+            if (sz >= 0)
+            {
+                bufferSize = (int)(sz / 10);
+                if (bufferSize < 1024 * 1024)
+                    bufferSize = 1024 * 1024;
+                if (bufferSize > 20 * 1024 * 1024)
+                    bufferSize = 20 * 1024 * 1024;
+            }
+            SimpleStreamReader reader = new SimpleStreamReader(stream, true, Encoding.UTF8, false, bufferSize);
+
+            if (this.ShouldCacheLocally && this.LocalCachePath != null)
+            {
+                // cache it 
+                if (this.RepresentsAFolder)
+                    throw new ClusterException("Cannot cache folders");
+                StreamWriter writer = this.CreateTempStream();
+                return new SharedStreamReader(reader, writer, keepNewlines, this.OnClose);
+            }
+            else
+            {
+                // dont cache it
+                return new SharedStreamReader(reader, keepNewlines);
+            }
+        }
+
+        /// <summary>
+        /// If the current object is a folder, it returns the contained objects.
+        /// </summary>
+        /// <returns>An iterator over all contained objects that match the specified string.</returns>
+        /// <param name="match">A shell expression (similar to the argument of Directory.GetFiles()).</param>
+        public override IEnumerable<IClusterResidentObject> GetFilesAndFolders(string match)
+        {
+            HashSet<Uri> folders = new HashSet<Uri>();
+            foreach (var child in this.client.EnumerateSubdirectories(this.uri))
+            {
+                folders.Add(child);
+            }
+
+            Regex re = Utilities.RegexFromSearchPattern(match);
+            foreach (var child in this.client.ExpandFileOrDirectory(this.uri))
+            {
+                if (!re.IsMatch(PathFromUri(this.baseUri, child))) continue;
+
+                bool isFolder = folders.Contains(child);
+                var file = new DfsFile(this.Config, this.baseUri, this.Job, this.client, PathFromUri(this.baseUri, child), this.ShouldCacheLocally, isFolder);
+
+                long length;
+                long time;
+                this.client.GetFileStatus(child, out time, out length);
+                file.size = length;
+                file.CreationTime = TimeFromLong(time);
+
+                yield return file;
+            }
+        }
+
+        private long size;
+        /// <summary>
+        /// Size of the object in bytes (if not a folder).  The size can be -1 when it is unknown.
+        /// </summary>
+        public override long Size
+        {
+            get { return this.size; }
+        }
+
+        /// <summary>
+        /// Short name of the object.
+        /// </summary>
+        public override string Name
+        {
+            get { return Path.GetFileName(PathFromUri(this.baseUri, this.uri)); }
+        }
+
+        private static DateTime origin = new DateTime(1970, 1, 1);
+        /// <summary>
+        /// Convert file status time into a DateTime.
+        /// </summary>
+        /// <param name="fileTime">File time obtained from client.</param>
+        /// <returns>A DateTime object.</returns>
+        public static DateTime TimeFromLong(long fileTime)
+        {
+            return origin + TimeSpan.FromMilliseconds(fileTime);
+        }
+
+        /// <summary>
+        /// Date when object was created.
+        /// </summary>
+        public override DateTime CreationTime
+        {
+            get { return DateTime.Now; }
+        }
+
+        /// <summary>
+        /// For a folder object, returns the contained file with the specified name.
+        /// </summary>
+        /// <param name="filename">File name within the folder.</param>
+        /// <returns>The file within the folder.</returns>
+        public override IClusterResidentObject GetFile(string filename)
+        {
+            var matchingFiles = this.GetFilesAndFolders(filename).ToList();
+            if (matchingFiles.Count == 1)
+                return matchingFiles[0];
+
+            return new DfsFile(this.Config, this.Job, new Exception("Ambiguous name " + filename + " in " + this));
+        }
+
+        /// <summary>
+        /// For a folder object, returns the contained folder with the specified name.
+        /// </summary>
+        /// <param name="foldername">Folder name within the folder.</param>
+        /// <returns>The subfolder within the folder.</returns>
+        public override IClusterResidentObject GetFolder(string foldername)
+        {
+            var file = this.GetFile(foldername);
+            if (!file.RepresentsAFolder) throw new InvalidOperationException(foldername + " is not a folder");
+            return file;
+        }
+
+        /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>
+        /// A string that represents the current object.
+        /// </returns>
+        /// <filterpriority>2</filterpriority>
+        public override string ToString()
+        {
+            return this.uri.ToString();
         }
     }
 }

@@ -69,20 +69,47 @@ namespace Microsoft.Research.DryadLinq
         public const string debugAzure = "DEBUG_AZURE";
 
         // Recognized values are: OFF, CRITICAL, ERROR, WARN, INFO, VERBOSE
-        public const string TraceLevelEnvVar = "CCP_DRYADTRACELEVEL";
-        public const string TraceOff = "OFF";
-        public const string TraceCritical = "CRITICAL";
-        public const string TraceError = "ERROR";
-        public const string TraceWarning = "WARN";
-        public const string TraceInfo = "INFO";
-        public const string TraceVerbose = "VERBOSE";
+        public const string LoggingLevelEnvVar = "DRYAD_LOGGING_LEVEL";
+        public const string LoggingOff = "OFF";
+        public const string LoggingCritical = "CRITICAL";
+        public const string LoggingError = "ERROR";
+        public const string LoggingWarning = "WARN";
+        public const string LoggingInfo = "INFO";
+        public const string LoggingVerbose = "VERBOSE";
 
-        public const int TraceOffLevel = 0;
-        public const int TraceCriticalLevel = 1;
-        public const int TraceErrorLevel = 3;
-        public const int TraceWarningLevel = 7;
-        public const int TraceInfoLevel = 15;
-        public const int TraceVerboseLevel = 31;
+        public const int LoggingOffLevel = 0;
+        public const int LoggingCriticalLevel = 1;
+        public const int LoggingErrorLevel = 3;
+        public const int LoggingWarningLevel = 7;
+        public const int LoggingInfoLevel = 15;
+        public const int LoggingVerboseLevel = 31;
+
+        public static string LoggingStringFromLevel(int level)
+        {
+            switch (level)
+            {
+                case LoggingOffLevel:
+                    return LoggingOff;
+
+                case LoggingCriticalLevel:
+                    return LoggingCritical;
+
+                case LoggingErrorLevel:
+                    return LoggingError;
+
+                case LoggingWarningLevel:
+                    return LoggingWarning;
+
+                case LoggingInfoLevel:
+                    return LoggingInfo;
+
+                case LoggingVerboseLevel:
+                    return LoggingVerbose;
+
+                default:
+                    throw new ApplicationException("Unknown logging level " + level);
+            }
+        }
 
         // SchedulerHelper environment variables
         public const string clusterNameEnvVar = "CCP_CLUSTER_NAME";

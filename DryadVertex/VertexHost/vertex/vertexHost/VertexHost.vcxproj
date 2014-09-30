@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\packages\Microsoft.Research.Peloponnese.0.7.2-beta\build\Microsoft.Research.Peloponnese.props" Condition="Exists('..\..\..\..\packages\Microsoft.Research.Peloponnese.0.7.2-beta\build\Microsoft.Research.Peloponnese.props')" />
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\packages\Microsoft.Research.Peloponnese.Shared.0.8.0-beta\build\Microsoft.Research.Peloponnese.Shared.props" Condition="Exists('..\..\..\..\packages\Microsoft.Research.Peloponnese.Shared.0.8.0-beta\build\Microsoft.Research.Peloponnese.Shared.props')" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
@@ -18,19 +18,20 @@
     <Keyword>Win32Proj</Keyword>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <ProjectName>VertexHostBody</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <CLRSupport>true</CLRSupport>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <CLRSupport>true</CLRSupport>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -56,6 +57,13 @@
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+    <NuGetPackageImportStamp>16d8f87f</NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetName>Microsoft.Research.Dryad.$(ProjectName)</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetName>Microsoft.Research.Dryad.$(ProjectName)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Midl>
@@ -112,6 +120,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="version.cpp" />
     <ClCompile Include="vertexHost.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -124,13 +133,13 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\..\..\..\packages\Microsoft.Research.Peloponnese.0.7.2-beta\build\Microsoft.Research.Peloponnese.targets" Condition="Exists('..\..\..\..\packages\Microsoft.Research.Peloponnese.0.7.2-beta\build\Microsoft.Research.Peloponnese.targets')" />
+    <Import Project="..\..\..\..\packages\Microsoft.Research.Peloponnese.Shared.0.8.0-beta\build\Microsoft.Research.Peloponnese.Shared.targets" Condition="Exists('..\..\..\..\packages\Microsoft.Research.Peloponnese.Shared.0.8.0-beta\build\Microsoft.Research.Peloponnese.Shared.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\..\..\..\packages\Microsoft.Research.Peloponnese.0.7.2-beta\build\Microsoft.Research.Peloponnese.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\packages\Microsoft.Research.Peloponnese.0.7.2-beta\build\Microsoft.Research.Peloponnese.props'))" />
-    <Error Condition="!Exists('..\..\..\..\packages\Microsoft.Research.Peloponnese.0.7.2-beta\build\Microsoft.Research.Peloponnese.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\packages\Microsoft.Research.Peloponnese.0.7.2-beta\build\Microsoft.Research.Peloponnese.targets'))" />
+    <Error Condition="!Exists('..\..\..\..\packages\Microsoft.Research.Peloponnese.Shared.0.8.0-beta\build\Microsoft.Research.Peloponnese.Shared.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\packages\Microsoft.Research.Peloponnese.Shared.0.8.0-beta\build\Microsoft.Research.Peloponnese.Shared.props'))" />
+    <Error Condition="!Exists('..\..\..\..\packages\Microsoft.Research.Peloponnese.Shared.0.8.0-beta\build\Microsoft.Research.Peloponnese.Shared.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\packages\Microsoft.Research.Peloponnese.Shared.0.8.0-beta\build\Microsoft.Research.Peloponnese.Shared.targets'))" />
   </Target>
 </Project>

@@ -19,5 +19,22 @@ limitations under the License.
 */
 
 #ifdef _MANAGED
-[assembly:System::Runtime::InteropServices::ComVisible(false)];
+#pragma managed
+
+using namespace System::Reflection;
+using namespace System::Runtime::InteropServices;
+
+[assembly: AssemblyTitle("Microsoft.Research.Dryad")];
+[assembly: AssemblyDescription("")];
+[assembly: AssemblyConfiguration("")];
+[assembly: AssemblyCompany("Microsoft Corporation")];
+[assembly: AssemblyProduct("Microsoft.Research.Dryad")];
+[assembly: AssemblyCopyright("Copyright © Microsoft Corporation.  All rights reserved.")];
+[assembly: AssemblyTrademark("")];
+[assembly: AssemblyCulture("")];
+
+[assembly: ComVisible(false)];
+
+[assembly: AssemblyVersion("1.0.0.0")];
+[assembly: AssemblyFileVersion("1.0.0.0")];
 #endif

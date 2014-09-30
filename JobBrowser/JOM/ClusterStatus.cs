@@ -19,12 +19,22 @@ limitations under the License.
 
 */
 
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Microsoft.Research.Peloponnese.Storage;
+using System.Web;
+using System.Xml;
+using System.Xml.Linq;
+using Microsoft.Research.Peloponnese.Hdfs;
+using Microsoft.Research.Peloponnese.Shared;
+using Microsoft.Research.Peloponnese.Yarn;
 using Microsoft.Research.Tools;
+using System.Text.RegularExpressions;
+using System.Text;
+using JobStatus = Microsoft.Research.Peloponnese.ClusterUtils.JobStatus;
 
 namespace Microsoft.Research.JobObjectModel
 {
@@ -68,12 +78,16 @@ namespace Microsoft.Research.JobObjectModel
         /// <summary>
         /// See if a status is already cached.
         /// </summary>
-        /// <param name="clusterName">Name of cluster.</param>
+        /// <param name="config">Cluster configuration.</param>
         /// <returns>The cached status.</returns>
-        public static ClusterStatus LookupStatus(string clusterName)
+        public static ClusterStatus LookupStatus(ClusterConfiguration config)
         {
-            if (ClusterStatuses.ContainsKey(clusterName))
-                return ClusterStatuses[clusterName];
+            if (ClusterStatuses.ContainsKey(config.Name))
+            {
+                var retval = ClusterStatuses[config.Name];
+                if (retval.Config.Equals(config))
+                    return retval;
+            }
             return null;
         }
 
@@ -172,8 +186,8 @@ namespace Microsoft.Research.JobObjectModel
         /// <param name="manager">Communication manager.</param>
         public virtual void RefreshStatus(DryadLinqJobSummary summary, CommManager manager)
         {
-            // refresh the whole list
-            this.RecomputeClusterJobList(summary.VirtualCluster, manager);
+            // refresh the whole list: too expensive
+            // this.RecomputeClusterJobList(summary.VirtualCluster, manager);
             ClusterJobInformation info = this.DiscoverClusterJob(summary, manager);
             if (info == null)
             {
@@ -190,6 +204,7 @@ namespace Microsoft.Research.JobObjectModel
         /// <returns>True if the cancellation succeeded.</returns>
         public abstract bool CancelJob(DryadLinqJobSummary job);
     }
+
 
 
 
@@ -442,20 +457,17 @@ namespace Microsoft.Research.JobObjectModel
     /// <summary>
     /// Status of an Azure DFS cluster.
     /// </summary>
-    public class AzureDfsClusterStatus : ClusterStatus
+    public abstract class DfsClusterStatus : ClusterStatus
     {
-        private AzureDfsClusterConfiguration config;
-
         /// <summary>
         /// Create a cluster containing just the local machine.
         /// </summary>
         /// <param name="config">Configuration for the local machine.</param>
-        public AzureDfsClusterStatus(ClusterConfiguration config)
+        protected DfsClusterStatus(ClusterConfiguration config)
             : base(config)
         {
-            if (!(config is AzureDfsClusterConfiguration))
-                throw new ArgumentException("Expected a AzureYarnClusterConfiguration, got a " + config.GetType());
-            this.config = config as AzureDfsClusterConfiguration;
+            if (!(config is DfsClusterConfiguration))
+                throw new ArgumentException("Expected a DfsClusterConfiguration, got a " + config.GetType());
         }
 
         /// <summary>
@@ -469,31 +481,6 @@ namespace Microsoft.Research.JobObjectModel
         }
 
         /// <summary>
-        /// Force the recomputation of the cluster job list.
-        /// </summary>
-        /// <param name="virtualCluster">Virtual cluster to use (defined only for some cluster types).</param>
-        /// <param name="manager">Communication manager.</param>        
-        protected override void RecomputeClusterJobList(string virtualCluster, CommManager manager)
-        {
-            this.clusterJobs = new Dictionary<string, ClusterJobInformation>();
-            var jobs = this.config.AzureClient.EnumerateDirectory("").ToList();
-
-            int done = 0;
-            foreach (var job in jobs)
-            {
-                manager.Token.ThrowIfCancellationRequested();
-                ClusterJobInformation info = this.GetJobInfo(job);
-                if (info != null)
-                {
-                    // ReSharper disable once AssignNullToNotNullAttribute
-                    this.clusterJobs.Add(job, info);
-                }
-                manager.Progress(100*done++/jobs.Count);
-            }
-            manager.Progress(100);
-        }
-
-        /// <summary>
         /// Discover the (unique) dryadlinq job corresponding to a cluster job.
         /// </summary>
         /// <param name="clusterJob">Cluster Job.</param>
@@ -503,7 +490,7 @@ namespace Microsoft.Research.JobObjectModel
         {
             DryadLinqJobSummary result = new DryadLinqJobSummary(
                     clusterJob.Cluster,
-                    this.config.TypeOfCluster,
+                    this.Config.TypeOfCluster,
                     "", // virtual cluster
                     "", // machine
                     clusterJob.ClusterJobID, // jobId
@@ -530,6 +517,78 @@ namespace Microsoft.Research.JobObjectModel
         }
 
         /// <summary>
+        /// Cancel the specified job.
+        /// </summary>
+        /// <param name="job">Job whose execution is cancelled.</param>
+        /// <returns>True if the cancellation succeeded.</returns>
+        public override bool CancelJob(DryadLinqJobSummary job)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Status of an Azure DFS cluster.
+    /// </summary>
+    public class AzureDfsClusterStatus : DfsClusterStatus
+    {
+        private AzureDfsClusterConfiguration config;
+
+        /// <summary>
+        /// Create a cluster containing just the local machine.
+        /// </summary>
+        /// <param name="config">Configuration for the local machine.</param>
+        public AzureDfsClusterStatus(ClusterConfiguration config)
+            : base(config)
+        {
+            if (!(config is AzureDfsClusterConfiguration))
+                throw new ArgumentException("Expected a AzureDfsClusterConfiguration, got a " + config.GetType());
+            this.config = config as AzureDfsClusterConfiguration;
+        }
+
+        /// <summary>
+        /// Force the recomputation of the cluster job list.
+        /// </summary>
+        /// <param name="virtualCluster">Virtual cluster to use (defined only for some cluster types).</param>
+        /// <param name="manager">Communication manager.</param>        
+        protected override void RecomputeClusterJobList(string virtualCluster, CommManager manager)
+        {
+            this.clusterJobs = new Dictionary<string, ClusterJobInformation>();   
+            var jobs = this.config.AzureClient.ExpandFileOrDirectory(AzureDfsFile.UriFromPath(this.config, "")).ToList();
+
+            int done = 0;
+            foreach (var job in jobs)
+            {
+                manager.Token.ThrowIfCancellationRequested();
+                string jobRootFolder = AzureDfsFile.PathFromUri(this.config, job);
+                ClusterJobInformation info = this.GetJobInfo(jobRootFolder);
+                if (info != null)
+                {
+                    // ReSharper disable once AssignNullToNotNullAttribute
+                    this.clusterJobs.Add(job.AbsolutePath, info);
+                }
+                manager.Progress(100*done++/jobs.Count);
+            }
+            manager.Progress(100);
+        }
+
+        /// <summary>
+        /// Extract blob name from a path.
+        /// </summary>
+        /// <param name="container">Container name.</param>
+        /// <param name="path">Path.</param>
+        /// <returns>The blob part of path.</returns>
+        public static string GetBlobName(string container, string path)
+        {
+            if (path.StartsWith("/" + container + "/"))
+                path = path.Substring(container.Length + 2);
+            int q = path.IndexOf('?');
+            if (q > 0)
+                path = path.Substring(0, q);
+            return path;
+        }
+
+        /// <summary>
         /// Extract the job information from a folder with logs on the local machine.
         /// </summary>
         /// <param name="jobRootFolder">Folder with logs for the specified job.</param>
@@ -540,14 +599,19 @@ namespace Microsoft.Research.JobObjectModel
             DateTime lastHeartBeat = DateTime.MinValue;
             ClusterJobInformation.ClusterJobStatus status = ClusterJobInformation.ClusterJobStatus.Unknown;
             bool found = false;
-            string jobName = jobRootFolder;
 
-            var jobsFolders = this.config.AzureClient.EnumerateDirectory(jobRootFolder).ToList();
+            Uri uri = AzureDfsFile.UriFromPath(this.config, jobRootFolder);
+            var jobsFolders = this.config.AzureClient.ExpandFileOrDirectory(uri).ToList();
+
+            jobRootFolder = GetBlobName(this.config.Container, jobRootFolder);
+            string jobName = jobRootFolder;
+            
             foreach (var file in jobsFolders)
             {
-                if (file.EndsWith("heartbeat"))
+                if (file.AbsolutePath.EndsWith("heartbeat"))
                 {
-                    var blob = this.config.AzureClient.Container.GetPageBlobReference(file);
+                    string blobName = GetBlobName(this.config.Container, file.AbsolutePath);
+                    var blob = this.config.AzureClient.Container.GetPageBlobReference(blobName);
                     blob.FetchAttributes();
                     var props = blob.Metadata;
                     if (props.ContainsKey("status"))
@@ -597,11 +661,11 @@ namespace Microsoft.Research.JobObjectModel
                     
                     found = true;
                 }
-                else if (file.Contains("DryadLinqProgram__") && 
+                else if (file.AbsolutePath.Contains("DryadLinqProgram__") && 
                     // newer heartbeats contain the date
                     date != DateTime.MinValue)
                 {
-                    var blob = this.config.AzureClient.Container.GetBlockBlobReference(file);
+                    var blob = this.config.AzureClient.Container.GetBlockBlobReference(AzureDfsFile.PathFromUri(this.config, file));
                     blob.FetchAttributes();
                     var props = blob.Properties;
                     if (props.LastModified.HasValue)
@@ -628,7 +692,6 @@ namespace Microsoft.Research.JobObjectModel
         /// <param name="manager">Communication manager.</param>        
         public override void RefreshStatus(DryadLinqJobSummary summary, CommManager manager)
         {
-            // refresh the whole list
             ClusterJobInformation info = this.GetJobInfo(summary.JobID);
             if (info == null)
             {
@@ -645,8 +708,224 @@ namespace Microsoft.Research.JobObjectModel
         /// <returns>True if the cancellation succeeded.</returns>
         public override bool CancelJob(DryadLinqJobSummary job)
         {
-            AzureUtils.KillJob(this.config.AccountName, this.config.AccountKey, this.config.Container, job.ClusterJobId);
-            return true;
+            Microsoft.Research.Peloponnese.Azure.Utils.KillJob(this.config.AccountName, this.config.AccountKey, this.config.Container, job.ClusterJobId);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Cluster status of a WebHdfs cluster.
+    /// </summary>
+    public class WebHdfsClusterStatus : DfsClusterStatus
+    {
+        private WebHdfsClusterConfiguration config;
+        /// <summary>
+        /// Yarn client to access job status.
+        /// </summary>
+        private NativeYarnClient yarnClient;
+
+        /// <summary>
+        /// Create a cluster containing just the local machine.
+        /// </summary>
+        /// <param name="conf">Configuration for the local machine.</param>
+        public WebHdfsClusterStatus(ClusterConfiguration conf)
+            : base(conf)
+        {
+            if (!(conf is WebHdfsClusterConfiguration))
+                throw new ArgumentException("Expected a WebHdfsClusterConfiguration, got a " + conf.GetType());
+            this.config = conf as WebHdfsClusterConfiguration;
+            this.yarnClient = new NativeYarnClient(this.config.StatusNode, this.config.StatusNodePort, new HdfsClient(this.config.UserName));
+        }
+
+        /// <summary>
+        /// Extract the job information from a folder with logs on the local machine.
+        /// </summary>
+        /// <param name="jobRootFolder">Folder with logs for the specified job.</param>
+        /// <returns>The job information, or null if not found.</returns>
+        private ClusterJobInformation GetJobInfo(string jobRootFolder)
+        {
+            Uri uri = DfsFile.UriFromPath(this.config.JobsFolderUri, jobRootFolder);
+            long time;
+            long size;
+            this.config.DfsClient.GetFileStatus(uri, out time, out size);
+
+            DateTime date = DfsFile.TimeFromLong(time);
+            ClusterJobInformation.ClusterJobStatus status = ClusterJobInformation.ClusterJobStatus.Unknown;
+            string jobName = Path.GetFileName(jobRootFolder);
+
+            string errorMsg = "";
+
+            try
+            {
+                var jobinfo = this.yarnClient.QueryJob(jobName, uri);
+                var jobstatus = jobinfo.GetStatus();
+                errorMsg = jobinfo.ErrorMsg;
+                switch (jobstatus)
+                {
+                    case JobStatus.NotSubmitted:
+                    case JobStatus.Waiting:
+                        status = ClusterJobInformation.ClusterJobStatus.Unknown;
+                        break;
+                    case JobStatus.Running:
+                        status = ClusterJobInformation.ClusterJobStatus.Running;
+                        break;
+                    case JobStatus.Success:
+                        status = ClusterJobInformation.ClusterJobStatus.Succeeded;
+                        break;
+                    case JobStatus.Cancelled:
+                        status = ClusterJobInformation.ClusterJobStatus.Cancelled;
+                        break;
+                    case JobStatus.Failure:
+                        status = ClusterJobInformation.ClusterJobStatus.Failed;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+            catch (Exception)
+            {
+            }
+
+            TimeSpan running = TimeSpan.Zero;
+            var info = new ClusterJobInformation(this.config.Name, "", jobName, jobName, Environment.UserName, date, running, status);
+            return info;
+        }
+
+        /// <summary>
+        /// Force the recomputation of the cluster job list.
+        /// </summary>
+        /// <param name="virtualCluster">Virtual cluster to use (defined only for some cluster types).</param>
+        /// <param name="manager">Communication manager.</param>
+        // ReSharper disable once UnusedParameter.Global
+        protected override void RecomputeClusterJobList(string virtualCluster, CommManager manager)
+        {
+            this.clusterJobs = new Dictionary<string, ClusterJobInformation>();
+            var uri = DfsFile.UriFromPath(this.config.JobsFolderUri, "");
+            var jobsEnum = this.config.DfsClient.EnumerateSubdirectories(uri);
+            List<Uri> jobs = jobsEnum != null ? jobsEnum.ToList() : new List<Uri>();
+
+            int done = 0;
+            foreach (var job in jobs)
+            {
+                manager.Token.ThrowIfCancellationRequested();
+                ClusterJobInformation info = this.GetJobInfo(DfsFile.PathFromUri(this.config.JobsFolderUri, job));
+                if (info != null)
+                {
+                    // ReSharper disable once AssignNullToNotNullAttribute
+                    this.clusterJobs.Add(info.ClusterJobID, info);
+                }
+                manager.Progress(100 * done++ / jobs.Count);
+            }
+            manager.Progress(100);
+        }
+    }
+    /// <summary>
+    /// Cluster status of a WebHdfs cluster.
+    /// </summary>
+    public class HdfsClusterStatus : DfsClusterStatus
+    {
+        private HdfsClusterConfiguration config;
+        /// <summary>
+        /// Yarn client to access job status.
+        /// </summary>
+        private NativeYarnClient yarnClient;
+        
+        /// <summary>
+        /// Create a cluster containing just the local machine.
+        /// </summary>
+        /// <param name="conf">Configuration for the local machine.</param>
+        public HdfsClusterStatus(ClusterConfiguration conf)
+            : base(conf)
+        {
+            if (!(conf is HdfsClusterConfiguration))
+                throw new ArgumentException("Expected an HdfsClusterConfiguration, got a " + conf.GetType());
+            this.config = conf as HdfsClusterConfiguration;
+            // make a fake call to initialize the cluster on the foreground thread
+            // HDFS does not work if initialized on the background thread.
+            Uri uri = DfsFile.UriFromPath(this.config.JobsFolderUri, "");
+            this.config.DfsClient.IsFileExists(uri); // ignore result
+            this.yarnClient = new NativeYarnClient(this.config.StatusNode, this.config.StatusNodePort, new HdfsClient(this.config.UserName));
+        }
+
+        /// <summary>
+        /// Extract the job information from a folder with logs on the local machine.
+        /// </summary>
+        /// <param name="jobRootFolder">Folder with logs for the specified job.</param>
+        /// <returns>The job information, or null if not found.</returns>
+        private ClusterJobInformation GetJobInfo(string jobRootFolder)
+        {
+            Uri uri = DfsFile.UriFromPath(this.config.JobsFolderUri, jobRootFolder);
+            long time;
+            long size;
+            this.config.DfsClient.GetFileStatus(uri, out time, out size);
+
+            DateTime date = DfsFile.TimeFromLong(time);
+            ClusterJobInformation.ClusterJobStatus status = ClusterJobInformation.ClusterJobStatus.Unknown;
+            string jobName = Path.GetFileName(jobRootFolder);
+
+            string errorMsg = "";
+
+            try
+            {
+                var jobinfo = this.yarnClient.QueryJob(jobName, uri);
+                var jobstatus = jobinfo.GetStatus();
+                errorMsg = jobinfo.ErrorMsg;
+                switch (jobstatus)
+                {
+                    case JobStatus.NotSubmitted:
+                    case JobStatus.Waiting:
+                        status = ClusterJobInformation.ClusterJobStatus.Unknown;
+                        break;
+                    case JobStatus.Running:
+                        status = ClusterJobInformation.ClusterJobStatus.Running;
+                        break;
+                    case JobStatus.Success:
+                        status = ClusterJobInformation.ClusterJobStatus.Succeeded;
+                        break;
+                    case JobStatus.Cancelled:
+                        status = ClusterJobInformation.ClusterJobStatus.Cancelled;
+                        break;
+                    case JobStatus.Failure:
+                        status = ClusterJobInformation.ClusterJobStatus.Failed;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+            catch (Exception)
+            {
+            }
+
+            TimeSpan running = TimeSpan.Zero;
+            var info = new ClusterJobInformation(config.Name, "", jobName, jobName, Environment.UserName, date, running, status);
+            return info;
+        }
+
+        /// <summary>
+        /// Force the recomputation of the cluster job list.
+        /// </summary>
+        /// <param name="virtualCluster">Virtual cluster to use (defined only for some cluster types).</param>
+        /// <param name="manager">Communication manager.</param>
+        // ReSharper disable once UnusedParameter.Global
+        protected override void RecomputeClusterJobList(string virtualCluster, CommManager manager)
+        {
+            this.clusterJobs = new Dictionary<string, ClusterJobInformation>();
+            var uri = DfsFile.UriFromPath(this.config.JobsFolderUri, "");
+            var jobs = this.config.DfsClient.EnumerateSubdirectories(uri).ToList();
+
+            int done = 0;
+            foreach (var job in jobs)
+            {
+                manager.Token.ThrowIfCancellationRequested();
+                ClusterJobInformation info = this.GetJobInfo(DfsFile.PathFromUri(this.config.JobsFolderUri, job));
+                if (info != null)
+                {
+                    // ReSharper disable once AssignNullToNotNullAttribute
+                    this.clusterJobs.Add(info.ClusterJobID, info);
+                }
+                manager.Progress(100 * done++ / jobs.Count);
+            }
+            manager.Progress(100);
         }
     }
 }

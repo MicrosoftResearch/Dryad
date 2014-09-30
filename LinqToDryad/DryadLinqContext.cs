@@ -30,7 +30,11 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Microsoft.Research.DryadLinq.Internal;
 using Microsoft.Research.Peloponnese.ClusterUtils;
-using Microsoft.Research.Peloponnese.Storage;
+using Microsoft.Research.Peloponnese.Shared;
+using Microsoft.Research.Peloponnese.Hdfs;
+using Microsoft.Research.Peloponnese.WebHdfs;
+using Microsoft.Research.Peloponnese.Azure;
+using Microsoft.Research.Peloponnese.Yarn;
 
 namespace Microsoft.Research.DryadLinq
 {
@@ -82,7 +86,7 @@ namespace Microsoft.Research.DryadLinq
         /// <summary>
         /// Gets the client DFS interface.
         /// </summary>
-        IDfsClient DfsClient { get; }
+        DfsClient DfsClient { get; }
         /// <summary>
         /// Gets the client cluster interface.
         /// </summary>
@@ -90,28 +94,40 @@ namespace Microsoft.Research.DryadLinq
         /// <returns>The client interface to the cluster</returns>
         ClusterClient Client(DryadLinqContext context);
         /// <summary>
-        /// Makes a new unique URI for storing a dataset in the DFS.
+        /// Makes a new URI for storing a dataset in the DFS.
         /// </summary>
         /// <param name="path">A user provided local path</param>
-        /// <returns>A new unique URI that can be used to store a dataset</returns>
-        Uri MakeDefaultUri(string path);
+        /// <returns>A new URI that can be used to store a dataset</returns>
+        Uri MakeInternalClusterUri(params string[] path);
+        /// <summary>
+        /// The maximum number of nodes to use for a job if JobMaxNodes is not set in DryadLinqContext
+        /// </summary>
+        int DefaultMaxNodes { get; }
     }
 
     /// <summary>
     /// The interface for a YARN native cluster.
     /// </summary>
-    internal class DryadLinqYarnCluster : DryadLinqCluster
+    public class DryadLinqYarnCluster : DryadLinqCluster
     {
         /// <summary>
-        /// The hostname of the computer where the YarnLauncher program is running
+        /// The username for the job on the YARN cluster
+        /// </summary>
+        public string User;
+        /// <summary>
+        /// The hostname of the computer where the YARN Resource Node is running
         /// </summary>
         public string HeadNode { get; set; }
         /// <summary>
-        /// The port where the YarnLauncher program is listening
+        /// The port that the YARN Resource Node is listening on
         /// </summary>
-        public int LauncherPort;
+        public int YarnPort;
         /// <summary>
-        /// The hostname of the computer where the default HDFS instance is running
+        /// The queue that should be used on the cluster
+        /// </summary>
+        public string Queue { get; set; }
+        /// <summary>
+        /// The hostname of the computer where the HDFS instance for resource staging is running
         /// </summary>
         public string NameNode;
         /// <summary>
@@ -119,60 +135,226 @@ namespace Microsoft.Research.DryadLinq
         /// </summary>
         public int HdfsPort;
         /// <summary>
-        /// The port that the WebHdfs protocol is listening on
+        /// The port that the WebHdfs protocol is listening on, or -1 if Java/YARN are present on the client
         /// </summary>
         public int WebHdfsPort;
+        /// <summary>
+        /// The hostname of the computer where the DryadLINQ YARN launcher is running, or null if Java/YARN are
+        /// present on the client
+        /// </summary>
+        public string LauncherNode;
+        /// <summary>
+        /// The port where the DryadLINQ Yarn launcher is listening, or -1 if Java/YARN are
+        /// present on the client
+        /// </summary>
+        public int LauncherPort;
+        /// <summary>
+        /// The number of containers a job should ask for, if JobMaxNodes and JobMinNodes are not overwritten in
+        /// the DryadLinqContext
+        /// </summary>
+        public int DefaultNumberOfContainers;
+        /// <summary>
+        /// The amount of memory to be requested for the Application Master container
+        /// </summary>
+        public int ApplicationMasterMbMemory;
+        /// <summary>
+        /// The amount of memory to be requested for each container other than the Application Master
+        /// </summary>
+        public int ContainerMbMemory;
 
-        private WebHdfsClient _dfsClient;
+
+        private DfsClient _dfsClient;
         private NativeYarnClient _clusterClient;
 
         /// <summary>
-        /// Make a new cluster object representing a YARN cluster with default ports
+        /// Make a new cluster object representing a YARN cluster with default ports for a client with Java installed
         /// </summary>
-        /// <param name="headNode">The computer where the YarnLauncher is running</param>
-        public DryadLinqYarnCluster(string headNode)
+        /// <param name="user">username for the cluster job</param>
+        /// <param name="defaultNumberOfContainers">Number of containers the job will ask for, if JobMaxNodes and
+        /// JobMinNodes are not overwritten in the DryadLinqContext</param>
+        ///  /// <param name="appMasterMbMemory">The amount of memory, in Megabytes, that should be 
+        /// requested for the Application Master container</param> 
+        /// <param name="containerMbMemory">The amount of memory, in Megabytes, that should be 
+        /// requested for containers other than the Application Master</param>
+        /// <param name="queue">The queue to submit the job to, or null for "default"</param>
+        /// <param name="resourceNode">computer where the YARN resource node is running</param>
+        /// <param name="yarnPort">port the YARN resource node is listening on</param>
+        /// <param name="nameNode">HDFS namenode to use for resource staging</param>
+        /// <param name="hdfsPort">HDFS namenode port, or -1 for filesystem default</param>
+        public DryadLinqYarnCluster(
+            string user,
+            int defaultNumberOfContainers,
+            int appMasterMbMemory,
+            int containerMbMemory,
+            string queue,
+            string resourceNode, int yarnPort,
+            string nameNode, int hdfsPort)
         {
-            HeadNode = headNode;
-            LauncherPort = 8471;
+            User = user;
+            DefaultNumberOfContainers = defaultNumberOfContainers;
+            ApplicationMasterMbMemory = appMasterMbMemory;
+            ContainerMbMemory = containerMbMemory;
+            if (queue == null)
+            {
+                Queue = "default";
+            }
+            else 
+            {
+                Queue = queue; 
+            }
 
-            NameNode = headNode;
-            HdfsPort = 9000;
-            WebHdfsPort = 50070;
+            HeadNode = resourceNode;
+            YarnPort = yarnPort;
+
+            NameNode = nameNode;
+            HdfsPort = hdfsPort;
+
+            WebHdfsPort = -1;
+
+            LauncherNode = null;
+            LauncherPort = -1;
 
             _dfsClient = null;
             _clusterClient = null;
         }
 
+        /// <summary>
+        /// Make a new cluster object representing a YARN cluster with default ports for a client without Java installed
+        /// </summary>
+        /// <param name="user">username for the cluster job</param>
+        /// <param name="defaultNumberOfContainers">Number of containers the job will ask for, if JobMaxNodes and
+        /// JobMinNodes are not overwritten in the DryadLinqContext</param>
+        /// <param name="appMasterMbMemory">The amount of memory, in Megabytes, that should be 
+        /// requested for the Application Master container</param> 
+        /// <param name="containerMbMemory">The amount of memory, in Megabytes, that should be 
+        /// requested for containers other than the Application Master</param>
+        /// <param name="queue">The queue to submit the job to, or null for "default"</param>
+        /// <param name="resourceNode">computer where the YARN resource node is running</param>
+        /// <param name="yarnPort">port the YARN resource node is listening on</param>
+        /// <param name="nameNode">HDFS namenode to use for resource staging</param>
+        /// <param name="hdfsPort">HDFS namenode port, or -1 for filesystem default</param>
+        /// <param name="webHdfsPort">HDFS WebHdfs port</param>
+        /// <param name="launcherNode">computer where DryadLINQ Yarn launcher is running</param>
+        /// <param name="launcherPort">port that DryadLINQ Yarn launcher is listening on</param>
+        public DryadLinqYarnCluster(
+            string user,
+            int defaultNumberOfContainers,
+            int appMasterMbMemory,
+            int containerMbMemory,
+            string queue,
+            string resourceNode, int yarnPort,
+            string nameNode, int hdfsPort, int webHdfsPort,
+            string launcherNode, int launcherPort)
+        {
+            User = user;
+            DefaultNumberOfContainers = defaultNumberOfContainers;
+            ApplicationMasterMbMemory = appMasterMbMemory;
+            ContainerMbMemory = containerMbMemory;
+            if (queue == null)
+            {
+                Queue = "default";
+            }
+            else 
+            {
+                Queue = queue; 
+            }
+
+            HeadNode = resourceNode;
+            YarnPort = yarnPort;
+
+            NameNode = nameNode;
+            HdfsPort = hdfsPort;
+
+            WebHdfsPort = webHdfsPort;
+
+            LauncherNode = launcherNode;
+            LauncherPort = launcherPort;
+
+            _dfsClient = null;
+            _clusterClient = null;
+        }
+
+        /// <summary>
+        /// Gets the service platform of this cluster.
+        /// </summary>
         public PlatformKind Kind 
         {
             get { return PlatformKind.YARN_NATIVE; } 
         }
 
-        public IDfsClient DfsClient
+        /// <summary>
+        /// Gets the client DFS interface.
+        /// </summary>
+        public DfsClient DfsClient
         {
             get
             {
                 if (_dfsClient == null)
                 {
-                    _dfsClient = new WebHdfsClient(HeadNode, HdfsPort, WebHdfsPort);
+                    if (WebHdfsPort > 0)
+                    {
+                        _dfsClient = new WebHdfsClient(User, WebHdfsPort);
+                    }
+                    else
+                    {
+                        _dfsClient = new HdfsClient(User);
+                    }
                 }
                 return _dfsClient;
             }
         }
 
+        /// <summary>
+        /// Gets the client cluster interface.
+        /// </summary>
+        /// <param name="context">An instnace of DryadLinqContext</param>
+        /// <returns>The client interface to the cluster</returns>
         public ClusterClient Client(DryadLinqContext context)
         {
             if (_clusterClient == null)
             {
-                _clusterClient = new NativeYarnClient(HeadNode, HdfsPort, LauncherPort);
+                if (LauncherNode == null)
+                {
+                    string yarnHomeDirectory = Environment.GetEnvironmentVariable("HADOOP_COMMON_HOME");
+                    if (yarnHomeDirectory == null)
+                    {
+                        throw new ApplicationException("Yarn client needs HADOOP_COMMON_HOME environment variable set to YARN installation");
+                    }
+                    _clusterClient = new NativeYarnClient(
+                        HeadNode, YarnPort,
+                        DfsClient, MakeInternalClusterUri("user", User),
+                        "Microsoft.Research.Peloponnese.YarnLauncher.jar",
+                        yarnHomeDirectory);
+                }
+                else
+                {
+                    _clusterClient = new NativeYarnClient(
+                        HeadNode, YarnPort,
+                        DfsClient, MakeInternalClusterUri("user", User),
+                        LauncherNode, LauncherPort);
+                }
             }
             return _clusterClient;
         }
 
-        public Uri MakeDefaultUri(string path)
+        /// <summary>
+        /// Makes a new URI for storing a dataset in the DFS.
+        /// </summary>
+        /// <param name="path">A user provided local path</param>
+        /// <returns>A new URI that can be used to store a dataset</returns>
+        public Uri MakeInternalClusterUri(params string[] path)
         {
-            return _dfsClient.MakeDfsUri(path);
+            UriBuilder builder = new UriBuilder();
+            builder.Scheme = "hdfs";
+            builder.Host = NameNode;
+            builder.Port = HdfsPort;
+            return DfsClient.Combine(builder.Uri, path);
         }
+
+        /// <summary>
+        /// The maximum number of nodes to use for a job if JobMinNodes is not set in DryadLinqContext
+        /// </summary>
+        public int DefaultMaxNodes { get { return DefaultNumberOfContainers; } }
     }
 
     /// <summary>
@@ -316,23 +498,30 @@ namespace Microsoft.Research.DryadLinq
 
         public AzureCluster Cluster { get { return _cluster.Result; } }
 
-        public IDfsClient DfsClient { get { return _dfsClient.Result; } }
+        public DfsClient DfsClient { get { return _dfsClient.Result; } }
 
         public ClusterClient Client(DryadLinqContext context)
         {
             if (_clusterClient == null)
             {
                 _clusterClient = _dfsClient.ContinueWith(
-                    c => new AzureYarnClient(_azureSubscriptions, c.Result, context.PeloponneseHomeDirectory, Cluster.Name));
+                    c => new AzureYarnClient(_azureSubscriptions, c.Result, MakeInternalClusterUri(""), context.PeloponneseHomeDirectory, Cluster.Name));
             }
             return _clusterClient.Result;
         }
 
-        public Uri MakeDefaultUri(string path)
+        public Uri MakeInternalClusterUri(params string[] path)
         {
-            return AzureUtils.ToAzureUri(
-                     _dfsClient.Result.AccountName, _dfsClient.Result.ContainerName, path, null, _dfsClient.Result.AccountKey);
+            return DfsClient.Combine(
+                Microsoft.Research.Peloponnese.Azure.Utils.ToAzureUri(
+                    _dfsClient.Result.AccountName, _dfsClient.Result.ContainerName, "", null, _dfsClient.Result.AccountKey),
+                path);
         }
+
+        /// <summary>
+        /// The maximum number of nodes to use for a job if JobMinNodes is not set in DryadLinqContext
+        /// </summary>
+        public int DefaultMaxNodes { get { return -1; } }
     }
 
     /// <summary>
@@ -371,18 +560,21 @@ namespace Microsoft.Research.DryadLinq
         private string _jobFriendlyName;
         private int? _jobMinNodes;
         private int? _jobMaxNodes;
+        private int _threadsPerWorker;
+        private int _amMemoryMb;
+        private int _containerMemoryMb;
+        private string _queue = "default";
         private string _nodeGroup;
         private int? _jobRuntimeLimit;
         private bool _localDebug = false;
         private string _jobUsername = null;
         private string _jobPassword = null;
-        private QueryTraceLevel _runtimeTraceLevel = QueryTraceLevel.Error;
+        private QueryLoggingLevel _runtimeLoggingLevel = QueryLoggingLevel.Error;
         private string _graphManagerNode;
 
         private bool _enableSpeculativeDuplication = true;
         private bool _selectOrderPreserving = false;
         private bool _matchClientNetFrameworkVersion = true;
-        private bool _multiThreading = true;
         private string _partitionUncPath = null;
         private string _storageSetScheme = null;
 
@@ -397,17 +589,22 @@ namespace Microsoft.Research.DryadLinq
 
         private static DryadLinqCluster MakeCluster(string clusterName, PlatformKind kind)
         {
+            return MakeCluster(clusterName, clusterName, kind);
+        }
+
+        private static DryadLinqCluster MakeCluster(string headNode, string nameNode, PlatformKind kind)
+        {
             if (kind == PlatformKind.LOCAL)
             {
                 throw new DryadLinqException("Can't make a cluster of kind LOCAL");
             }
             else if (kind == PlatformKind.YARN_NATIVE)
             {
-                return new DryadLinqYarnCluster(clusterName);
+                throw new DryadLinqException("Can't make a cluster of kind YARN_NATIVE: make a DryadLinqYarnCluster object");
             }
             else if (kind == PlatformKind.YARN_AZURE)
             {
-                return new DryadLinqAzureCluster(clusterName);
+                return new DryadLinqAzureCluster(headNode);
             }
             else
             {
@@ -430,7 +627,8 @@ namespace Microsoft.Research.DryadLinq
             {
                 this._storageSetScheme = DataPath.PARTFILE_URI_SCHEME;
             }
-            this._jobMinNodes = numProcesses;
+            this._jobMaxNodes = numProcesses;
+            this._threadsPerWorker = Environment.ProcessorCount;
             // make an Azure subscriptions object just in case we want to access azure streams from local execution
             this._azureSubscriptions = new AzureSubscriptions();
         }
@@ -462,12 +660,22 @@ namespace Microsoft.Research.DryadLinq
             this._platformKind = cluster.Kind;
             this._headNode = cluster.HeadNode;
             this._clusterDetails = cluster;
+            this._jobMaxNodes = cluster.DefaultMaxNodes;
+            this._threadsPerWorker = Environment.ProcessorCount;
 
             if (cluster.Kind == DryadLinq.PlatformKind.YARN_NATIVE)
             {
                 this._storageSetScheme = DataPath.HDFS_URI_SCHEME;
                 // make an Azure subscriptions object just in case we want to access azure streams from the native yarn cluster
                 this._azureSubscriptions = new AzureSubscriptions();
+                DryadLinqYarnCluster yarnCluster = cluster as DryadLinqYarnCluster;
+                if (yarnCluster == null)
+                {
+                    throw new DryadLinqException("Expected DryadLinqYarnCluster cluster object when running on YARN");
+                }
+                this._amMemoryMb = yarnCluster.ApplicationMasterMbMemory;
+                this._containerMemoryMb = yarnCluster.ContainerMbMemory;
+                this._queue = yarnCluster.Queue;
             }
             else if (cluster.Kind == DryadLinq.PlatformKind.YARN_AZURE)
             {
@@ -488,6 +696,8 @@ namespace Microsoft.Research.DryadLinq
             {
                 this._dryadHome = Environment.GetEnvironmentVariable(StaticConfig.DryadHomeVar);
             }
+            this._amMemoryMb = -1;
+            this._containerMemoryMb = -1;
         }
 
         /// <summary>
@@ -583,6 +793,26 @@ namespace Microsoft.Research.DryadLinq
             set { _partitionUncPath = value; }
         }
 
+        internal DfsClient GetHdfsClient
+        {
+            get
+            {
+                if (_clusterDetails != null && _clusterDetails is DryadLinqYarnCluster)
+                {
+                    return _clusterDetails.DfsClient;
+                }
+                if (Environment.GetEnvironmentVariable("HADOOP_COMMON_HOME") == null ||
+                    Environment.GetEnvironmentVariable("JAVA_HOME") == null)
+                {
+                    return new WebHdfsClient(null, 50070);
+                }
+                else
+                {
+                    return new HdfsClient();
+                }
+            }
+        }
+
         /// <summary>
         /// Gets the cluster object used to run the DryadLINQ query
         /// </summary>
@@ -630,6 +860,45 @@ namespace Microsoft.Research.DryadLinq
         {
             get { return _jobMaxNodes; }
             set { _jobMaxNodes = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the number of threads each DryadLINQ worker vertex will use
+        /// </summary>
+        /// <remarks>
+        /// <para>The default is 1.</para>
+        /// </remarks>
+        public int ThreadsPerWorker
+        {
+            get { return _threadsPerWorker; }
+            set { _threadsPerWorker = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the amount of memory in Megabytes requested for the Application Master container.
+        /// </summary>
+        public int ApplicationMasterMbMemory
+        {
+            get { return _amMemoryMb; }
+            set { _amMemoryMb = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the amount of memory in Megabytes requested for the worker containers.
+        /// </summary>
+        public int ContainerMbMemory
+        {
+            get { return _containerMemoryMb; }
+            set { _containerMemoryMb = value; }
+        }
+
+        /// <summary>
+        /// The Queue that should be used for job submission.  The default queue is the default value.
+        /// </summary>
+        public string Queue
+        {
+            get { return _queue; }
+            set { _queue = value; }
         }
 
         /// <summary>
@@ -766,18 +1035,18 @@ namespace Microsoft.Research.DryadLinq
         }
 
         /// <summary>
-        /// Gets or sets the trace level to use for DryadLINQ Query jobs.
+        /// Gets or sets the logging level to use for DryadLINQ Query jobs.
         /// </summary>
         /// <remarks>
-        /// <para>The RuntimeTraceLevel affects the logs produced by all components associated with the execution
+        /// <para>The RuntimeLoggingLevel affects the logs produced by all components associated with the execution
         /// of a DryadLINQ Query job.
         /// </para>
-        /// <para>The default is QueryTraceLevel.Error</para>
+        /// <para>The default is QueryLoggingLevel.Error</para>
         /// </remarks>
-        public QueryTraceLevel RuntimeTraceLevel
+        public QueryLoggingLevel RuntimeLoggingLevel
         {
-            get { return _runtimeTraceLevel; }
-            set { _runtimeTraceLevel = value; }
+            get { return _runtimeLoggingLevel; }
+            set { _runtimeLoggingLevel = value; }
         }
 
         /// <summary>
@@ -813,24 +1082,6 @@ namespace Microsoft.Research.DryadLinq
         {
             get { return _matchClientNetFrameworkVersion; }
             set { _matchClientNetFrameworkVersion = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets whether user-defined methods and custom serializers may be called on
-        /// multiple threads of a single process.
-        /// </summary>
-        /// <remarks>
-        /// This option affects the internal behavior of individual queries and applies to both the
-        /// client process (for serialization and local-debug mode) and to vertex processes.
-        /// This option does not have any serializing effect for queries that are submitted
-        /// concurrently by one or more client processes.
-        /// If true, user-defined methods may be called concurrently.
-        /// If false, user-defined methods will be called without concurrency.  
-        /// </remarks>
-        public bool EnableMultiThreadingInVertex
-        {
-            get { return _multiThreading; }
-            set { _multiThreading = value; }
         }
 
         /// <summary>
@@ -896,24 +1147,28 @@ namespace Microsoft.Research.DryadLinq
         /// <summary>
         /// Open a dataset as a DryadLinq specialized IQueryable{T}.
         /// </summary>
-        /// <typeparam name="T">The type of the records in the table.</typeparam>
-        /// <param name="dataSetUri">The name of the dataset. </param>
-        /// <returns>An IQueryable{T} representing the data.</returns>
-        public IQueryable<T> FromStore<T>(string dataSetUri)
+        /// <typeparam name="T">The type of the records in the table</typeparam>
+        /// <param name="dataSetUri">The name of the dataset</param>
+        /// <param name="deserializer">The function to deserialize the input dataset</param>
+        /// <returns>An IQueryable{T} representing the data</returns>
+        public IQueryable<T> FromStore<T>(string dataSetUri,
+                                          Expression<Func<Stream, IEnumerable<T>>> deserializer = null)
         {
-            return FromStore<T>(new Uri(dataSetUri));
+            return this.FromStore<T>(new Uri(dataSetUri), deserializer);
         }
 
         /// <summary>
         /// Open a dataset as a DryadLinq specialized IQueryable{T}.
         /// </summary>
-        /// <typeparam name="T">The type of the records in the table.</typeparam>
-        /// <param name="dataSetUri">The name of the dataset. </param>
-        /// <returns>An IQueryable{T} representing the data.</returns>
-        public IQueryable<T> FromStore<T>(Uri dataSetUri)
+        /// <typeparam name="T">The type of the records in the table</typeparam>
+        /// <param name="dataSetUri">The name of the dataset</param>
+        /// <param name="deserializer">The function to deserialize the input dataset</param>
+        /// <returns>An IQueryable{T} representing the data</returns>
+        public IQueryable<T> FromStore<T>(Uri dataSetUri,
+                                          Expression<Func<Stream, IEnumerable<T>>> deserializer = null)
         {
             ThrowIfDisposed();
-            DryadLinqQuery<T> q = DataProvider.GetPartitionedTable<T>(this, dataSetUri);
+            DryadLinqQuery<T> q = DataProvider.GetPartitionedTable<T>(this, dataSetUri, deserializer);
             q.CheckAndInitialize();   // Must initialize!
             return q;
         }
@@ -923,17 +1178,26 @@ namespace Microsoft.Research.DryadLinq
         /// </summary>
         /// <typeparam name="T">The type of the records in the table.</typeparam>
         /// <param name="data">The source data.</param>
+        /// <param name="serializer">An optional stream-based serializer</param>
+        /// <param name="deserializer">An optional stream-based deserializer</param>
         /// <returns>An IQueryable{T} representing the data with DryadLinq query provider.</returns>
         /// <remarks>
         /// The source data will be serialized to a temp stream.
         /// The resulting fileset has an auto-generated name and a temporary lease.
         /// </remarks>
-        public IQueryable<T> FromEnumerable<T>(IEnumerable<T> data)
+        public IQueryable<T> FromEnumerable<T>(IEnumerable<T> data,
+                                               Expression<Action<IEnumerable<T>, Stream>> serializer = null,
+                                               Expression<Func<Stream, IEnumerable<T>>> deserializer = null)
         {
+            if ((serializer == null) ^ (deserializer == null))
+            {
+                throw new DryadLinqException("Must provide both serializer and deserializer.");
+            }
             Uri dataSetName = this.MakeTemporaryStreamUri();
             CompressionScheme compressionScheme = this.OutputDataCompressionScheme;
             DryadLinqMetaData metadata = new DryadLinqMetaData(this, typeof(T), dataSetName, compressionScheme);
-            return DataProvider.StoreData(this, data, dataSetName, metadata, compressionScheme, true);
+            return DataProvider.StoreData(this, data, dataSetName, metadata, compressionScheme,
+                                          true, serializer, deserializer);
         }
 
         /// <summary>
@@ -1013,11 +1277,11 @@ namespace Microsoft.Research.DryadLinq
                     this.PlatformKind == context.PlatformKind &&
                     this.JobUsername == context.JobUsername &&
                     this.JobPassword == context.JobPassword &&
-                    this.RuntimeTraceLevel == context.RuntimeTraceLevel &&
+                    this.RuntimeLoggingLevel == context.RuntimeLoggingLevel &&
                     this.GraphManagerNode == context.GraphManagerNode &&
                     this.SelectOrderPreserving == context.SelectOrderPreserving &&
                     this.MatchClientNetFrameworkVersion == context.MatchClientNetFrameworkVersion &&
-                    this.EnableMultiThreadingInVertex == context.EnableMultiThreadingInVertex &&
+                    this.ThreadsPerWorker == context.ThreadsPerWorker &&
                     this.ForceGC == context.ForceGC);
         }
     }

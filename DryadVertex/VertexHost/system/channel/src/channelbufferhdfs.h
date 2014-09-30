@@ -149,6 +149,7 @@ private:
     bool Open(Hdfs::Instance** pInstance, Hdfs::Writer** pWriter);
     bool AddToQueue(WriteEntry* entry);
 
+    DrStr64                        m_user;
     DrStr64                        m_uri;
     DryadBList<WriteEntry>         m_queue;
     UInt32                         m_queueLength;

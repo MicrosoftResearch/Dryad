@@ -312,6 +312,11 @@ namespace Microsoft.Research.DryadLinq.Internal
             this.m_reader = reader;
         }
 
+        public DryadLinqBinaryReader BinaryReader
+        {
+            get { return this.m_reader; }
+        }
+
         // entry point needed for generated vertex code
         public bool IsReaderAtEndOfStream()
         {

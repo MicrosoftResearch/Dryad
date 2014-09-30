@@ -164,10 +164,13 @@ namespace Microsoft.Research.DryadLinq.Internal
                 DryadLinqBinaryReader[] inputStreamArray = new DryadLinqBinaryReader[this.NumberOfInputs];
                 for (int i = 0; i < this.NumberOfInputs; i++)
                 {
-                    NativeBlockStream nativeStream = new DryadLinqChannel(this.m_nativeHandle,
-                                                                          this.m_portPermArray[i] + this.m_startPort,
-                                                                          true);
-                    inputStreamArray[i] = new DryadLinqBinaryReader(nativeStream);
+                    DryadLinqRecordBinaryReader<T> recordReader = this.m_readers[i] as DryadLinqRecordBinaryReader<T>;
+                    if (recordReader == null)
+                    {
+                        throw new DryadLinqException("Internal error: Input channel was not of type BinaryRecordReader.");
+                    }
+                    inputStreamArray[i] = recordReader.BinaryReader;
+                
                 }
                 return new DryadLinqMultiReaderStream(inputStreamArray);
             }

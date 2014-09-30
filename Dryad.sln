@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30723.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DryadVertex", "DryadVertex", "{99F5E7FE-ADD4-4E9D-BA90-5D3D3409BEB3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "VertexHost", "VertexHost", "{37D9C01A-94F3-4B9E-9AA6-C4D3A2B5AD0D}"
@@ -27,7 +29,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dprocess", "DryadVertex\Ver
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ManagedWrapperVertex", "DryadVertex\VertexHost\vertex\managedwrappervertex\ManagedWrapperVertex.vcxproj", "{BDEDD3BB-C7E2-498F-A212-F99786C8E23C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VertexHost", "DryadVertex\VertexHost\vertex\vertexHost\VertexHost.vcxproj", "{0CF3D1D5-9BBE-4175-979B-EC6138EF4F37}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VertexHostBody", "DryadVertex\VertexHost\vertex\vertexHost\VertexHost.vcxproj", "{0CF3D1D5-9BBE-4175-979B-EC6138EF4F37}"
 	ProjectSection(ProjectDependencies) = postProject
 		{AA529122-F51C-48D7-A8C1-C0B24F570885} = {AA529122-F51C-48D7-A8C1-C0B24F570885}
 		{482E0741-E244-4974-97D4-3A7167581E91} = {482E0741-E244-4974-97D4-3A7167581E91}
@@ -76,6 +78,19 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalScheduler", "LocalScheduler\LocalScheduler.csproj", "{FA798DE2-A442-4D2B-B31A-FA9274308290}"
 	ProjectSection(ProjectDependencies) = postProject
 		{A85853FB-AAAB-4F1F-AAAB-D051E8F0B2E6} = {A85853FB-AAAB-4F1F-AAAB-D051E8F0B2E6}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VertexHostMain", "DryadVertex\VertexHost\vertex\VertexHostMain\VertexHostMain.csproj", "{DE2FFF43-3B47-4987-A9ED-0C0BE74C0352}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuSpec", "NuSpec", "{35121ABA-5FD2-4E1D-9C05-033D78D824F3}"
+	ProjectSection(SolutionItems) = preProject
+		Microsoft.Research.Dryad.nuspec = Microsoft.Research.Dryad.nuspec
+		Microsoft.Research.Dryad.targets = Microsoft.Research.Dryad.targets
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Misc", "Misc", "{D361F025-2F7F-4C1A-8FBC-4AD826CC656D}"
+	ProjectSection(SolutionItems) = preProject
+		SharedAssemblyInfo.cs = SharedAssemblyInfo.cs
 	EndProjectSection
 EndProject
 Global
@@ -144,6 +159,10 @@ Global
 		{FA798DE2-A442-4D2B-B31A-FA9274308290}.Debug|x64.Build.0 = Debug|x64
 		{FA798DE2-A442-4D2B-B31A-FA9274308290}.Release|x64.ActiveCfg = Release|x64
 		{FA798DE2-A442-4D2B-B31A-FA9274308290}.Release|x64.Build.0 = Release|x64
+		{DE2FFF43-3B47-4987-A9ED-0C0BE74C0352}.Debug|x64.ActiveCfg = Debug|x64
+		{DE2FFF43-3B47-4987-A9ED-0C0BE74C0352}.Debug|x64.Build.0 = Debug|x64
+		{DE2FFF43-3B47-4987-A9ED-0C0BE74C0352}.Release|x64.ActiveCfg = Release|x64
+		{DE2FFF43-3B47-4987-A9ED-0C0BE74C0352}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -156,11 +175,12 @@ Global
 		{016E71D3-9A6F-425C-AB4F-8C5EDEFFE7FA} = {D8B4F38E-2BF7-44A0-BDBF-025B46501DDE}
 		{57663B94-E11B-431E-BE4B-E2C61112DEC5} = {D8B4F38E-2BF7-44A0-BDBF-025B46501DDE}
 		{AA529122-F51C-48D7-A8C1-C0B24F570885} = {D8B4F38E-2BF7-44A0-BDBF-025B46501DDE}
-		{A0033286-9C5F-4113-BAA5-58A1274F95C5} = {D8B4F38E-2BF7-44A0-BDBF-025B46501DDE}
 		{BDEDD3BB-C7E2-498F-A212-F99786C8E23C} = {DC277807-506B-4F7C-BECD-345079B91044}
 		{0CF3D1D5-9BBE-4175-979B-EC6138EF4F37} = {DC277807-506B-4F7C-BECD-345079B91044}
 		{AB9EA66C-5811-49A7-B002-24203AEB9083} = {DC277807-506B-4F7C-BECD-345079B91044}
 		{3EE0920C-0607-4569-9EC3-5C12BB6EF244} = {DC277807-506B-4F7C-BECD-345079B91044}
 		{89C5654B-02E4-478D-A7E6-50D79F638B4F} = {DC277807-506B-4F7C-BECD-345079B91044}
+		{A0033286-9C5F-4113-BAA5-58A1274F95C5} = {D8B4F38E-2BF7-44A0-BDBF-025B46501DDE}
+		{DE2FFF43-3B47-4987-A9ED-0C0BE74C0352} = {DC277807-506B-4F7C-BECD-345079B91044}
 	EndGlobalSection
 EndGlobal

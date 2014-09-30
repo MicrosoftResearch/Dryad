@@ -19,6 +19,7 @@ limitations under the License.
 
 */
 
+
 using System;
 using System.IO;
 using System.Collections.Generic;
@@ -413,16 +414,24 @@ namespace Microsoft.Research.DryadAnalysis
             bool success = int.TryParse(m.Groups[3].Value, out channelNo);
             if (!success)
                 return null;
-            this.Vertex.DiscoverChannels(true, false, true, manager);
-            var channels = this.Vertex.InputChannels;
-            if (channels == null)
-                return null;
-            if (channels.Count < channelNo)
+
+            try
             {
-                this.Log(DiagnosisMessage.Importance.Error, "Could not discover channel " + channelNo, this.VertexName);
+                this.Vertex.DiscoverChannels(true, false, true, manager);
+                var channels = this.Vertex.InputChannels;
+                if (channels == null)
+                    return null;
+                if (channels.Count < channelNo)
+                {
+                    this.Log(DiagnosisMessage.Importance.Error, "Could not discover channel " + channelNo, this.VertexName);
+                    return null;
+                }
+                return channels[channelNo];
+            }
+            catch (Exception)
+            {
                 return null;
             }
-            return channels[channelNo];
         }
 
         /// <summary>
@@ -434,7 +443,7 @@ namespace Microsoft.Research.DryadAnalysis
             IClusterResidentObject stdout = this.Job.ClusterConfiguration.ProcessStdoutFile(this.Vertex.ProcessIdentifier, this.Vertex.VertexIsCompleted, this.Vertex.Machine, this.Job.Summary);
             if (stdout.Exception != null)
                 return Decision.Dontknow;
-            ISharedStreamReader sr = stdout.GetStream();
+            ISharedStreamReader sr = stdout.GetStream(false);
             while (!sr.EndOfStream)
             {
                 string line = sr.ReadLine();
@@ -458,7 +467,7 @@ namespace Microsoft.Research.DryadAnalysis
             IClusterResidentObject stdout = this.Job.ClusterConfiguration.ProcessStdoutFile(this.Vertex.ProcessIdentifier, this.Vertex.VertexIsCompleted, this.Vertex.Machine, this.Job.Summary);
             if (stdout.Exception != null)
                 return false;
-            ISharedStreamReader sr = stdout.GetStream();
+            ISharedStreamReader sr = stdout.GetStream(false);
             // only look for the error in the first 10 lines
             for (int i = 0; i < 10; i++)
             {
@@ -496,7 +505,7 @@ namespace Microsoft.Research.DryadAnalysis
         {
             IClusterResidentObject logdir = this.Job.ClusterConfiguration.ProcessWorkDirectory(this.Vertex.ProcessIdentifier, this.Vertex.VertexIsCompleted, this.Vertex.Machine, this.Job.Summary);
             IClusterResidentObject stackTrace = logdir.GetFile(this.stackTraceFile);
-            ISharedStreamReader sr = stackTrace.GetStream();
+            ISharedStreamReader sr = stackTrace.GetStream(false);
 
             if (sr.Exception == null)
             {
@@ -676,7 +685,7 @@ namespace Microsoft.Research.DryadAnalysis
                 return Decision.Dontknow;
             }
 
-            ISharedStreamReader sr = jmstdout.GetStream();
+            ISharedStreamReader sr = jmstdout.GetStream(false);
             if (sr.Exception != null)
             {
                 this.Log(DiagnosisMessage.Importance.Tracing, "Could not read job manager standard output", sr.Exception.Message);

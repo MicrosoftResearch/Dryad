@@ -84,11 +84,11 @@ namespace Microsoft.Research.DryadLinq
         /// </summary>
         ~DryadLinqBinaryReader()
         {
-            if (!this.m_isClosed)
+            // Only release native resoure here
+            if (this.m_curDataBlockInfo.ItemHandle != IntPtr.Zero)
             {
-                this.m_isClosed = true;
                 this.m_nativeStream.ReleaseDataBlock(this.m_curDataBlockInfo.ItemHandle);
-                this.m_nativeStream.Close();
+                this.m_curDataBlockInfo.ItemHandle = IntPtr.Zero;
             }
         }
 

@@ -34,7 +34,7 @@ namespace Microsoft.Research.DryadLinq
 {
     internal static class DataPath
     {
-        internal const string TEMPORARY_STREAM_NAME_PREFIX = "DryadLinqTemp/";
+        internal const string TEMPORARY_STREAM_NAME_PREFIX = "DryadLinqTemp";
 
         internal const string DSC_URI_SCHEME = "hpcdsc";
         internal const string HDFS_URI_SCHEME = "hdfs";

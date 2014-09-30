@@ -88,7 +88,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             get { return this.m_numberOfOutputs; }
         }
 
-        internal DryadLinqRecordWriter<T> GetWriter(UInt32 portNum)
+        internal DryadLinqRecordWriter<T> GetRecordWriter(UInt32 portNum)
         {
             return this.m_writers[portNum];
         }
@@ -96,7 +96,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         public void WriteItemSequence(IEnumerable<T> source)
         {
             DryadLinqRecordWriter<T> writer = this.m_writers[0];
-            if (m_dvertexEnv.MultiThreading)
+            if (DryadLinqVertex.ThreadCount > 1)
             {
                 foreach (T item in source)
                 {
@@ -156,10 +156,15 @@ namespace Microsoft.Research.DryadLinq.Internal
             get {
                 if (this.m_numberOfOutputs != 1)
                 {
-                    throw new InvalidOperationException();
+                    throw new DryadLinqException("Internal error: Can't have multiple output channels.");
                 }
-                NativeBlockStream nativeStream = new DryadLinqChannel(this.m_nativeHandle, this.m_startPort, false);
-                return new DryadLinqBinaryWriterToStreamAdapter(new DryadLinqBinaryWriter(nativeStream));
+
+                DryadLinqRecordBinaryWriter<T> recordWriter = this.GetRecordWriter(0) as DryadLinqRecordBinaryWriter<T>;
+                if (recordWriter == null)
+                {
+                    throw new DryadLinqException("Internal error: Output channel was either not of type BinaryRecordWriter.");
+                }
+                return new DryadLinqBinaryWriterToStreamAdapter(recordWriter.BinaryWriter);
             }
         }
 

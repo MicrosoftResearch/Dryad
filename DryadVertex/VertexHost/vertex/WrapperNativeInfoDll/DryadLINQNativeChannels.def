@@ -1,4 +1,4 @@
-LIBRARY      "DryadLINQNativeChannels.dll"
+LIBRARY      "Microsoft.Research.Dryad.DryadLinq.NativeWrapper.dll"
 
 EXPORTS
     GetTotalLength

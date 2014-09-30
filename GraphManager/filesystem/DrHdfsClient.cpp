@@ -129,73 +129,42 @@ DrHdfsInputStream::DrHdfsInputStream()
     m_hdfsInstance = DrNull;
 }
 
-HRESULT DrHdfsInputStream::Open(DrUniversePtr universe, DrNativeString streamUri)
+HRESULT DrHdfsInputStream::Open(DrUniversePtr universe, DrNativeString streamUri, DrNativeString recordType)
 {
     DrString uri = DrString(streamUri);
+    DrString record = DrString(recordType);
 
-    DrLogI("Opening instance for %s", uri.GetChars());
+    DrLogI("Opening instance for %s record type %s", uri.GetChars(), record.GetChars());
 
-    return OpenInternal(universe, uri);
+    return OpenInternal(universe, uri, record);
 }
 
 
-HRESULT DrHdfsInputStream::OpenInternal(DrUniversePtr universe, DrString streamUri)
+#ifdef _MANAGED
+HRESULT DrHdfsInputStream::OpenInternal(DrUniversePtr universe, DrString streamUri, DrString recordType)
 {
     m_streamUri = streamUri;
     HRESULT err = S_OK;
 
-#ifdef _MANAGED
-
     try 
     {
-#endif
-      
-        DrLogI("Opening instance for %s", streamUri.GetChars());
+        DrLogI("Opening instance for %s: %s", streamUri.GetChars(), recordType.GetChars());
         m_hdfsInstance = GetHdfsServiceInstance(streamUri);
-        
-#ifdef _MANAGED
-        DrLogI("Getting file info for %s", streamUri.GetChars());
+
         HdfsFileInfo^ stream = m_hdfsInstance->GetFileInfo(streamUri.GetString(), true);
         m_fileNameArray = stream->fileNameArray;
-        UInt32 totalPartitionCount = static_cast<UInt32>(stream->blockArray->Length);
+        UInt32 totalPartitionCount;
 
-#else 
-        bool ret = HdfsBridgeNative::Initialize();
-        if (!ret)
+        if (recordType.Compare("Microsoft.Research.DryadLinq.LineRecord") == 0)
         {
-            DrLogE("Error calling HdfsBridgeNative::Initialize()");
-            return E_FAIL;
+            DrLogI("Getting block-level file info for %s", streamUri.GetChars());
+            totalPartitionCount = static_cast<UInt32>(stream->blockArray->Length);
         }
-
-        if (m_hdfsInstance == NULL)
+        else
         {
-            DrLogE("Error calling GetHdfsServiceInstance(streamUri)");
-            return E_FAIL;
+            DrLogI("Getting file info for %s", streamUri.GetChars());
+            totalPartitionCount = m_fileNameArray->Length;
         }
-        URL_COMPONENTSA UrlComponents = {0};
-        UrlComponents.dwStructSize = sizeof(UrlComponents);  
-        UrlComponents.dwUrlPathLength  = 1;
-        UrlComponents.dwHostNameLength = 1;
-
-        BOOL fOK = InternetCrackUrlA(streamUri.GetChars(), streamUri.GetCharsLength(), 0, &UrlComponents);
-        if (!fOK)
-        {
-            DrLogE("Error getting stream path from HDFS URI.");
-            return E_FAIL;
-        }
-
-        m_hostname.Set(UrlComponents.lpszHostName);
-        m_portNum = UrlComponents.nPort;
-
-        InstanceAccessor ia(m_hdfsInstance);
-        FileStat* fileStat = NULL;
-        ia.OpenFileStat(UrlComponents.lpszUrlPath, true, &fileStat);
-        UINT32 totalPartitionCount = 0;
-        HdfsBridgeNative::FileStatAccessor fs(fileStat);
-        totalPartitionCount = fs.GetNumberOfBlocks();
-
-        m_fileNameArray = (const char **)fs.GetFileNameArray();
-#endif
       
         DrLogI("Partition count %d", totalPartitionCount);
 
@@ -205,35 +174,97 @@ HRESULT DrHdfsInputStream::OpenInternal(DrUniversePtr universe, DrString streamU
         m_partOffsets = DrNew DrUINT64Array(totalPartitionCount);
         m_partFileIds = DrNew DrUINT32Array(totalPartitionCount);
 
-        for (UINT32 i=0; i<totalPartitionCount; ++i)
+        if (recordType.Compare("Microsoft.Research.DryadLinq.LineRecord") == 0)
         {
-#ifdef _MANAGED
-            HdfsBlockInfo^ partition = stream->blockArray[i];
-#else 
-            HdfsBridgeNative::HdfsBlockLocInfo* partition = fs.GetBlockInfo(i);
-#endif
-            m_affinity[i] = DrNew DrAffinity();
-            m_affinity[i]->SetWeight(partition->Size);
-            m_partOffsets[i] = partition->Offset;
-            m_partFileIds[i] = partition->fileIndex;
-
-#ifdef _MANAGED
-            for (int j = 0; j < partition->Hosts->Length; ++j)
-#else 
-            for (int j = 0; j < partition->numberOfHosts; ++j)
-#endif
+            for (UINT32 i = 0; i < totalPartitionCount; ++i)
             {
-                DrResourceRef location = universe->LookUpResource(partition->Hosts[j]);
-                if (location != DrNull)
+                HdfsBlockInfo^ partition = stream->blockArray[i];
+                m_affinity[i] = DrNew DrAffinity();
+                m_affinity[i]->SetWeight(partition->Size);
+                m_partOffsets[i] = partition->Offset;
+                m_partFileIds[i] = partition->fileIndex;
+
+                for (int j = 0; j < partition->Hosts->Length; ++j)
                 {
-                    m_affinity[i]->AddLocality(location);
+                    DrResourceRef location = universe->LookUpResource(partition->Hosts[j]);
+                    if (location != DrNull)
+                    {
+                        m_affinity[i]->AddLocality(location);
+                    }
                 }
             }
-#ifndef _MANAGED
-            delete partition;
-#endif
-        }   
-#ifdef _MANAGED
+        }
+        else
+        {
+            int fileBlockIndex = 0;
+            for (UINT32 i = 0; i < totalPartitionCount; ++i)
+            {
+                m_partOffsets[i] = 0;
+                m_partFileIds[i] = i;
+
+                HdfsBlockInfo^ partition = stream->blockArray[fileBlockIndex];
+                DrAssert(partition->fileIndex == i);
+
+                long long fileSize = partition->Size;
+
+                HashSet<DrResourceRef>^ locations = DrNew HashSet<DrResourceRef>();
+                for (int j = 0; j < partition->Hosts->Length; ++j)
+                {
+                    DrResourceRef location = universe->LookUpResource(partition->Hosts[j]);
+                    if (location != DrNull)
+                    {
+                        locations->Add(location);
+                    }
+                }
+
+                ++fileBlockIndex;
+                
+                while (fileBlockIndex < stream->blockArray->Length && stream->blockArray[fileBlockIndex]->fileIndex == i)
+                {
+                    partition = stream->blockArray[fileBlockIndex];
+                    fileSize += partition->Size;
+
+                    if (locations->Count > 0)
+                    {
+                        HashSet<DrResourceRef>^ newLocations = DrNew HashSet<DrResourceRef>();
+                        for (int j = 0; j < partition->Hosts->Length; ++j)
+                        {
+                            DrResourceRef location = universe->LookUpResource(partition->Hosts[j]);
+                            if (location != DrNull)
+                            {
+                                newLocations->Add(location);
+                            }
+                        }
+
+                        locations->IntersectWith(newLocations);
+                    }
+                }
+
+                m_affinity[i] = DrNew DrAffinity();
+                m_affinity[i]->SetWeight(fileSize);
+
+                System::Text::StringBuilder^ locationText;
+                if (locations->Count > 0)
+                {
+                    locationText = gcnew System::Text::StringBuilder("File " + m_fileNameArray[i] + " merged locations:");
+                }
+                else
+                {
+                    locationText = gcnew System::Text::StringBuilder("File " + m_fileNameArray[i] + " no shared locations");
+                }
+
+                HashSet<DrResourceRef>::Enumerator^ enumerator = locations->GetEnumerator();
+                while (enumerator->MoveNext())
+                {
+                    m_affinity[i]->AddLocality(enumerator->Current);
+                    locationText->Append(" ");
+                    locationText->Append(enumerator->Current->GetName().GetString());
+                }
+
+                DrString locationLog(locationText->ToString());
+                DrLogI("%s", locationLog.GetChars());
+            }
+        }
     }
     catch (System::Exception ^e)
     {
@@ -247,10 +278,85 @@ HRESULT DrHdfsInputStream::OpenInternal(DrUniversePtr universe, DrString streamU
         // TODO: How do we clean this up?
         //hdfsInstance->Discard();
     }
-#endif
 
     return err;
 }
+#else
+HRESULT DrHdfsInputStream::OpenInternal(DrUniversePtr universe, DrString streamUri, DrString recordType)
+{
+    m_streamUri = streamUri;
+    HRESULT err = S_OK;
+
+      
+    DrLogI("Opening instance for %s", streamUri.GetChars());
+    m_hdfsInstance = GetHdfsServiceInstance(streamUri);
+        
+    bool ret = HdfsBridgeNative::Initialize();
+    if (!ret)
+    {
+        DrLogE("Error calling HdfsBridgeNative::Initialize()");
+        return E_FAIL;
+    }
+
+    if (m_hdfsInstance == NULL)
+    {
+        DrLogE("Error calling GetHdfsServiceInstance(streamUri)");
+        return E_FAIL;
+    }
+    URL_COMPONENTSA UrlComponents = {0};
+    UrlComponents.dwStructSize = sizeof(UrlComponents);  
+    UrlComponents.dwUrlPathLength  = 1;
+    UrlComponents.dwHostNameLength = 1;
+
+    BOOL fOK = InternetCrackUrlA(streamUri.GetChars(), streamUri.GetCharsLength(), 0, &UrlComponents);
+    if (!fOK)
+    {
+        DrLogE("Error getting stream path from HDFS URI.");
+        return E_FAIL;
+    }
+
+    m_hostname.Set(UrlComponents.lpszHostName);
+    m_portNum = UrlComponents.nPort;
+
+    InstanceAccessor ia(m_hdfsInstance);
+    FileStat* fileStat = NULL;
+    ia.OpenFileStat(UrlComponents.lpszUrlPath, true, &fileStat);
+    UINT32 totalPartitionCount = 0;
+    HdfsBridgeNative::FileStatAccessor fs(fileStat);
+    totalPartitionCount = fs.GetNumberOfBlocks();
+
+    m_fileNameArray = (const char **)fs.GetFileNameArray();
+      
+    DrLogI("Partition count %d", totalPartitionCount);
+
+    /* Allocate these arrays even if they're size 0, to avoid
+    NullReferenceException later */
+    m_affinity = DrNew DrAffinityArray(totalPartitionCount); 
+    m_partOffsets = DrNew DrUINT64Array(totalPartitionCount);
+    m_partFileIds = DrNew DrUINT32Array(totalPartitionCount);
+
+    for (UINT32 i=0; i<totalPartitionCount; ++i)
+    {
+        HdfsBridgeNative::HdfsBlockLocInfo* partition = fs.GetBlockInfo(i);
+        m_affinity[i] = DrNew DrAffinity();
+        m_affinity[i]->SetWeight(partition->Size);
+        m_partOffsets[i] = partition->Offset;
+        m_partFileIds[i] = partition->fileIndex;
+
+        for (int j = 0; j < partition->numberOfHosts; ++j)
+        {
+            DrResourceRef location = universe->LookUpResource(partition->Hosts[j]);
+            if (location != DrNull)
+            {
+                m_affinity[i]->AddLocality(location);
+            }
+        }
+        delete partition;
+    }   
+
+    return err;
+}
+#endif
 
 DrNativeString DrHdfsInputStream::GetError()
 {
@@ -465,6 +571,25 @@ HRESULT DrHdfsOutputStream::FinalizeSuccessfulParts(DrOutputPartitionArrayRef pa
             DrLogE("Can't rename %s to %s finalizing HDFS output",
                 drSrc.GetChars(), drDst.GetChars());
             m_error = "Can't rename " + srcUri + " to " + m_baseUri + " finalizing HDFS output";
+            errorText.SetF("%s", DrString(m_error).GetChars());
+            return E_FAIL;
+        }
+
+        String^ userName = Environment::GetEnvironmentVariable("USER");
+        if (userName == nullptr)
+        {
+            userName = Environment::UserName;
+        }
+        try
+        {
+            m_hdfsInstance->SetOwnerAndPermission(m_baseUri, userName, nullptr, Convert::ToInt16("0755", 8));
+        }
+        catch (Exception^ e)
+        {
+            DrString drDst(m_baseUri);
+            DrString err(e->ToString());
+            DrLogE("Can't set %s permissions finalizing HDFS output: %s", drDst.GetChars(), err.GetChars());
+            m_error = "Can't set " + m_baseUri + " permissions finalizing HDFS output: " + e->ToString();
             errorText.SetF("%s", DrString(m_error).GetChars());
             return E_FAIL;
         }

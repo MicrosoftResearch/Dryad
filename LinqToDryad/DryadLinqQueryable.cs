@@ -3899,14 +3899,20 @@ namespace Microsoft.Research.DryadLinq
         /// </summary>
         /// <typeparam name="TSource">The type of the records of the table</typeparam>
         /// <param name="source">The data source</param>
-        /// <param name="streamName">A stream name</param>
+        /// <param name="dataSetUri">A stream name</param>
         /// <param name="deleteIfExists">If this flag is true, delete the output stream 
         /// if it already exisit before execution</param>
+        /// <param name="serializer">An optional stream-based serializer</param>
+        /// <param name="deserializer">An optional stream-based deserializer</param>
         /// <returns>A query representing the output data.</returns>
         public static IQueryable<TSource>
-            ToStore<TSource>(this IQueryable<TSource> source, string streamName, bool deleteIfExists = false)
+            ToStore<TSource>(this IQueryable<TSource> source, 
+                             string dataSetUri, 
+                             bool deleteIfExists = false,
+                             Expression<Action<IEnumerable<TSource>, Stream>> serializer = null,
+                             Expression<Func<Stream, IEnumerable<TSource>>> deserializer = null) 
         {  
-            return ToStore(source, new Uri(streamName), deleteIfExists);
+            return ToStore(source, new Uri(dataSetUri), deleteIfExists, serializer, deserializer);
         }
 
         /// <summary>
@@ -3914,28 +3920,42 @@ namespace Microsoft.Research.DryadLinq
         /// </summary>
         /// <typeparam name="TSource">The type of the records of the table</typeparam>
         /// <param name="source">The data source</param>
-        /// <param name="streamName">The stream name to store the result</param>
+        /// <param name="dataSetUri">The stream name to store the result</param>
         /// <param name="deleteIfExists">If this flag is true, delete the output stream 
         /// if it already exisit before execution</param>
+        /// <param name="serializer">An optional stream-based serializer</param>
+        /// <param name="deserializer">An optional stream-based deserializer</param>
         /// <returns>A query representing the output data.</returns>
         public static IQueryable<TSource>
-            ToStore<TSource>(this IQueryable<TSource> source, Uri streamName, bool deleteIfExists = false)
+            ToStore<TSource>(this IQueryable<TSource> source, 
+                             Uri dataSetUri, 
+                             bool deleteIfExists = false,
+                             Expression<Action<IEnumerable<TSource>, Stream>> serializer = null,
+                             Expression<Func<Stream, IEnumerable<TSource>>> deserializer = null)
         {
+            if ((serializer == null) ^ (deserializer == null))
+            {
+                throw new DryadLinqException("Must provide both serializer and deserializer.");
+            }
             DryadLinqContext context = DryadLinqContext.GetContext(source.Provider);
-            DataProvider dataProvider = DataProvider.GetDataProvider(streamName.Scheme);
-            streamName = dataProvider.RewriteUri<TSource>(context, streamName, FileAccess.Write);
-            dataProvider.CheckExistence(context, streamName, deleteIfExists);
-            return ToStoreInternal(source, streamName, false);
+            DataProvider dataProvider = DataProvider.GetDataProvider(dataSetUri.Scheme);
+            dataSetUri = dataProvider.RewriteUri<TSource>(context, dataSetUri, FileAccess.Write);
+            dataProvider.CheckExistence(context, dataSetUri, deleteIfExists);
+            return ToStoreInternal(source, dataSetUri, false, serializer, deserializer);
         }
 
-        internal static IQueryable<TSource>
-            ToStoreInternal<TSource>(this IQueryable<TSource> source, Uri streamName, bool isTemp)
+        private static IQueryable<TSource>
+            ToStoreInternal<TSource>(this IQueryable<TSource> source, 
+                                     Uri dataSetUri, 
+                                     bool isTemp,
+                                     Expression<Action<IEnumerable<TSource>, Stream>> serializer,
+                                     Expression<Func<Stream, IEnumerable<TSource>>> deserializer)
         {  
             if (source == null)
             {
                 throw new ArgumentNullException("source");
             }
-            if (streamName == null)
+            if (dataSetUri == null)
             {
                 throw new ArgumentNullException("streamName");
             }
@@ -3945,24 +3965,62 @@ namespace Microsoft.Research.DryadLinq
                 throw new ArgumentException(String.Format(SR.NotADryadLinqQuery, 0), "source");
             }
 
-            // Strip out ToStore if source.Expression has one.
-            Expression expr = source.Expression;
-            MethodCallExpression mcExpr = expr as MethodCallExpression;
-            if (mcExpr != null && mcExpr.Method.Name == ReflectedNames.DLQ_ToStore)
-            {
-                expr = mcExpr.Arguments[0];
-            }
-
             DryadLinqContext context = DryadLinqContext.GetContext(source.Provider);
-            IQueryable<TSource> result = source.Provider.CreateQuery<TSource>(
-                                            Expression.Call(
-                                                null,
-                                                ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(TSource)),
-                                                new Expression[] { expr,
-                                                                   Expression.Constant(streamName, typeof(Uri)),
-                                                                   Expression.Constant(isTemp, typeof(bool)) }));
-            ((DryadLinqQuery)source).BackingData = (DryadLinqQuery)result;
+            IQueryable<TSource> result;
+            if (IsLocalDebugSource(source))
+            {
+                CompressionScheme compressionScheme = context.OutputDataCompressionScheme;
+                DryadLinqMetaData metadata
+                    = new DryadLinqMetaData(context, typeof(TSource), dataSetUri, compressionScheme);
+                result = DataProvider.StoreData(context, source, dataSetUri, metadata, compressionScheme,
+                                                isTemp, serializer, deserializer);
+            }
+            else
+            {
+                // Strip out ToStore if source.Expression has one.
+                Expression expr = source.Expression;
+                MethodCallExpression mcExpr = expr as MethodCallExpression;
+                if (mcExpr != null &&
+                    (mcExpr.Method.Name == ReflectedNames.DLQ_ToStoreInternal ||
+                     mcExpr.Method.Name == ReflectedNames.DLQ_ToStoreInternalAux))
+                {
+                    expr = mcExpr.Arguments[0];
+                }
+
+                if (serializer == null)
+                {
+                    MethodInfo minfo = typeof(DryadLinqQueryable)
+                                                 .GetMethod(ReflectedNames.DLQ_ToStoreInternalAux,
+                                                            BindingFlags.Static | BindingFlags.NonPublic);
+                    result = source.Provider.CreateQuery<TSource>(
+                                Expression.Call(minfo.MakeGenericMethod(typeof(TSource)),
+                                                expr,
+                                                Expression.Constant(dataSetUri, typeof(Uri)),
+                                                Expression.Constant(isTemp, typeof(bool))));
+                }
+                else
+                {
+                    result = source.Provider.CreateQuery<TSource>(
+                                Expression.Call(
+                                    null,
+                                    ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(TSource)),
+                                    expr,
+                                    Expression.Constant(dataSetUri, typeof(Uri)),
+                                    Expression.Constant(isTemp, typeof(bool)),
+                                    Expression.Quote(serializer),
+                                    Expression.Quote(deserializer)));
+                }
+                ((DryadLinqQuery)source).BackingData = (DryadLinqQuery)result;
+            }
             return result;
+        }
+
+        private static IQueryable<TSource>
+            ToStoreInternalAux<TSource>(this IQueryable<TSource> source,
+                                        Uri dataSetUri,
+                                        bool isTemp)
+        {
+            return ToStoreInternal(source, dataSetUri, isTemp, null, null);
         }
 
         /// <summary>
@@ -3987,37 +4045,8 @@ namespace Microsoft.Research.DryadLinq
 
             if (IsLocalDebugSource(source))
             {
-                try
-                {
-                    // If ToStore is present, extract out the target, otherwise make an anonymous target.
-                    // then ingress the data directly to the store.
-                    MethodCallExpression mcExpr1 = source.Expression as MethodCallExpression;
-                    if (mcExpr1 != null && mcExpr1.Method.Name == ReflectedNames.DLQ_ToStore)
-                    {
-                        // visited by LocalDebug: q2.ToStore(...).Submit(...)
-                        Uri dataSetUri = (Uri)((ConstantExpression)mcExpr1.Arguments[1]).Value;
-                        CompressionScheme compressionScheme = context.OutputDataCompressionScheme;
-                        DryadLinqMetaData metadata
-                            = new DryadLinqMetaData(context, typeof(TSource), dataSetUri, compressionScheme);
-                        DataProvider.StoreData(context, source, dataSetUri, metadata, compressionScheme);
-                    }
-                    else
-                    {
-                        // visited by LocalDebug: q-nonToStore.Submit();
-                        Uri dataSetUri = context.MakeTemporaryStreamUri();
-                        CompressionScheme compressionScheme = context.IntermediateDataCompressionScheme;
-                        DryadLinqMetaData metadata
-                            = new DryadLinqMetaData(context, typeof(TSource), dataSetUri, compressionScheme);
-                        DataProvider.StoreData(context, source, dataSetUri, metadata, compressionScheme, true);
-                    }
-
-                    return new DryadLinqJobInfo(DryadLinqJobInfo.JOBID_LOCALDEBUG, null, null);
-                }
-                catch (Exception e)
-                {
-                    throw new DryadLinqException(DryadLinqErrorCode.CreatingDscDataFromLocalDebugFailed,
-                                                 String.Format(SR.CreatingDscDataFromLocalDebugFailed), e);
-                }
+                // Noop for LocalDebug
+                return new DryadLinqJobInfo(DryadLinqJobInfo.JOBID_LOCALDEBUG, null, null);
             }
 
             // Now we are not LocalDebug mode:
@@ -4063,19 +4092,20 @@ namespace Microsoft.Research.DryadLinq
                 }
 
                 bool isTemp = false;
-                if (mcExpr.Method.Name != ReflectedNames.DLQ_ToStore)
+                if (mcExpr.Method.Name != ReflectedNames.DLQ_ToStoreInternal &&
+                    mcExpr.Method.Name != ReflectedNames.DLQ_ToStoreInternalAux)
                 {
                     // Support for non-ToStoreQuery.Submit()
                     isTemp = true;
                     Uri tableUri = context.MakeTemporaryStreamUri();
                     mcExpr = Expression.Call(
                                     null,
-                                    typeof(DryadLinqQueryable).GetMethod(ReflectedNames.DLQ_ToStore,
+                                    typeof(DryadLinqQueryable).GetMethod(ReflectedNames.DLQ_ToStoreInternalAux,
                                                                          BindingFlags.Static | BindingFlags.NonPublic)
                                                               .MakeGenericMethod(typeof(TSource)),
-                                    new Expression[] { source.Expression,
-                                                       Expression.Constant(tableUri, typeof(Uri)),
-                                                       Expression.Constant(true, typeof(bool)) });
+                                    source.Expression,
+                                    Expression.Constant(tableUri, typeof(Uri)),
+                                    Expression.Constant(true, typeof(bool)));
                 }
 
                 // Execute the queries
@@ -4127,48 +4157,8 @@ namespace Microsoft.Research.DryadLinq
             DryadLinqContext context = CheckSourcesAndGetCommonContext(sources);
             if (IsLocalDebugSource(sources[0]))
             {
-                foreach (var source in sources)
-                {
-                    var method = typeof(DataProvider).GetMethod(ReflectedNames.DataProvider_Ingress,
-                                                                BindingFlags.NonPublic | BindingFlags.Static)
-                                                     .MakeGenericMethod(source.ElementType);
-                    MethodCallExpression mcExpr1 = source.Expression as MethodCallExpression;
-                    Uri dataSetUri;
-                    CompressionScheme compressionScheme;
-                    bool isTemp;
-                    if (mcExpr1 != null && mcExpr1.Method.Name == ReflectedNames.DLQ_ToStore)
-                    {
-                        dataSetUri = (Uri)((ConstantExpression)mcExpr1.Arguments[1]).Value;
-                        compressionScheme = context.OutputDataCompressionScheme;
-                        isTemp = false;
-                    }
-                    else
-                    {
-                        dataSetUri = context.MakeTemporaryStreamUri();
-                        compressionScheme = context.IntermediateDataCompressionScheme;
-                        isTemp = true;
-                    }
-                    DryadLinqMetaData metadata
-                        = new DryadLinqMetaData(context, source.ElementType, dataSetUri, compressionScheme);
-                    try
-                    {
-                        method.Invoke(
-                             null, new object[] { context, source, dataSetUri, metadata, compressionScheme, isTemp });
-                    }
-                    catch (TargetInvocationException tie)
-                    {
-                        if (tie.InnerException != null)
-                        {
-                            throw tie.InnerException; // unwrap and rethrow original exception
-                        }
-                        else
-                        {
-                            throw; // this shouldn't occur.. but just in case.
-                        }
-                    }
-
-                    return new DryadLinqJobInfo(DryadLinqJobInfo.JOBID_LOCALDEBUG, null, null);
-                }
+                // Noop for LocalDebug
+                return new DryadLinqJobInfo(DryadLinqJobInfo.JOBID_LOCALDEBUG, null, null);
             }
 
             // Not LocalDebug mode:
@@ -4223,12 +4213,13 @@ namespace Microsoft.Research.DryadLinq
                     }
 
                     bool isTemp = false; ;
-                    if (mcExpr.Method.Name != ReflectedNames.DLQ_ToStore)
+                    if (mcExpr.Method.Name != ReflectedNames.DLQ_ToStoreInternal &&
+                        mcExpr.Method.Name != ReflectedNames.DLQ_ToStoreInternalAux)
                     {
                         isTemp = true;
                         Uri tableUri = context.MakeTemporaryStreamUri();
                         MethodInfo minfo = typeof(DryadLinqQueryable)
-                                                   .GetMethod(ReflectedNames.DLQ_ToStore,
+                                                   .GetMethod(ReflectedNames.DLQ_ToStoreInternalAux,
                                                               BindingFlags.Static | BindingFlags.NonPublic);
                         Type elemType = mcExpr.Type.GetGenericArguments()[0];
                         minfo = minfo.MakeGenericMethod(elemType);
@@ -4322,7 +4313,7 @@ namespace Microsoft.Research.DryadLinq
             {
                 if (commonContext != DryadLinqContext.GetContext(sources[i].Provider))
                 {
-                    throw new DryadLinqException("Each query must be created from the same DryadLinqContext object");
+                    throw new DryadLinqException("The queries submitted together must be created using the same DryadLinqContext.");
                 }
             }
             return commonContext;

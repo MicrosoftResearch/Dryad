@@ -63,7 +63,8 @@ namespace Microsoft.Research.DryadLinq
             }
             else
             {
-                this.m_jobSubmission = new YarnJobSubmission(context);
+                this.m_jobSubmission = new YarnJobSubmission(
+                    context, context.Cluster.MakeInternalClusterUri("tmp", "staging"));
             }
         }
 
@@ -97,9 +98,9 @@ namespace Microsoft.Research.DryadLinq
         {
             lock (this)
             {
-                // Consturct the Graph Manager cmd line.
+                // Construct the Graph Manager cmd line.
                 // string queryPlanFileName = Path.GetFileName(queryPlanPath);
-                this.m_jobSubmission.AddJobOption("cmdline", "DryadLinqGraphManager.exe" + " " + queryPlanPath);
+                this.m_jobSubmission.AddJobOption("cmdline", "Microsoft.Research.Dryad.GraphManager.exe" + " " + queryPlanPath);
                 
                 AddResource(this.m_jobSubmission, queryPlanPath);
 
@@ -126,59 +127,7 @@ namespace Microsoft.Research.DryadLinq
         /// <returns>The status of the job.</returns>
         public JobStatus WaitForCompletion()
         {
-            JobStatus status;
-
-            int sleep = 2000;
-            int maxSleep = 20000;
-            int retries = 0;
-            while (true)
-            {
-                try
-                {
-                    string msg = null;
-                    switch (status = this.GetStatus())
-                    {
-                        case JobStatus.Success:
-                        case JobStatus.Failure:
-                        case JobStatus.Cancelled:
-                            return status;
-                        case JobStatus.NotSubmitted:
-                            msg = "The job to create this table has not been submitted yet.  Waiting ...";
-                            break;
-                        case JobStatus.Running:
-                            msg = "The job to create this table is still running. Waiting ...";
-                            break;
-                        case JobStatus.Waiting:
-                            msg = "The job to create this table is still queued. Waiting ...";
-                            break;
-                        default:
-                            throw new DryadLinqException(DryadLinqErrorCode.UnexpectedJobStatus,
-                                                         String.Format(SR.UnexpectedJobStatus, status.ToString()));
-                    }
-
-                    retries = 0;
-                    DryadLinqClientLog.Add(msg);
-                }
-                catch (System.Net.WebException)
-                {
-                    retries++;
-                    sleep = maxSleep;
-                    DryadLinqClientLog.Add("Error contacting web server while querying job status. Waiting ...");
-                }
-
-                if (retries > 5)
-                {
-                    throw new DryadLinqException(DryadLinqErrorCode.JobStatusQueryError,
-                                                       SR.JobStatusQueryError);
-                }
-
-                // Sleep for a bit before checking the state again
-                if (sleep < maxSleep)
-                {
-                    sleep = Math.Min(maxSleep, (int)(sleep * 1.05));
-                }
-                System.Threading.Thread.Sleep(sleep);
-            }
+            return this.m_jobSubmission.WaitForCompletion();
         }
 
         /// <summary>

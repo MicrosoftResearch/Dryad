@@ -2205,7 +2205,7 @@ void RChannelBufferWriterNativeFile::EagerCloseFile()
         }
         else
         {
-            DrLogI( "Set final file pointer");
+            DrLogI( "Set final file pointer. Length %I64u", finalLength.QuadPart);
         }
 
         ok = SetEndOfFile(m_bufferedFileHandle);

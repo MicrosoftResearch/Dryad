@@ -79,6 +79,7 @@ static bool ParseReplicatedFromPartitionLine(int partitionNumber,
                                              DrStringR remoteName,
                                              DrPartitionInputStream::OverridePtr over,
                                              bool mustOverride,
+                                             bool pathIsRooted,
                                              DrString line,
                                              DrUniversePtr universe)
 {
@@ -112,8 +113,16 @@ static bool ParseReplicatedFromPartitionLine(int partitionNumber,
     sep = lineCopy.IndexOfChar(',');
     if (sep == DrStr_InvalidIndex)
     {
-        DrLogW("Malformed line %s: no list of machines", line.GetChars());
-        return false;
+        int n = sscanf_s(lineCopy.GetChars(), "%I64u", &parsedSize);
+        if (n != 1)
+        {
+            DrLogW("Malformed line %s: can't parse size", line.GetChars());
+            return false;
+        }
+
+        affinity->SetWeight(parsedSize);
+
+        lineCopy = DrString("");
     }
     else
     {
@@ -135,8 +144,14 @@ static bool ParseReplicatedFromPartitionLine(int partitionNumber,
 
     if (lineCopy.GetCharsLength() == 0)
     {
-        DrLogW("Malformed line %s: no partition machines", line.GetChars());
-        return false;
+        if (!pathIsRooted || mustOverride)
+		{
+            DrLogW("Malformed line %s: no partition machines", line.GetChars());
+            return false;
+        }
+
+        remoteName.Set(" %Invalid% ");
+        return true;
     }
 
     int numberOfReplicas = 0;
@@ -204,7 +219,7 @@ HRESULT DrPartitionInputStream::Open(DrUniversePtr universe, DrNativeString stre
 HRESULT DrPartitionInputStream::OpenInternal(DrUniversePtr universe, DrString streamName)
 {
     HRESULT err = S_OK;
-	DrLogI("Opening input file %s", streamName.GetChars(), DRERRORSTRING(err));
+    DrLogI("Opening input file %s", streamName.GetChars(), DRERRORSTRING(err));
     FILE* f;
     errno_t ferr = fopen_s(&f, streamName.GetChars(), "rb");
     if (ferr != 0)
@@ -229,6 +244,12 @@ HRESULT DrPartitionInputStream::OpenInternal(DrUniversePtr universe, DrString st
     if (m_pathNameOnComputer.GetCharsLength() == 0)
     {
         mustOverride = true;
+    }
+
+    bool pathIsRooted = false;
+    if (m_pathNameOnComputer.IndexOfChar(':') != DrStr_InvalidIndex)
+    {
+        pathIsRooted = true;
     }
 
     int numberOfParts;
@@ -280,6 +301,7 @@ HRESULT DrPartitionInputStream::OpenInternal(DrUniversePtr universe, DrString st
                                              remoteName,
                                              m_override[i],
                                              mustOverride,
+                                             pathIsRooted,
                                              partitionLine,
                                              universe) == false)
         {

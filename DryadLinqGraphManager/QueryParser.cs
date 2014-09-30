@@ -237,6 +237,12 @@ namespace Microsoft.Research.Dryad.GraphManager
                     vertex.info = new VertexInfo();
                     vertex.info.ioType = GetIoType(ioType);
 
+                    XmlNode recordType = storageSet.SelectSingleNode("RecordType");
+                    if (recordType != null)
+                    {
+                        vertex.info.recordType = recordType.InnerXml;
+                    }
+
                     XmlNodeList storageUris = storageSet.SelectNodes("SourceURI");
                     vertex.info.sources = new string[storageUris.Count];
                     for (int indexStorageUri=0; indexStorageUri<storageUris.Count; indexStorageUri++)

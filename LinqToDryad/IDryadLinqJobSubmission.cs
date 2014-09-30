@@ -63,5 +63,6 @@ namespace Microsoft.Research.DryadLinq
         void SubmitJob();
         JobStatus TerminateJob();
         string GetJobId();
+        JobStatus WaitForCompletion(); 
     }
 }

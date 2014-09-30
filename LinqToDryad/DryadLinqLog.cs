@@ -106,7 +106,7 @@ namespace Microsoft.Research.DryadLinq
         /// <summary>
         /// Gets and sets the logging level of DryadLINQ.
         /// </summary>
-        public static int Level = Constants.TraceErrorLevel;
+        public static int Level = Constants.LoggingErrorLevel;
         private static TextWriter s_writer = Console.Out;
 
         internal static void Initialize(int logLevel, string filePath)
@@ -144,7 +144,7 @@ namespace Microsoft.Research.DryadLinq
         /// <param name="args">The objects to format</param>
         public static void AddCritical(string msg, params object[] args)
         {
-            Add("Critical: ", Constants.TraceCriticalLevel, msg, args);
+            Add("Critical: ", Constants.LoggingCriticalLevel, msg, args);
         }
 
         /// <summary>
@@ -154,7 +154,7 @@ namespace Microsoft.Research.DryadLinq
         /// <param name="args">The objects to format</param>
         public static void AddError(string msg, params object[] args)
         {
-            Add("Error: ", Constants.TraceErrorLevel, msg, args);
+            Add("Error: ", Constants.LoggingErrorLevel, msg, args);
         }
 
         /// <summary>
@@ -164,7 +164,7 @@ namespace Microsoft.Research.DryadLinq
         /// <param name="args">The objects to format</param>
         public static void AddWarning(string msg, params object[] args)
         {
-            Add("Warning: ", Constants.TraceWarningLevel, msg, args);
+            Add("Warning: ", Constants.LoggingWarningLevel, msg, args);
         }
 
         /// <summary>
@@ -174,7 +174,7 @@ namespace Microsoft.Research.DryadLinq
         /// <param name="args">The objects to format</param>
         public static void AddInfo(string msg, params object[] args)
         {
-            Add("Info: ", Constants.TraceInfoLevel, msg, args);
+            Add("Info: ", Constants.LoggingInfoLevel, msg, args);
         }
 
         /// <summary>
@@ -184,7 +184,7 @@ namespace Microsoft.Research.DryadLinq
         /// <param name="args">The objects to format</param>
         public static void AddVerbose(string msg, params object[] args)
         {
-            Add("Verbose: ", Constants.TraceVerboseLevel, msg, args);
+            Add("Verbose: ", Constants.LoggingVerboseLevel, msg, args);
         }  
     }
 }

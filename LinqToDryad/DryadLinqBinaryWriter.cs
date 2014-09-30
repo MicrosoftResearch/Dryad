@@ -101,15 +101,11 @@ namespace Microsoft.Research.DryadLinq
         /// </summary>
         ~DryadLinqBinaryWriter()
         {
-            if (!this.m_isClosed)
+            // Only release native resoure here
+            if (this.m_curDataBlockInfo.ItemHandle != IntPtr.Zero)
             {
-                this.m_isClosed = true;
-                this.Flush();
-                if (this.m_curBlockSize > 0)
-                {
-                    this.m_nativeStream.ReleaseDataBlock(this.m_curDataBlockInfo.ItemHandle);
-                }
-                this.m_nativeStream.Close();
+                this.m_nativeStream.ReleaseDataBlock(this.m_curDataBlockInfo.ItemHandle);
+                this.m_curDataBlockInfo.ItemHandle = IntPtr.Zero;
             }
         }
 

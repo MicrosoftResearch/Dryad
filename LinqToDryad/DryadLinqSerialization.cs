@@ -760,7 +760,6 @@ namespace Microsoft.Research.DryadLinq.Internal
         }
     }
 
-
     public sealed class SqlDateTimeDryadLinqSerializer : DryadLinqSerializer<SqlDateTime>
     {
         public override SqlDateTime Read(DryadLinqBinaryReader reader)
@@ -771,6 +770,20 @@ namespace Microsoft.Research.DryadLinq.Internal
         public override void Write(DryadLinqBinaryWriter writer, SqlDateTime x)
         {
             writer.Write(x);
+        }
+    }
+
+    public sealed class LineRecordDryadLinqSerializer : DryadLinqSerializer<LineRecord>
+    {
+        public override LineRecord Read(DryadLinqBinaryReader reader)
+        {
+            string line = reader.ReadString();
+            return new LineRecord(line);
+        }
+
+        public override void Write(DryadLinqBinaryWriter writer, LineRecord x)
+        {
+            writer.Write(x.Line);
         }
     }
 }

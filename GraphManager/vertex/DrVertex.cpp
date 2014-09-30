@@ -1743,7 +1743,7 @@ void DrTeeVertex::ReactToFailedVertex(DrVertexOutputGeneratorPtr failedGenerator
     DrAssert(m_inputEdges->GetNumberOfEdges() == 1);
 
     DrEdge e = m_inputEdges->GetEdge(0);
-    DrLogI("Tee vertex %d.%d: calling ReactToFailedVertex on remote edge", this->m_id, GetVersion());
+    DrLogI("Tee vertex %d.%d: calling ReactToFailedVertex on remote edge", this->m_id, failedGenerator->GetVersion());
     e.m_remoteVertex->ReactToFailedVertex(failedGenerator, DrNull, DrNull, DrNull, originalReason);
 
     /* fill in a new generator if it's already there, e.g. if the upstream vertex is a DrStorageVertex */

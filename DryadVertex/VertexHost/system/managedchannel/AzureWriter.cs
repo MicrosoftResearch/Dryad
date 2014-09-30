@@ -25,7 +25,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using Microsoft.Research.Peloponnese.Storage;
+using Microsoft.Research.Peloponnese.Azure;
 
 namespace Microsoft.Research.Dryad.Channel
 {

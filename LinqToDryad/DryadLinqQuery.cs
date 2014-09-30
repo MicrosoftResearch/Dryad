@@ -237,6 +237,7 @@ namespace Microsoft.Research.DryadLinq
         public abstract Expression Expression { get; }
         internal abstract bool IsPlainData { get; }
         internal abstract Uri DataSourceUri { get; }
+        internal abstract LambdaExpression Deserializer { get; }
         internal abstract bool IsDynamic { get; }
         internal abstract int PartitionCount { get; }
         internal abstract DataSetInfo DataSetInfo { get; }
@@ -303,6 +304,7 @@ namespace Microsoft.Research.DryadLinq
         private DryadLinqQuery<T> m_backingData; 
         private Expression m_queryExpression;
         private Uri m_dataSourceUri;
+        private Expression<Func<Stream, IEnumerable<T>>> m_deserializer;
         private DataSetInfo m_dataSetInfo;
         private DryadLinqQueryEnumerable<T> m_tableEnumerable;
         private bool m_isDynamic;
@@ -314,6 +316,7 @@ namespace Microsoft.Research.DryadLinq
         {
             this.m_queryExpression = expression;
             this.m_dataSourceUri = null;
+            this.m_deserializer = null;
             this.m_dataSetInfo = null;
             this.m_tableEnumerable = null;
             this.m_isDynamic = false;
@@ -323,7 +326,8 @@ namespace Microsoft.Research.DryadLinq
         // Used by DryadLinqContext.FromStore(uri)
         internal DryadLinqQuery(DryadLinqContext context,
                                 DataProvider dataProvider,
-                                Uri dataSetUri)
+                                Uri dataSetUri,
+                                Expression<Func<Stream, IEnumerable<T>>> deserializer)
             : base(null, dataProvider)
         {
             if (!DataPath.IsValidDataPath(dataSetUri))
@@ -333,12 +337,13 @@ namespace Microsoft.Research.DryadLinq
             }
 
             this.m_dataSourceUri = dataSetUri;
+            this.m_deserializer = deserializer;
             this.m_dataSetInfo = null;
             this.m_isDynamic = false;
             this.m_initialized = false;
 
             this.m_tableEnumerable
-                = new DryadLinqQueryEnumerable<T>(context, this.DataProvider, this.m_dataSourceUri);
+                = new DryadLinqQueryEnumerable<T>(context, this.DataProvider, this.m_dataSourceUri, this.m_deserializer);
 
             // YY: query expression and provider are at least set consistently
             if (context.LocalDebug)
@@ -360,6 +365,7 @@ namespace Microsoft.Research.DryadLinq
             otherQuery.m_backingData = this.m_backingData;
             otherQuery.m_queryExpression = this.m_queryExpression;
             otherQuery.m_dataSourceUri = this.m_dataSourceUri;
+            otherQuery.m_deserializer = this.m_deserializer;
             otherQuery.m_dataSetInfo = this.m_dataSetInfo;
             otherQuery.m_tableEnumerable = this.m_tableEnumerable;
             otherQuery.m_isDynamic = this.m_isDynamic;
@@ -383,6 +389,11 @@ namespace Microsoft.Research.DryadLinq
         public override Type ElementType
         {
             get { return typeof(T); }
+        }
+
+        internal override LambdaExpression Deserializer
+        {
+            get { return this.m_deserializer; }
         }
 
         // only legal/valid for plainData and data-backed DLQ. 
@@ -584,8 +595,7 @@ namespace Microsoft.Research.DryadLinq
             this.BackingData = tables[0];
         }
 
-        // Generate the query plan as an XML file and return the file name.
-        // returns the queryPlan xml path.
+        // Generate the query plan as an XML file and return the queryPlan xml path.
         internal string ToDryadLinqProgram()
         {
             Uri tableUri = this.Context.MakeTemporaryStreamUri();
@@ -600,12 +610,17 @@ namespace Microsoft.Research.DryadLinq
         private DryadLinqContext m_context;
         private DataProvider m_dataProvider;
         private Uri m_dataSetUri;
+        private Expression<Func<Stream, IEnumerable<T>>> m_deserializer;
 
-        public DryadLinqQueryEnumerable(DryadLinqContext context, DataProvider dataProvider, Uri dataSetUri)
+        public DryadLinqQueryEnumerable(DryadLinqContext context, 
+                                        DataProvider dataProvider, 
+                                        Uri dataSetUri,
+                                        Expression<Func<Stream, IEnumerable<T>>> deserializer)
         {
             this.m_context = context;
             this.m_dataProvider = dataProvider;
             this.m_dataSetUri = dataSetUri;
+            this.m_deserializer = deserializer;
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -615,7 +630,17 @@ namespace Microsoft.Research.DryadLinq
 
         public IEnumerator<T> GetEnumerator()
         {
-            return new TableEnumerator(this.m_context, this.m_dataProvider, this.m_dataSetUri);
+            if (this.m_deserializer == null)
+            {
+                return new TableEnumerator(this.m_context, this.m_dataProvider, this.m_dataSetUri);
+            }
+            else
+            {
+                Func<Stream, IEnumerable<T>> deserializerFunc = this.m_deserializer.Compile();
+                Stream stream = this.m_dataProvider.Egress(this.m_context, this.m_dataSetUri);
+                IEnumerable<T> elems = deserializerFunc(stream);
+                return elems.GetEnumerator();
+            }
         }
 
         // Internal enumerator class

@@ -30,20 +30,15 @@ namespace Microsoft.Research.DryadLinq
 {
     internal class DryadLinqMultiReaderStream : Stream
     {
-        private DryadLinqBinaryReader[] m_inputStreamArray;
-        private DryadLinqBinaryReader m_curStream;
+        private DryadLinqBinaryReader[] m_readerArray;
+        private DryadLinqBinaryReader m_curReader;
         private Int32 m_nextStreamIdx;
 
         public DryadLinqMultiReaderStream(DryadLinqBinaryReader[] streamArray)
         {
-            this.m_inputStreamArray = streamArray;
-            this.m_curStream = streamArray[0];
+            this.m_readerArray = streamArray;
+            this.m_curReader = streamArray[0];
             this.m_nextStreamIdx = 1;
-        }
-
-        ~DryadLinqMultiReaderStream()
-        {
-            this.Close();
         }
 
         public override bool CanRead
@@ -65,9 +60,9 @@ namespace Microsoft.Research.DryadLinq
         {
             get {
                 long len = 0;
-                for (int i = 0; i < this.m_inputStreamArray.Length; i++)
+                for (int i = 0; i < this.m_readerArray.Length; i++)
                 {
-                    len += this.m_inputStreamArray[i].Length;
+                    len += this.m_readerArray[i].GetTotalLength();
                 }
                 return len;
             }
@@ -85,7 +80,7 @@ namespace Microsoft.Research.DryadLinq
         {
             try
             {
-                foreach (DryadLinqBinaryReader s in this.m_inputStreamArray)
+                foreach (DryadLinqBinaryReader s in this.m_readerArray)
                 {
                     s.Close();
                 }
@@ -104,10 +99,10 @@ namespace Microsoft.Research.DryadLinq
         {
             while (true)
             {
-                int n = this.m_curStream.ReadBytes(buffer, offset, count);
+                int n = this.m_curReader.ReadBytes(buffer, offset, count);
                 if (n != 0) return n;
-                if (this.m_nextStreamIdx == this.m_inputStreamArray.Length) return 0;
-                this.m_curStream = this.m_inputStreamArray[this.m_nextStreamIdx++];
+                if (this.m_nextStreamIdx == this.m_readerArray.Length) return 0;
+                this.m_curReader = this.m_readerArray[this.m_nextStreamIdx++];
             }
         }
 
@@ -115,10 +110,10 @@ namespace Microsoft.Research.DryadLinq
         {
             while (true)
             {
-                int b = this.m_curStream.ReadUByte();
+                int b = this.m_curReader.ReadUByte();
                 if (b != -1) return b;
-                if (this.m_nextStreamIdx == this.m_inputStreamArray.Length) return -1;
-                this.m_curStream = this.m_inputStreamArray[this.m_nextStreamIdx++];
+                if (this.m_nextStreamIdx == this.m_readerArray.Length) return -1;
+                this.m_curReader = this.m_readerArray[this.m_nextStreamIdx++];
             }
         }
 

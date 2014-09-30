@@ -50,7 +50,7 @@ namespace Microsoft.Research.DryadLinq.Internal
     /// <remarks>A DryadLINQ user should not need to use DryadLinqVertex directly.</remarks>
     public static class DryadLinqVertex
     {
-        public static bool s_multiThreading = true; //vertex code will set this at runtime. 
+        internal static int ThreadCount = Environment.ProcessorCount;  //vertex code will set this at runtime. 
 
         internal static IParallelPipeline<TResult>
             ExtendParallelPipeline<TSource, TResult>(this IEnumerable<TSource> source,
@@ -75,7 +75,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                                           Func<TSource, bool> predicate,
                                                           bool orderPreserving)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return source.ExtendParallelPipeline(s => s.Where(predicate), orderPreserving);
             }
@@ -105,7 +105,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                      Func<TSource, TResult> selector,
                                      bool orderPreserving)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return source.ExtendParallelPipeline(s => s.Select(selector), orderPreserving);
             }
@@ -137,7 +137,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                          Func<TSource, IEnumerable<TResult>> selector,
                                          bool orderPreserving)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return source.ExtendParallelPipeline(s => s.SelectMany(selector), orderPreserving);
             }
@@ -161,7 +161,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                                       Func<TSource, TCollection, TResult> resultSelector,
                                                       bool orderPreserving)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return source.ExtendParallelPipeline(s => s.SelectMany(collectionSelector, resultSelector), orderPreserving);
             }
@@ -297,7 +297,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                 bool isIdKeySelector,
                                 DryadLinqFactory<TSource> factory)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return new ParallelSort<TSource, TKey>(
                          source, keySelector, comparer, isDescending, isIdKeySelector, factory);
@@ -332,7 +332,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                 return source;
             }
 
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return new ParallelMergeSort<TSource, TKey>(msource, keySelector, comparer, isDescending);
             }
@@ -455,7 +455,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                               IEqualityComparer<TKey> comparer,
                               bool isPartial)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 if (isPartial)
                 {
@@ -532,7 +532,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                                  IEqualityComparer<TKey> comparer)
         {
             var groupings = GroupBy(source, keySelector, comparer);
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return new ParallelApply<IGrouping<TKey, TSource>, TResult>(
                                  groupings, s => s.Select(g => resultSelector(g.Key, g)), false);
@@ -570,7 +570,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                                       IEqualityComparer<TKey> comparer)
         {
             var groupings = GroupBy(source, keySelector, elementSelector, comparer);
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return new ParallelApply<IGrouping<TKey, TElement>, TResult>(
                                  groupings, s => s.Select(g => resultSelector(g.Key, g)), false);
@@ -602,7 +602,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                                              IEqualityComparer<TKey> comparer,
                                                              bool isPartial)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return new ParallelOrderedGroupByAccumulate<TSource, TKey, TElement, TResult, Pair<TKey, TResult>>(
                                  source, keySelector, elementSelector, seed, accumulator, comparer, null);
@@ -738,7 +738,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                                   IEqualityComparer<TKey> comparer)
         {
             var groupings = OrderedGroupBy(source, keySelector, comparer);
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return new ParallelApply<IGrouping<TKey, TSource>, TResult>(
                                  groupings, s => s.Select(g => resultSelector(g.Key, g)), true);
@@ -759,7 +759,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                    IEqualityComparer<TKey> comparer)
         {
             var groupings = OrderedGroupBy(source, keySelector, elementSelector, comparer);
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return new ParallelApply<IGrouping<TKey, TElement>, TResult>(
                                  groupings, s => s.Select(g => resultSelector(g.Key, g)), true);
@@ -856,7 +856,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                                     Func<TOuter, TInner, TResult> resultSelector,
                                                     IEqualityComparer<TKey> comparer)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return new ParallelHashJoin<TOuter, TInner, TKey, TResult, TResult>(
                                  outer, inner, outerKeySelector, innerKeySelector,
@@ -878,7 +878,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                                             IEqualityComparer<TKey> comparer,
                                                             Func<IEnumerable<TResult>, IEnumerable<TFinal>> applyFunc)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return new ParallelHashJoin<TOuter, TInner, TKey, TResult, TFinal>(
                                  outer, inner, outerKeySelector, innerKeySelector,
@@ -905,7 +905,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         {
             var joinPairs = MergeJoin(outer, inner, outerKeySelector, innerKeySelector, comparer, isDescending);
 
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return new ParallelApply<Pair<TOuter, TInner>, TResult>(
                                  joinPairs, s => s.Select(x => resultSelector(x.Key, x.Value)), true);
@@ -928,7 +928,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                     Func<IEnumerable<TResult>, IEnumerable<TFinal>> applyFunc)
         {
             var joinPairs = MergeJoin(outer, inner, outerKeySelector, innerKeySelector, comparer, isDescending);
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return new ParallelApply<Pair<TOuter, TInner>, TFinal>(
                                  joinPairs, s => applyFunc(s.Select(x => resultSelector(x.Key, x.Value))), true);
@@ -1075,7 +1075,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                                          Func<TOuter, IEnumerable<TInner>, TResult> resultSelector,
                                                          IEqualityComparer<TKey> comparer)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return new ParallelHashGroupJoin<TOuter, TInner, TKey, TResult, TResult>(
                                  outer, inner, outerKeySelector, innerKeySelector,
@@ -1098,7 +1098,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                           IEqualityComparer<TKey> comparer,
                                           Func<IEnumerable<TResult>, IEnumerable<TFinal>> applyFunc)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return new ParallelHashGroupJoin<TOuter, TInner, TKey, TResult, TFinal>(
                                  outer, inner, outerKeySelector, innerKeySelector,
@@ -1124,7 +1124,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         {
             var joinPairs = MergeGroupJoin(outer, inner, outerKeySelector, innerKeySelector, comparer, isDescending);
 
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return new ParallelApply<Pair<TOuter, List<TInner>>, TResult>(
                                  joinPairs, s => s.Select(x => resultSelector(x.Key, x.Value)), true);
@@ -1147,7 +1147,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         {
             var joinPairs = MergeGroupJoin(outer, inner, outerKeySelector, innerKeySelector, comparer, isDescending);
 
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return new ParallelApply<Pair<TOuter, List<TInner>>, TFinal>(
                                  joinPairs, s => applyFunc(s.Select(x => resultSelector(x.Key, x.Value))), true);
@@ -1241,7 +1241,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                        Func<IEnumerable<TSource>, IEnumerable<TResult>> applyFunc,
                                        bool isPartial)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return new ParallelSetOperation<TSource, TResult>(
                                  "Distinct", source, null, comparer, applyFunc, isPartial);
@@ -1258,7 +1258,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                               IEqualityComparer<TSource> comparer,
                               bool isPartial)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return new ParallelSetOperation<TSource, TSource>(
                                  "Distinct", source, null, comparer, null, isPartial);
@@ -1274,7 +1274,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             Union<TSource>(IEnumerable<TSource> source1,
                            IEnumerable<TSource> source2)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return new ParallelSetOperation<TSource, TSource>(
                                  "Union", source1, source2, null, null, false);
@@ -1290,7 +1290,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                            IEnumerable<TSource> source2,
                            IEqualityComparer<TSource> comparer)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return new ParallelSetOperation<TSource, TSource>(
                                  "Union", source1, source2, comparer, null, false);
@@ -1422,7 +1422,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             Intersect<TSource>(IEnumerable<TSource> source1,
                                IEnumerable<TSource> source2)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return new ParallelSetOperation<TSource, TSource>(
                                  "Intersect", source1, source2, null, null, false);
@@ -1438,7 +1438,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                IEnumerable<TSource> source2,
                                IEqualityComparer<TSource> comparer)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return new ParallelSetOperation<TSource, TSource>(
                                  "Intersect", source1, source2, comparer, null, false);
@@ -1539,7 +1539,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             Except<TSource>(IEnumerable<TSource> source1,
                             IEnumerable<TSource> source2)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return new ParallelSetOperation<TSource, TSource>(
                                  "Except", source1, source2, null, null, false);
@@ -1555,7 +1555,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                             IEnumerable<TSource> source2,
                             IEqualityComparer<TSource> comparer)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 return new ParallelSetOperation<TSource, TSource>(
                                  "Except", source1, source2, comparer, null, false);
@@ -1672,7 +1672,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         // This one could be implemented in native  for better performance.
         public static int Count<TSource>(IEnumerable<TSource> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<TSource> pipe = source as IParallelPipeline<TSource>;
                 if (pipe == null)
@@ -1696,7 +1696,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         public static int Count<TSource>(IEnumerable<TSource> source,
                                          Func<TSource, bool> predicate)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<TSource> pipe = source as IParallelPipeline<TSource>;
                 if (pipe == null)
@@ -1721,7 +1721,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         // This one could be implemented in native  for better performance.
         public static long LongCount<TSource>(IEnumerable<TSource> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<TSource> pipe = source as IParallelPipeline<TSource>;
                 if (pipe == null)
@@ -1745,7 +1745,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         public static long LongCount<TSource>(IEnumerable<TSource> source,
                                               Func<TSource, bool> predicate)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<TSource> pipe = source as IParallelPipeline<TSource>;
                 if (pipe == null)
@@ -1771,7 +1771,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                              TSource value,
                                              IEqualityComparer<TSource> comparer)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<TSource> pipe = source as IParallelPipeline<TSource>;
                 if (pipe == null)
@@ -2250,7 +2250,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         // Operator: Sum        
         public static int Sum(IEnumerable<int> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<int> pipe = source as IParallelPipeline<int>;
                 if (pipe == null)
@@ -2273,7 +2273,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static int? Sum(IEnumerable<int?> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<int?> pipe = source as IParallelPipeline<int?>;
                 if (pipe == null)
@@ -2299,7 +2299,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static long Sum(IEnumerable<long> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<long> pipe = source as IParallelPipeline<long>;
                 if (pipe == null)
@@ -2322,7 +2322,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static long? Sum(IEnumerable<long?> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<long?> pipe = source as IParallelPipeline<long?>;
                 if (pipe == null)
@@ -2348,7 +2348,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static float Sum(IEnumerable<float> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<float> pipe = source as IParallelPipeline<float>;
                 if (pipe == null)
@@ -2371,7 +2371,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static float? Sum(IEnumerable<float?> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<float?> pipe = source as IParallelPipeline<float?>;
                 if (pipe == null)
@@ -2397,7 +2397,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static double Sum(IEnumerable<double> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<double> pipe = source as IParallelPipeline<double>;
                 if (pipe == null)
@@ -2420,7 +2420,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static double? Sum(IEnumerable<double?> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<double?> pipe = source as IParallelPipeline<double?>;
                 if (pipe == null)
@@ -2446,7 +2446,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static decimal Sum(IEnumerable<decimal> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<decimal> pipe = source as IParallelPipeline<decimal>;
                 if (pipe == null)
@@ -2469,7 +2469,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static decimal? Sum(IEnumerable<decimal?> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<decimal?> pipe = source as IParallelPipeline<decimal?>;
                 if (pipe == null)
@@ -2496,7 +2496,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         public static int Sum<TSource>(IEnumerable<TSource> source,
                                        Func<TSource, int> selector)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 var partialResults = source.ExtendParallelPipeline(x => AsEnumerable(x.Sum(selector)), false);
                 int sum = 0;
@@ -2515,7 +2515,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         public static int? Sum<TSource>(IEnumerable<TSource> source,
                                         Func<TSource, int?> selector)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 var partialResults = source.ExtendParallelPipeline(x => AsEnumerable(x.Sum(selector)), false);
                 int sum = 0;
@@ -2537,7 +2537,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         public static long Sum<TSource>(IEnumerable<TSource> source,
                                         Func<TSource, long> selector)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 var partialResults = source.ExtendParallelPipeline(x => AsEnumerable(x.Sum(selector)), false);
                 long sum = 0;
@@ -2556,7 +2556,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         public static long? Sum<TSource>(IEnumerable<TSource> source,
                                          Func<TSource, long?> selector)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 var partialResults = source.ExtendParallelPipeline(x => AsEnumerable(x.Sum(selector)), false);
                 long sum = 0;
@@ -2578,7 +2578,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         public static float Sum<TSource>(IEnumerable<TSource> source,
                                          Func<TSource, float> selector)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 var partialResults = source.ExtendParallelPipeline(x => AsEnumerable(x.Sum(selector)), false);
                 float sum = 0;
@@ -2597,7 +2597,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         public static float? Sum<TSource>(IEnumerable<TSource> source,
                                           Func<TSource, float?> selector)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 var partialResults = source.ExtendParallelPipeline(x => AsEnumerable(x.Sum(selector)), false);
                 float sum = 0;
@@ -2619,7 +2619,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         public static double Sum<TSource>(IEnumerable<TSource> source,
                                           Func<TSource, double> selector)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 var partialResults = source.ExtendParallelPipeline(x => AsEnumerable(x.Sum(selector)), false);
                 double sum = 0;
@@ -2638,7 +2638,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         public static double? Sum<TSource>(IEnumerable<TSource> source,
                                            Func<TSource, double?> selector)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 var partialResults = source.ExtendParallelPipeline(x => AsEnumerable(x.Sum(selector)), false);
                 double sum = 0;
@@ -2660,7 +2660,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         public static decimal Sum<TSource>(IEnumerable<TSource> source,
                                            Func<TSource, decimal> selector)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 var partialResults = source.ExtendParallelPipeline(x => AsEnumerable(x.Sum(selector)), false);
                 decimal sum = 0;
@@ -2679,7 +2679,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         public static decimal? Sum<TSource>(IEnumerable<TSource> source,
                                             Func<TSource, decimal?> selector)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 var partialResults = source.ExtendParallelPipeline(x => AsEnumerable(x.Sum(selector)), false);
                 decimal sum = 0;
@@ -2726,7 +2726,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         // Operator: Min
         public static AggregateValue<int> Min(IEnumerable<int> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<int> pipe = source as IParallelPipeline<int>;
                 if (pipe == null)
@@ -2787,7 +2787,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static int? Min(IEnumerable<int?> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<int?> pipe = source as IParallelPipeline<int?>;
                 if (pipe == null)
@@ -2814,7 +2814,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static AggregateValue<long> Min(IEnumerable<long> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<long> pipe = source as IParallelPipeline<long>;
                 if (pipe == null)
@@ -2878,7 +2878,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static long? Min(IEnumerable<long?> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<long?> pipe = source as IParallelPipeline<long?>;
                 if (pipe == null)
@@ -2905,7 +2905,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static AggregateValue<float> Min(IEnumerable<float> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<float> pipe = source as IParallelPipeline<float>;
                 if (pipe == null)
@@ -2969,7 +2969,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static float? Min(IEnumerable<float?> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<float?> pipe = source as IParallelPipeline<float?>;
                 if (pipe == null)
@@ -2996,7 +2996,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static AggregateValue<double> Min(IEnumerable<double> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<double> pipe = source as IParallelPipeline<double>;
                 if (pipe == null)
@@ -3060,7 +3060,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static double? Min(IEnumerable<double?> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<double?> pipe = source as IParallelPipeline<double?>;
                 if (pipe == null)
@@ -3087,7 +3087,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static AggregateValue<decimal> Min(IEnumerable<decimal> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<decimal> pipe = source as IParallelPipeline<decimal>;
                 if (pipe == null)
@@ -3151,7 +3151,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static decimal? Min(IEnumerable<decimal?> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<decimal?> pipe = source as IParallelPipeline<decimal?>;
                 if (pipe == null)
@@ -3178,7 +3178,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static AggregateValue<TSource> Min<TSource>(IEnumerable<TSource> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<TSource> pipe = source as IParallelPipeline<TSource>;
                 IEnumerable<AggregateValue<TSource>> partialResults;
@@ -3381,7 +3381,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         // Operator: Max
         public static AggregateValue<int> Max(IEnumerable<int> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<int> pipe = source as IParallelPipeline<int>;
                 if (pipe == null)
@@ -3439,7 +3439,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static int? Max(IEnumerable<int?> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<int?> pipe = source as IParallelPipeline<int?>;
                 if (pipe == null)
@@ -3466,7 +3466,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static AggregateValue<long> Max(IEnumerable<long> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<long> pipe = source as IParallelPipeline<long>;
                 if (pipe == null)
@@ -3524,7 +3524,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static long? Max(IEnumerable<long?> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<long?> pipe = source as IParallelPipeline<long?>;
                 if (pipe == null)
@@ -3551,7 +3551,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static AggregateValue<double> Max(IEnumerable<double> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<double> pipe = source as IParallelPipeline<double>;
                 if (pipe == null)
@@ -3612,7 +3612,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static double? Max(IEnumerable<double?> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<double?> pipe = source as IParallelPipeline<double?>;
                 if (pipe == null)
@@ -3639,7 +3639,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static AggregateValue<float> Max(IEnumerable<float> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<float> pipe = source as IParallelPipeline<float>;
                 if (pipe == null)
@@ -3700,7 +3700,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static float? Max(IEnumerable<float?> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<float?> pipe = source as IParallelPipeline<float?>;
                 if (pipe == null)
@@ -3727,7 +3727,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static AggregateValue<decimal> Max(IEnumerable<decimal> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<decimal> pipe = source as IParallelPipeline<decimal>;
                 if (pipe == null)
@@ -3785,7 +3785,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static decimal? Max(IEnumerable<decimal?> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<decimal?> pipe = source as IParallelPipeline<decimal?>;
                 if (pipe == null)
@@ -3812,7 +3812,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static AggregateValue<TSource> Max<TSource>(IEnumerable<TSource> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<TSource> pipe = source as IParallelPipeline<TSource>;
                 IEnumerable<AggregateValue<TSource>> partialResults;
@@ -4015,7 +4015,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         // Operator: Average        
         public static AggregateValue<long> Average(IEnumerable<int> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<int> pipe = source as IParallelPipeline<int>;
                 if (pipe == null)
@@ -4076,7 +4076,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static AggregateValue<long?> Average(IEnumerable<int?> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<int?> pipe = source as IParallelPipeline<int?>;
                 if (pipe != null)
@@ -4137,7 +4137,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         
         public static AggregateValue<long> Average(IEnumerable<long> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<long> pipe = source as IParallelPipeline<long>;
                 if (pipe == null)
@@ -4179,7 +4179,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         
         public static AggregateValue<long?> Average(IEnumerable<long?> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<long?> pipe = source as IParallelPipeline<long?>;
                 if (pipe != null)
@@ -4224,7 +4224,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static AggregateValue<double> Average(IEnumerable<float> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<float> pipe = source as IParallelPipeline<float>;
                 if (pipe == null)
@@ -4262,7 +4262,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static AggregateValue<double?> Average(IEnumerable<float?> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<float?> pipe = source as IParallelPipeline<float?>;
                 if (pipe != null)
@@ -4306,7 +4306,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static AggregateValue<double> Average(IEnumerable<double> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<double> pipe = source as IParallelPipeline<double>;
                 if (pipe == null)
@@ -4361,7 +4361,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static AggregateValue<double?> Average(IEnumerable<double?> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<double?> pipe = source as IParallelPipeline<double?>;
                 if (pipe != null)
@@ -4416,7 +4416,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static AggregateValue<decimal> Average(IEnumerable<decimal> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<decimal> pipe = source as IParallelPipeline<decimal>;
                 if (pipe == null)
@@ -4471,7 +4471,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         public static AggregateValue<decimal?> Average(IEnumerable<decimal?> source)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 IParallelPipeline<decimal?> pipe = source as IParallelPipeline<decimal?>;
                 if (pipe != null)
@@ -4651,7 +4651,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         public static bool Any<TSource>(IEnumerable<TSource> source,
                                              Func<TSource, bool> predicate)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 var partialResults = source.ExtendParallelPipeline(x => AsEnumerable(x.Any(predicate)), false);
                 foreach (bool item in partialResults)
@@ -4679,7 +4679,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         public static bool All<TSource>(IEnumerable<TSource> source,
                                              Func<TSource, bool> predicate)
         {
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 var partialResults = source.ExtendParallelPipeline(x => AsEnumerable(x.All(predicate)), false);
                 foreach (bool item in partialResults)
@@ -4752,6 +4752,30 @@ namespace Microsoft.Research.DryadLinq.Internal
             return procFunc(source, otherSources);
         }
 
+        public static IEnumerable<TSource>
+            Apply<TSource>(IEnumerable<TSource> source,
+                           Func<Stream, IEnumerable<TSource>> procFunc)
+        {
+            DryadLinqVertexReader<TSource> sourceReader = source as DryadLinqVertexReader<TSource>;
+            if (sourceReader == null)
+            {
+                throw new DryadLinqException("Internal error: Source must be of type DistributedLinqVertexReader.");
+            }
+            Stream inputStream = sourceReader.InputStream;
+            return procFunc(inputStream);
+        }
+
+        public static void
+            Apply<TSource>(IEnumerable<TSource> source,
+                           Action<IEnumerable<TSource>, Stream> procFunc,
+                           DryadLinqVertexWriter<TSource> sink)
+        {
+            Stream outputStream = sink.OutputStream;
+            procFunc(source, outputStream);
+            outputStream.Close();
+            sink.CloseWriters();
+        }
+
         public static IEnumerable<TResult>
             PApply<TSource, TResult>(this IEnumerable<TSource> source,
                                      Func<IEnumerable<TSource>, IEnumerable<TResult>> procFunc,
@@ -4809,7 +4833,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                          IEqualityComparer<TKey> comparer,
                                          DryadLinqVertexWriter<TSource> sink)
         {
-            if (s_multiThreading && isExpensive)
+            if (ThreadCount > 1 && isExpensive)
             {
                 var source1 = source.ExtendParallelPipeline(s => s.Select(x => new Pair<TKey, TSource>(keySelector(x), x)), true);
                 HashPartition(source1, x => x.Key, comparer, x => x.Value, sink);
@@ -4849,7 +4873,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                                   Func<TSource, TResult> resultSelector,
                                                   DryadLinqVertexWriter<TResult> sink)
         {
-            if (s_multiThreading && isExpensive)
+            if (ThreadCount > 1 && isExpensive)
             {
                 var source1 = source.ExtendParallelPipeline(s => s.Select(x => new Pair<TKey, TResult>(keySelector(x), resultSelector(x))), true);
                 HashPartition(source1, x => x.Key, comparer, x => x.Value, sink);
@@ -4920,7 +4944,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                 Array.Copy(keys, keys1, idx);
                 keys = keys1;
             }
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 var source1 = source.ExtendParallelPipeline(
                                     s => s.Select(x => new Pair<int, TSource>(DryadLinqUtil.BinarySearch(keys, x, comparer, isDescending), x)), false);
@@ -4978,7 +5002,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                 Array.Copy(keys, keys1, idx);
                 keys = keys1;
             }
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 var source1 = source.ExtendParallelPipeline(
                                     s => s.Select(x => new Pair<int, TResult>(
@@ -5040,7 +5064,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                 Array.Copy(keys, keys1, idx);
                 keys = keys1;
             }
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 var source1 = source.ExtendParallelPipeline(
                                     s => s.Select(x => new Pair<int, TSource>(
@@ -5103,7 +5127,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                 Array.Copy(keys, keys1, idx);
                 keys = keys1;
             }
-            if (s_multiThreading)
+            if (ThreadCount > 1)
             {
                 var source1 = source.ExtendParallelPipeline(
                                     s => s.Select(x => new Pair<int, TResult>(
@@ -5133,8 +5157,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                                            DryadLinqVertexWriter<R1> sink1,
                                            DryadLinqVertexWriter<R2> sink2)
         {
-            DryadLinqRecordWriter<R1> writer1 = sink1.GetWriter(0);
-            DryadLinqRecordWriter<R2> writer2 = sink2.GetWriter(0);
+            DryadLinqRecordWriter<R1> writer1 = sink1.GetRecordWriter(0);
+            DryadLinqRecordWriter<R2> writer2 = sink2.GetRecordWriter(0);
         
             IEnumerable<ForkTuple<R1, R2>> result = mapper(source);
             foreach (ForkTuple<R1, R2> val in result)
@@ -5159,9 +5183,9 @@ namespace Microsoft.Research.DryadLinq.Internal
                                                DryadLinqVertexWriter<R2> sink2,
                                                DryadLinqVertexWriter<R3> sink3)
         {
-            DryadLinqRecordWriter<R1> writer1 = sink1.GetWriter(0);
-            DryadLinqRecordWriter<R2> writer2 = sink2.GetWriter(0);
-            DryadLinqRecordWriter<R3> writer3 = sink3.GetWriter(0);
+            DryadLinqRecordWriter<R1> writer1 = sink1.GetRecordWriter(0);
+            DryadLinqRecordWriter<R2> writer2 = sink2.GetRecordWriter(0);
+            DryadLinqRecordWriter<R3> writer3 = sink3.GetRecordWriter(0);
         
             IEnumerable<ForkTuple<R1, R2, R3>> result = mapper(source);
             foreach (ForkTuple<R1, R2, R3> val in result)
@@ -5190,8 +5214,8 @@ namespace Microsoft.Research.DryadLinq.Internal
                                            DryadLinqVertexWriter<R1> sink1,
                                            DryadLinqVertexWriter<R2> sink2)
         {
-            DryadLinqRecordWriter<R1> writer1 = sink1.GetWriter(0);
-            DryadLinqRecordWriter<R2> writer2 = sink2.GetWriter(0);
+            DryadLinqRecordWriter<R1> writer1 = sink1.GetRecordWriter(0);
+            DryadLinqRecordWriter<R2> writer2 = sink2.GetRecordWriter(0);
         
             IEnumerable<ForkTuple<R1, R2>>
                 result = source.ExtendParallelPipeline(s => s.Select(mapper), orderPreserving);
@@ -5218,9 +5242,9 @@ namespace Microsoft.Research.DryadLinq.Internal
                                                DryadLinqVertexWriter<R2> sink2,
                                                DryadLinqVertexWriter<R3> sink3)
         {
-            DryadLinqRecordWriter<R1> writer1 = sink1.GetWriter(0);
-            DryadLinqRecordWriter<R2> writer2 = sink2.GetWriter(0);
-            DryadLinqRecordWriter<R3> writer3 = sink3.GetWriter(0);
+            DryadLinqRecordWriter<R1> writer1 = sink1.GetRecordWriter(0);
+            DryadLinqRecordWriter<R2> writer2 = sink2.GetRecordWriter(0);
+            DryadLinqRecordWriter<R3> writer3 = sink3.GetRecordWriter(0);
         
             IEnumerable<ForkTuple<R1, R2, R3>>
                 result = source.ExtendParallelPipeline(s => s.Select(mapper), orderPreserving);
@@ -5263,7 +5287,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             DryadLinqRecordWriter<T>[] writers = new DryadLinqRecordWriter<T>[keys.Length];
             for (int i = 0; i < writers.Length; i++)
             {
-                writers[i] = sinks[i].GetWriter(0);
+                writers[i] = sinks[i].GetRecordWriter(0);
             }
             foreach (T item in source)
             {
@@ -5413,7 +5437,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                 this.m_stealingWorkerCnt = 0;
                 this.m_stealingQueue = new BlockingCollection<TResult[]>();
                 this.m_workerException = null;
-                this.m_workers = new Task[Environment.ProcessorCount];
+                this.m_workers = new Task[DryadLinqVertex.ThreadCount];
                 this.m_queues = new BlockingCollection<TSource[]>[this.m_workers.Length];
                 for (int i = 0; i < this.m_queues.Length; i++)
                 {
@@ -5773,7 +5797,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
                 this.m_isDone = false;
                 this.m_workerException = null;
-                this.m_workers = new Task[Environment.ProcessorCount];
+                this.m_workers = new Task[DryadLinqVertex.ThreadCount];
                 this.m_queues = new BlockingCollection<TSource[]>[this.m_workers.Length];
                 for (int i = 0; i < this.m_queues.Length; i++)
                 {
@@ -6111,7 +6135,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                 this.m_stealingWorkerCnt = 0;
                 this.m_stealingQueue = new BlockingCollection<Pair<TKey, TResult>[]>();
                 this.m_workerException = null;
-                this.m_workers = new Task[Environment.ProcessorCount];
+                this.m_workers = new Task[DryadLinqVertex.ThreadCount];
                 this.m_queues = new BlockingCollection<TSource[]>[this.m_workers.Length];
                 for (int i = 0; i < this.m_queues.Length; i++)
                 {
@@ -6791,7 +6815,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                 this.m_stealingWorkerCnt = 0;
                 this.m_stealingQueue = new BlockingCollection<TResult[]>();
                 this.m_workerException = null;
-                Int32 wlen = Environment.ProcessorCount;
+                Int32 wlen = DryadLinqVertex.ThreadCount;
                 this.m_workers = new Task[wlen];
                 this.m_outerQueues = new BlockingCollection<TOuter[]>[wlen];
                 this.m_innerQueues = new BlockingCollection<TInner[]>[wlen];
@@ -7390,7 +7414,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                 this.m_stealingWorkerCnt = 0;
                 this.m_stealingQueue = new BlockingCollection<TResult[]>();
                 this.m_workerException = null;
-                this.m_workers = new Task[Environment.ProcessorCount];
+                this.m_workers = new Task[DryadLinqVertex.ThreadCount];
                 this.m_outerQueues = new BlockingCollection<TOuter[]>[this.m_workers.Length];
                 this.m_innerQueues = new BlockingCollection<TInner[]>[this.m_workers.Length];
                 for (int i = 0; i < this.m_outerQueues.Length; i++)
@@ -7853,7 +7877,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                 this.m_isDone = false;
                 this.m_stealingWorkerCnt = 0;
                 this.m_stealingQueue = new BlockingCollection<TSource[]>();
-                this.m_workers = new Task[Environment.ProcessorCount];
+                this.m_workers = new Task[DryadLinqVertex.ThreadCount];
                 this.m_queues = new BlockingCollection<TSource[]>[this.m_workers.Length];
                 for (int i = 0; i < this.m_queues.Length; i++)
                 {
@@ -8687,7 +8711,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                 this.m_isDone = false;
                 this.m_workerException = null;
                 this.m_resultQueue = new BlockingCollection<List<TFinal>>(2);
-                this.m_workers = new Task[2 * Environment.ProcessorCount];
+                this.m_workers = new Task[2 * DryadLinqVertex.ThreadCount];
                 this.m_events = new ManualResetEvent[this.m_workers.Length];
                 this.m_workerResLists = new List<TFinal>[this.m_workers.Length];
                 for (int i = 0; i < this.m_events.Length; i++)
@@ -9032,7 +9056,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                 this.m_isDone = false;
                 this.m_workerException = null;
                 this.m_resultQueue = new BlockingCollection<List<TFinal>>(2);
-                this.m_workers = new Task[2 * Environment.ProcessorCount];
+                this.m_workers = new Task[2 * DryadLinqVertex.ThreadCount];
                 this.m_events = new ManualResetEvent[this.m_workers.Length];
                 this.m_workerResLists = new List<TFinal>[this.m_workers.Length];
                 for (int i = 0; i < this.m_events.Length; i++)
@@ -9376,7 +9400,7 @@ namespace Microsoft.Research.DryadLinq.Internal
 
                 this.m_isDone = false;
                 this.m_sorterException = null;
-                this.m_sortWorkers = new Task[Environment.ProcessorCount];
+                this.m_sortWorkers = new Task[DryadLinqVertex.ThreadCount];
                 this.m_sourceQueue = new BlockingCollection<TElement[]>(4);
 
                 this.m_mergeSortWorkers = new List<Task>(8);
@@ -10210,7 +10234,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                 this.m_orderPreserving = parent.m_orderPreserving;
                 this.m_isDone = false;
                 this.m_workerException = null;
-                this.m_workers = new Task[Environment.ProcessorCount];
+                this.m_workers = new Task[DryadLinqVertex.ThreadCount];
                 this.m_maxQueueSize = Math.Max(4, this.m_workers.Length);
                 this.m_sourceQueue = new BlockingCollection<Pair<TSource[], Wrapper<TResult[]>>>(this.m_maxQueueSize);
                 this.m_resultQueue = new BlockingCollection<Wrapper<TResult[]>>(this.m_workers.Length*2);
@@ -10772,7 +10796,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             T rec = default(T);
             try
             {
-                if (DryadLinqVertex.s_multiThreading)
+                if (DryadLinqVertex.ThreadCount > 1)
                 {
                     this.m_reader.StartWorker();
                     while (this.m_reader.ReadRecordAsync(ref rec))

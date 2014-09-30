@@ -138,6 +138,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             s_BuiltinTypeToSerializerName.Add(typeof(string), "StringDryadLinqSerializer");
             s_BuiltinTypeToSerializerName.Add(typeof(Guid), "GuidDryadLinqSerializer");
             s_BuiltinTypeToSerializerName.Add(typeof(SqlDateTime), "SqlDateTimeDryadLinqSerializer");
+            s_BuiltinTypeToSerializerName.Add(typeof(LineRecord), "LineRecordDryadLinqSerializer");            
 
             // Initialize the mapping from type to its factory
             s_TypeToFactory = new Dictionary<Type, object>(20);
@@ -1901,8 +1902,7 @@ namespace Microsoft.Research.DryadLinq.Internal
             CodeExpression arg1 = new CodeArgumentReferenceExpression("args");
             CodeExpression arg2 = new CodeArgumentReferenceExpression(VertexParamName);
             
-            CodeExpression 
-                denvInitExpr = new CodeObjectCreateExpression("VertexEnv", arg1, arg2);
+            CodeExpression denvInitExpr = new CodeObjectCreateExpression("VertexEnv", arg1, arg2);
             return new CodeVariableDeclarationStatement("VertexEnv", VertexEnvName, denvInitExpr);
         }
 
@@ -1940,7 +1940,6 @@ namespace Microsoft.Research.DryadLinq.Internal
                 CodeMethodInvokeExpression debuggerCheckExpr = new CodeMethodInvokeExpression(
                         new CodeMethodReferenceExpression(new CodeTypeReferenceExpression(HelperClassName), 
                                                           DebugHelperMethodName));
-
                 vertexMethod.Statements.Add(new CodeExpressionStatement(debuggerCheckExpr));
             }
             
@@ -1971,14 +1970,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                 vertexMethod.Statements.Add(new CodeExpressionStatement(setParamsExpr));
             }
             
-            // Push the parallel-code settings into DryadLinqVertex
-            bool multiThreading = this.m_context.EnableMultiThreadingInVertex;
-            vertexMethod.Statements.Add(SetVertexParamField("MultiThreading", multiThreading));
-            vertexMethod.Statements.Add(
-                  new CodeAssignStatement(
-                     new CodeFieldReferenceExpression(DLVTypeExpr, "s_multiThreading"),
-                     new CodePrimitiveExpression(multiThreading)));
-                                                                 
+            // Initialize vertex env:                                        
             vertexMethod.Statements.Add(MakeVertexEnvDecl(node));
 
             Type[] outputTypes = node.OutputTypes;
@@ -2122,7 +2114,7 @@ namespace Microsoft.Research.DryadLinq.Internal
                                     pipeline[pipeline.Length - 1].OutputDataSetInfo.orderByInfo.IsOrdered);
 
             CodeExpression applyExpr;
-            if (this.m_context.EnableMultiThreadingInVertex)
+            if (this.m_context.ThreadsPerWorker > 1)
             {
                 applyExpr = new CodeMethodInvokeExpression(
                                           DryadLinqCodeGen.DLVTypeExpr,

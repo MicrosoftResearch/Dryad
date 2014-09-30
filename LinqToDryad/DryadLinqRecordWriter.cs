@@ -271,6 +271,11 @@ namespace Microsoft.Research.DryadLinq.Internal
             this.m_writer = writer;
         }
 
+        public DryadLinqBinaryWriter BinaryWriter
+        {
+            get { return this.m_writer; }
+        }
+
         public override Int64 Length
         {
             get { return this.m_writer.Length; }

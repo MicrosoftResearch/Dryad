@@ -31,6 +31,14 @@ using Microsoft.Research.Peloponnese.NotHttpClient;
 
 namespace Microsoft.Research.Dryad.ProcessService
 {
+    internal class ConfigDependency : Microsoft.Research.Peloponnese.Shared.AssemblyDependencyAttribute
+    {
+        public ConfigDependency()
+            : base("Microsoft.Research.Dryad.ProcessService.exe.config", false)
+        {
+        }
+    }
+
     class Service
     {
         static private Guid jobGuid;

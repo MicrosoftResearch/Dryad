@@ -73,37 +73,37 @@ namespace Microsoft.Research.DryadLinq.Internal
         internal static extern bool GlobalMemoryStatusEx(ref MEMORYSTATUSEX lpBuffer);
 
         /* Dryad native API */
-        [DllImport("DryadLinqNativeChannels.dll", SetLastError=true)]
+        [DllImport("Microsoft.Research.Dryad.DryadLinq.NativeWrapper.dll", SetLastError = true)]
         internal static extern UInt32 GetNumOfInputs(IntPtr vertexInfo);
 
-        [DllImport("DryadLinqNativeChannels.dll", SetLastError=true)]
+        [DllImport("Microsoft.Research.Dryad.DryadLinq.NativeWrapper.dll", SetLastError = true)]
         internal static extern UInt32 GetNumOfOutputs(IntPtr vertexInfo);
 
-        [DllImport("DryadLinqNativeChannels.dll", SetLastError=true)]
+        [DllImport("Microsoft.Research.Dryad.DryadLinq.NativeWrapper.dll", SetLastError = true)]
         internal static extern void Flush(IntPtr vertexInfo, UInt32 portNum);
 
-        [DllImport("DryadLinqNativeChannels.dll", SetLastError=true)]
+        [DllImport("Microsoft.Research.Dryad.DryadLinq.NativeWrapper.dll", SetLastError = true)]
         internal static extern void Close(IntPtr vertexInfo, UInt32 portNum);
 
         // Get the expected size in bytes of the input channel of the given port. 
         // It returns -1 if the size is unknown.        
-        [DllImport("DryadLinqNativeChannels.dll", SetLastError=true)]
+        [DllImport("Microsoft.Research.Dryad.DryadLinq.NativeWrapper.dll", SetLastError = true)]
         internal static extern Int64 GetExpectedLength(IntPtr vertexInfo, UInt32 portNum);
 
         // Get the global vertex id which is unique.
-        [DllImport("DryadLinqNativeChannels.dll", SetLastError = true)]
+        [DllImport("Microsoft.Research.Dryad.DryadLinq.NativeWrapper.dll", SetLastError = true)]
         internal static extern Int64 GetVertexId(IntPtr vertexInfo);
        
         // Set the hint size for the output channel of the given port.        
-        [DllImport("DryadLinqNativeChannels.dll", SetLastError = true)]
+        [DllImport("Microsoft.Research.Dryad.DryadLinq.NativeWrapper.dll", SetLastError = true)]
         internal static extern void SetInitialSizeHint(IntPtr vertexInfo, UInt32 portNum, UInt64 hint);
 
         // Get the URI of the input channel of the given port. 
-        [DllImport("DryadLinqNativeChannels.dll", SetLastError=true)]
+        [DllImport("Microsoft.Research.Dryad.DryadLinq.NativeWrapper.dll", SetLastError = true)]
         internal static extern IntPtr GetInputChannelURI(IntPtr vertexInfo, UInt32 portNum);
 
         // Get the URI of the output channel of the given port. 
-        [DllImport("DryadLinqNativeChannels.dll", SetLastError=true)]
+        [DllImport("Microsoft.Research.Dryad.DryadLinq.NativeWrapper.dll", SetLastError = true)]
         internal static extern IntPtr GetOutputChannelURI(IntPtr vertexInfo, UInt32 portNum);
         
         // Read the data block from the channel of the specified port number.
@@ -113,7 +113,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         // The caller is considered to be the exclusive owner of this data
         // block. This data block will not be reclaimed until the caller
         // explicitly releases it.
-        [DllImport("DryadLinqNativeChannels.dll", SetLastError=true)]
+        [DllImport("Microsoft.Research.Dryad.DryadLinq.NativeWrapper.dll", SetLastError = true)]
         internal unsafe static extern IntPtr ReadDataBlock(IntPtr vertexInfo,
                                                            UInt32 portNum,
                                                            byte** pDataBlock,
@@ -125,7 +125,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         // The data block should be considered read-only after WriteDataBlock
         // has been called. This data block will not be reclaimed until the
         // client explicitly releases it.
-        [DllImport("DryadLinqNativeChannels.dll", SetLastError = true)]
+        [DllImport("Microsoft.Research.Dryad.DryadLinq.NativeWrapper.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal unsafe static extern bool WriteDataBlock(IntPtr vertexInfo,
                                                           UInt32 portNum,
@@ -134,13 +134,13 @@ namespace Microsoft.Research.DryadLinq.Internal
 
         // Allocate a native Dryad data block with specified size. This data
         // block will not be reclaimed until the client explicitly releases it.
-        [DllImport("DryadLinqNativeChannels.dll", SetLastError=true)]
+        [DllImport("Microsoft.Research.Dryad.DryadLinq.NativeWrapper.dll", SetLastError = true)]
         internal unsafe static extern IntPtr AllocateDataBlock(IntPtr vertexInfo,
                                                                Int32 size,
                                                                byte** pDataBlock);
 
         // Release the data block. The client should not access it again after releasing.
-        [DllImport("DryadLinqNativeChannels.dll", SetLastError=true)]
+        [DllImport("Microsoft.Research.Dryad.DryadLinq.NativeWrapper.dll", SetLastError = true)]
         internal unsafe static extern void ReleaseDataBlock(IntPtr vertexInfo, IntPtr itemHandle);      
     }
 }

@@ -19,8 +19,6 @@ limitations under the License.
 
 */
 
-#undef USE_LINQ_TO_DRYAD
-#undef USE_HPC
 
 using System;
 using System.Collections.Generic;
@@ -661,6 +659,13 @@ namespace Microsoft.Research.JobObjectModel
         }
 
         /// <summary>
+        /// Sometimes the StreamReader can read a partial line only.
+        /// We cache here the previously read line and if it looks like the current line is just a fragment, then we concatentate it
+        /// to the previous line.  The line is a fragment if it does not start with 'logtimelocal'.
+        /// </summary>
+        private string previousLine = "";
+
+        /// <summary>
         /// New JM stdout parsing code, for YARN-based DryadLINQ.
         /// </summary>
         /// <param name="line">Line to parse.</param>
@@ -668,6 +673,17 @@ namespace Microsoft.Research.JobObjectModel
         private bool ParseStdoutLineNew(string line)
         {
             if (string.IsNullOrWhiteSpace(line)) return true;
+            // The line should start with logtimelocal, otherwise it's probably a fragment of the previous line
+            this.previousLine += line;
+            
+            if (!(line.EndsWith("\r") || line.EndsWith("\n")))
+            {
+                // line is incomplete, return now, parse later
+                return true;
+            }
+
+            line = this.previousLine.Trim();
+            this.previousLine = "";
 
             Dictionary<string, string> kvp = Utilities.ParseCSVKVP(line);
             if (kvp == null) return false;
@@ -848,7 +864,7 @@ namespace Microsoft.Research.JobObjectModel
                         ExecutedVertexInstance vi = this.jobVertices.FindVertex(number, version);
 
                         long totalRead = TryGetNumeric(kvp, "totalRead");
-                        long tempRead = TryGetNumeric(kvp, "tempRead");
+                        //long tempRead = TryGetNumeric(kvp, "tempRead");
                         long tempReadInRack = TryGetNumeric(kvp, "tempReadInRack");
                         long tempReadCrossRack = TryGetNumeric(kvp, "tempReadCrossRack");
                         long localRead = TryGetNumeric(kvp, "localRead");
@@ -1456,7 +1472,7 @@ namespace Microsoft.Research.JobObjectModel
                 manager.Status(message, StatusKind.LongOp);
 
                 if (this.cachedStdoutReader == null)
-                    this.cachedStdoutReader = file.GetStream();
+                    this.cachedStdoutReader = file.GetStream(true);
                 if (this.cachedStdoutReader.Exception != null)
                 {
                     manager.Status("Exception while opening stdout " + this.cachedStdoutReader.Exception.Message, StatusKind.Error);
@@ -1472,11 +1488,15 @@ namespace Microsoft.Research.JobObjectModel
                         while (true)
                         {
                             manager.Token.ThrowIfCancellationRequested();
-                            int startLine = currentLine;
                             bool completeLine = true;
                             try
                             {
-                                completeLine = this.ParseStdoutLineNew(line);
+                                if (this.ClusterConfiguration is DfsClusterConfiguration)
+                                    completeLine = this.ParseStdoutLineNew(line);
+                                else
+                                {
+                                    this.ParseStdoutLine(line);
+                                }
                             }
                             catch (Exception ex)
                             {
@@ -1486,9 +1506,8 @@ namespace Microsoft.Research.JobObjectModel
                             if (!completeLine)
                             {
                                 if (this.cachedStdoutReader.EndOfStream)
-                                {
-                                    throw new Exception("File ended while scanning for closing quote started on line " + startLine);
-                                }
+                                    // no exception, the log may be truncated
+                                    break;
 
                                 string extraline = this.cachedStdoutReader.ReadLine();
                                 line += "\n" + extraline;
@@ -1599,7 +1618,7 @@ namespace Microsoft.Research.JobObjectModel
         {
             bool success = true;
 
-            ISharedStreamReader sr = logfile.GetStream();
+            ISharedStreamReader sr = logfile.GetStream(false);
             if (sr.Exception != null)
             {
                 statusReporter("Exception while opening file " + logfile + ":" + sr.Exception.Message, StatusKind.Error);
@@ -2042,7 +2061,7 @@ namespace Microsoft.Research.JobObjectModel
             {
                 DryadJobStaticPlan retval;
                 {
-                    retval = new DryadLinqJobStaticPlan(config, file.GetStream());
+                    retval = new DryadLinqJobStaticPlan(config, file.GetStream(false));
                 }
                 retval.ParseQueryPlan(manager);
                 return retval;
@@ -2723,7 +2742,7 @@ namespace Microsoft.Research.JobObjectModel
             {
                 uri = uri.Substring(0, option);
             }
-            this.LocalPath = uri.Substring(sepindex + 3);
+            this.LocalPath = uri.Substring(sepindex + 3).Trim();
 
             if (uripathprefix != null) {
                 // Unfortunately the uri is absolute, although it should be relative sometimes. We fix this here.
@@ -3293,7 +3312,7 @@ namespace Microsoft.Research.JobObjectModel
             if (this.InputChannels != null)
                 // skip discovery
                 inputs = false;
-            ISharedStreamReader sr = this.WorkDirectory.GetFile(filename).GetStream();
+            ISharedStreamReader sr = this.WorkDirectory.GetFile(filename).GetStream(false);
             var channels = this.DiscoverOriginalInfoChannels(sr, null, !inputs, fast, manager);
             if (channels == null)
             {
@@ -3336,7 +3355,7 @@ namespace Microsoft.Research.JobObjectModel
                 manager.Status("Cannot locate vcmdStart*.xml file", StatusKind.Error);
                 return false;
             }
-            ISharedStreamReader sr = files.First().GetStream();
+            ISharedStreamReader sr = files.First().GetStream(false);
             if (sr.Exception != null)
             {
                 manager.Status("Error reading vcmdStart*.xml file" + sr.Exception.Message, StatusKind.Error);
