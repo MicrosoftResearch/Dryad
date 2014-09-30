@@ -14,6 +14,8 @@
   <HelpKINode Title="AllAsQuery(Of TSource) method" Url="html/e15e3251-3443-58ca-7e56-f1a9abf0e18e.htm" />
   <HelpKINode Title="AllAsQuery&lt;TSource&gt; method" Url="html/e15e3251-3443-58ca-7e56-f1a9abf0e18e.htm" />
   <HelpKINode Title="AnyAsQuery method" Url="html/65e4aa00-0ceb-92d0-9f0f-653938c30ace.htm" />
+  <HelpKINode Title="ApplicationMasterMbMemory field" Url="html/045739fc-900a-0647-6ee9-005cc06c4db8.htm" />
+  <HelpKINode Title="ApplicationMasterMbMemory property" Url="html/25e3b8ac-9907-f139-a815-86fa8126f1e9.htm" />
   <HelpKINode Title="Apply method" Url="html/b3becad6-86fb-857e-5ee5-295a2d23b663.htm" />
   <HelpKINode Title="ApplyPerPartition method" Url="html/072ffb1e-75fa-7aa1-fb37-b34393ddcab4.htm" />
   <HelpKINode Title="ApplyWithPartitionIndex(Of T1, T2) method" Url="html/a88c1234-7c0c-d694-11e5-b47c155fdc94.htm" />
@@ -39,14 +41,19 @@
   <HelpKINode Title="CheckExistence method" Url="html/7957fe73-07cf-2939-6e5e-a974e62adae3.htm" />
   <HelpKINode Title="CheckOrderBy(Of TSource, TKey) method" Url="html/895403fc-6f72-5cdc-76c0-ec7fdd32d923.htm" />
   <HelpKINode Title="CheckOrderBy&lt;TSource, TKey&gt; method" Url="html/895403fc-6f72-5cdc-76c0-ec7fdd32d923.htm" />
-  <HelpKINode Title="Client method" Url="html/7f734680-4cdf-d557-8034-45cff61afcbc.htm" />
+  <HelpKINode Title="Client method">
+    <HelpKINode Title="DryadLinqCluster.Client Method " Url="html/7f734680-4cdf-d557-8034-45cff61afcbc.htm" />
+    <HelpKINode Title="DryadLinqYarnCluster.Client Method " Url="html/c0fa415f-11af-d518-039b-836bb927b059.htm" />
+  </HelpKINode>
   <HelpKINode Title="ClientVersion method" Url="html/c441f14e-35fd-3f66-3e98-95bba06f8461.htm" />
   <HelpKINode Title="CompareTo method" Url="html/62af3731-c551-19e3-10bc-dab7b3edc7ed.htm" />
   <HelpKINode Title="CompileForVertexDebugging property" Url="html/06266f74-a819-017c-e03f-0f9761a28c52.htm" />
   <HelpKINode Title="CompressionScheme enumeration" Url="html/9266635e-c3ea-7e66-528b-f44b55a2daca.htm" />
+  <HelpKINode Title="ContainerMbMemory field" Url="html/41f865bc-de23-4aae-196c-dda45bb72b04.htm" />
+  <HelpKINode Title="ContainerMbMemory property" Url="html/7984e7d4-74ac-4faf-636f-d66a05ceb98d.htm" />
   <HelpKINode Title="ContainsAsQuery method" Url="html/79406ffb-6664-636a-bd34-d80965d38172.htm" />
   <HelpKINode Title="CountAsQuery method" Url="html/b26b8681-c9eb-e216-6c54-d34454d3dd80.htm" />
-  <HelpKINode Title="Critical enumeration member" Url="html/7f48283a-3fd5-7bf1-1b43-e0164f893f54.htm" />
+  <HelpKINode Title="Critical enumeration member" Url="html/0bebfe2a-dcec-f4bd-c2e6-0754204f4192.htm" />
   <HelpKINode Title="CrossProduct(Of T1, T2, T3) method" Url="html/d5302869-185b-30a0-e61a-0b95888c6be9.htm" />
   <HelpKINode Title="CrossProduct&lt;T1, T2, T3&gt; method" Url="html/d5302869-185b-30a0-e61a-0b95888c6be9.htm" />
   <HelpKINode Title="CustomDryadLinqSerializerAttribute class">
@@ -71,11 +78,9 @@
   <HelpKINode Title="DataProvider.GetMetaData method" Url="html/03212629-8351-bc14-0918-ef18541c60f6.htm" />
   <HelpKINode Title="DataProvider.GetStreamInfo method" Url="html/e491d2f3-4406-ba06-33ac-287ada771687.htm" />
   <HelpKINode Title="DataProvider.GetTemporaryStreamUri method" Url="html/893d5450-6706-1bac-214f-1be575dcb4a9.htm" />
-  <HelpKINode Title="DataProvider.Ingress(Of T) method" Url="html/3bf58a6c-aa87-cb1f-9aea-1c3c59c898d1.htm" />
-  <HelpKINode Title="DataProvider.Ingress&lt;T&gt; method" Url="html/3bf58a6c-aa87-cb1f-9aea-1c3c59c898d1.htm" />
+  <HelpKINode Title="DataProvider.Ingress(Of T) method" Url="html/732ee21c-7fe8-3dbc-df38-0bdfff4b56c5.htm" />
+  <HelpKINode Title="DataProvider.Ingress&lt;T&gt; method" Url="html/732ee21c-7fe8-3dbc-df38-0bdfff4b56c5.htm" />
   <HelpKINode Title="DataProvider.PathSeparator property" Url="html/b858c440-72f0-0ede-cb6e-92651cf1c9e7.htm" />
-  <HelpKINode Title="DataProvider.ReadData(Of T) method" Url="html/b3b5d8dc-09fb-27ab-fbab-b2e58ab970a3.htm" />
-  <HelpKINode Title="DataProvider.ReadData&lt;T&gt; method" Url="html/b3b5d8dc-09fb-27ab-fbab-b2e58ab970a3.htm" />
   <HelpKINode Title="DataProvider.Register method" Url="html/a75dd58d-7100-3ca7-290f-9bdb23548453.htm" />
   <HelpKINode Title="DataProvider.RewriteUri(Of T) method" Url="html/325384d4-2a45-fe6c-b801-212e9d856332.htm" />
   <HelpKINode Title="DataProvider.RewriteUri&lt;T&gt; method" Url="html/325384d4-2a45-fe6c-b801-212e9d856332.htm" />
@@ -92,7 +97,15 @@
   <HelpKINode Title="DecomposableAttribute.DecomposableAttribute constructor" Url="html/43e39b06-dae0-8746-65d9-ad9db2814283.htm" />
   <HelpKINode Title="DecomposableAttribute.DecompositionType property" Url="html/788f4f30-eed5-7aa7-045f-30121da5937e.htm" />
   <HelpKINode Title="DecompositionType property" Url="html/788f4f30-eed5-7aa7-045f-30121da5937e.htm" />
-  <HelpKINode Title="DfsClient property" Url="html/bca2414d-9eb5-0563-8c12-58b6c58effd0.htm" />
+  <HelpKINode Title="DefaultMaxNodes property">
+    <HelpKINode Title="DryadLinqCluster.DefaultMaxNodes Property " Url="html/547a6ed7-1b48-89c1-5b74-3b4f49d03229.htm" />
+    <HelpKINode Title="DryadLinqYarnCluster.DefaultMaxNodes Property " Url="html/b987eee1-cded-c6e8-46a0-849b162068b7.htm" />
+  </HelpKINode>
+  <HelpKINode Title="DefaultNumberOfContainers field" Url="html/bbd0e0f9-d703-4e48-be52-4af32e89cf93.htm" />
+  <HelpKINode Title="DfsClient property">
+    <HelpKINode Title="DryadLinqCluster.DfsClient Property " Url="html/bca2414d-9eb5-0563-8c12-58b6c58effd0.htm" />
+    <HelpKINode Title="DryadLinqYarnCluster.DfsClient Property " Url="html/8188c213-495b-bc8f-4e6e-0569335a6e5e.htm" />
+  </HelpKINode>
   <HelpKINode Title="Dispose method" Url="html/adbb7cea-3cd7-a024-d14b-35fc87b257a7.htm" />
   <HelpKINode Title="DoWhile method" Url="html/e453d0ea-ad38-4d2b-20e0-6d48fb35e1b5.htm" />
   <HelpKINode Title="DoWhile(Of T) method" Url="html/d0d82a69-b3db-d19d-8def-edc5457aca2e.htm" />
@@ -144,10 +157,11 @@
     <HelpKINode Title="properties" Url="html/2c8b1ff4-5681-5ffc-451d-2445a2177a8f.htm" />
   </HelpKINode>
   <HelpKINode Title="DryadLinqCluster.Client method" Url="html/7f734680-4cdf-d557-8034-45cff61afcbc.htm" />
+  <HelpKINode Title="DryadLinqCluster.DefaultMaxNodes property" Url="html/547a6ed7-1b48-89c1-5b74-3b4f49d03229.htm" />
   <HelpKINode Title="DryadLinqCluster.DfsClient property" Url="html/bca2414d-9eb5-0563-8c12-58b6c58effd0.htm" />
   <HelpKINode Title="DryadLinqCluster.HeadNode property" Url="html/20b0ceec-2c28-4a0c-f876-d10e8bef2c80.htm" />
   <HelpKINode Title="DryadLinqCluster.Kind property" Url="html/615c02e9-bed8-c196-6e0a-7db0f9bd5966.htm" />
-  <HelpKINode Title="DryadLinqCluster.MakeDefaultUri method" Url="html/a6795b03-3dc7-3b8e-96af-20c0bf78461a.htm" />
+  <HelpKINode Title="DryadLinqCluster.MakeInternalClusterUri method" Url="html/e732c2ae-e1a4-ab32-cda3-864552bb14c2.htm" />
   <HelpKINode Title="DryadLinqContext class">
     <HelpKINode Title="DryadLinqContext Class" Url="html/093a0025-a8c4-d1e2-a289-d3863b1a845f.htm" />
     <HelpKINode Title="about DryadLinqContext class" Url="html/093a0025-a8c4-d1e2-a289-d3863b1a845f.htm" />
@@ -155,20 +169,21 @@
     <HelpKINode Title="methods" Url="html/0d63a0c3-846a-e70d-6184-23387d3a9160.htm" />
     <HelpKINode Title="properties" Url="html/ab8e84a0-8f4c-1d6b-a30a-c7ff0d76094b.htm" />
   </HelpKINode>
+  <HelpKINode Title="DryadLinqContext.ApplicationMasterMbMemory property" Url="html/25e3b8ac-9907-f139-a815-86fa8126f1e9.htm" />
   <HelpKINode Title="DryadLinqContext.AzureAccountKey method" Url="html/2d28ac74-38d0-f39d-2a5b-879b8089889b.htm" />
   <HelpKINode Title="DryadLinqContext.ClientVersion method" Url="html/c441f14e-35fd-3f66-3e98-95bba06f8461.htm" />
   <HelpKINode Title="DryadLinqContext.CompileForVertexDebugging property" Url="html/06266f74-a819-017c-e03f-0f9761a28c52.htm" />
+  <HelpKINode Title="DryadLinqContext.ContainerMbMemory property" Url="html/7984e7d4-74ac-4faf-636f-d66a05ceb98d.htm" />
   <HelpKINode Title="DryadLinqContext.DebugBreak property" Url="html/0bc5d95a-ef00-1073-ac66-8aa04e76bea4.htm" />
   <HelpKINode Title="DryadLinqContext.Dispose method" Url="html/adbb7cea-3cd7-a024-d14b-35fc87b257a7.htm" />
   <HelpKINode Title="DryadLinqContext.DryadHomeDirectory property" Url="html/1a3367ed-b951-d562-fbbc-4da581fb22ff.htm" />
   <HelpKINode Title="DryadLinqContext.DryadLinqContext constructor" Url="html/93cf83b3-2042-bd63-c168-e4ef7f7994bc.htm" />
-  <HelpKINode Title="DryadLinqContext.EnableMultiThreadingInVertex property" Url="html/e5330d19-786b-ff5d-45d5-63906af83283.htm" />
   <HelpKINode Title="DryadLinqContext.EnableSpeculativeDuplication property" Url="html/446c7fd3-88cd-80be-dc09-2e6a58cc0653.htm" />
   <HelpKINode Title="DryadLinqContext.Equals method" Url="html/13cce920-2cb3-0614-4d48-34257614f24f.htm" />
   <HelpKINode Title="DryadLinqContext.ExecutorKind property" Url="html/2deb1aaa-bfdc-353f-0c97-a8adbb809785.htm" />
   <HelpKINode Title="DryadLinqContext.ForceGC property" Url="html/39e61761-eb29-06d9-fb5e-ca83550789ad.htm" />
-  <HelpKINode Title="DryadLinqContext.FromEnumerable(Of T) method" Url="html/3f22686d-c67f-2db6-f48b-73e16e30652b.htm" />
-  <HelpKINode Title="DryadLinqContext.FromEnumerable&lt;T&gt; method" Url="html/3f22686d-c67f-2db6-f48b-73e16e30652b.htm" />
+  <HelpKINode Title="DryadLinqContext.FromEnumerable(Of T) method" Url="html/518c1277-e80e-5fdc-3db7-c7270e465f9f.htm" />
+  <HelpKINode Title="DryadLinqContext.FromEnumerable&lt;T&gt; method" Url="html/518c1277-e80e-5fdc-3db7-c7270e465f9f.htm" />
   <HelpKINode Title="DryadLinqContext.FromStore method" Url="html/bb6433fa-fa92-45b8-b706-1ac9fc37d063.htm" />
   <HelpKINode Title="DryadLinqContext.GraphManagerNode property" Url="html/248076fc-57c2-c48c-d06a-c9e7bc3c08f9.htm" />
   <HelpKINode Title="DryadLinqContext.HeadNode property" Url="html/21b0689d-8e56-2eec-1ee9-f466c31ba722.htm" />
@@ -187,11 +202,13 @@
   <HelpKINode Title="DryadLinqContext.PartitionUncPath property" Url="html/e2bc33c7-d205-23d9-e8bc-11f02dfae406.htm" />
   <HelpKINode Title="DryadLinqContext.PeloponneseHomeDirectory property" Url="html/9293e769-1a4e-37c1-3236-ef5c533e3e00.htm" />
   <HelpKINode Title="DryadLinqContext.PlatformKind property" Url="html/bb90c987-f871-d38d-aced-5665dfb21853.htm" />
+  <HelpKINode Title="DryadLinqContext.Queue property" Url="html/663fb267-558f-613d-823d-51be890031a4.htm" />
   <HelpKINode Title="DryadLinqContext.RegisterAzureAccount method" Url="html/17d622f1-6799-aeab-3637-9d66a4d79f0b.htm" />
   <HelpKINode Title="DryadLinqContext.ResourcesToAdd property" Url="html/e25f71a6-3fa2-ac4f-bd57-1edb3da4c44e.htm" />
   <HelpKINode Title="DryadLinqContext.ResourcesToRemove property" Url="html/b21ce425-bc26-fe1e-cd75-dee611a38fda.htm" />
-  <HelpKINode Title="DryadLinqContext.RuntimeTraceLevel property" Url="html/b0be9bd4-afbe-4239-4dbb-6a5405eeb1c1.htm" />
+  <HelpKINode Title="DryadLinqContext.RuntimeLoggingLevel property" Url="html/0c126eb4-1cc0-f498-b083-f8bf5b62a26b.htm" />
   <HelpKINode Title="DryadLinqContext.SelectOrderPreserving property" Url="html/17d9d840-e581-26d0-9aaf-16ca5687adda.htm" />
+  <HelpKINode Title="DryadLinqContext.ThreadsPerWorker property" Url="html/42e3bf34-ac92-2e90-cb0d-3d5a2c1f5073.htm" />
   <HelpKINode Title="DryadLinqException class">
     <HelpKINode Title="DryadLinqException Class" Url="html/692e14c6-46ed-baaf-6b0f-b36cb74fe616.htm" />
     <HelpKINode Title="about DryadLinqException class" Url="html/692e14c6-46ed-baaf-6b0f-b36cb74fe616.htm" />
@@ -299,9 +316,34 @@
   <HelpKINode Title="DryadLinqStreamInfo.DataSize property" Url="html/da53c4f0-d5ab-702f-e073-ec9b6ea2f82b.htm" />
   <HelpKINode Title="DryadLinqStreamInfo.DryadLinqStreamInfo constructor" Url="html/6a718b44-1263-26e8-e829-1655a3522217.htm" />
   <HelpKINode Title="DryadLinqStreamInfo.PartitionCount property" Url="html/7e6c6d5f-35f2-347f-167b-f0ca16f56723.htm" />
+  <HelpKINode Title="DryadLinqYarnCluster class">
+    <HelpKINode Title="DryadLinqYarnCluster Class" Url="html/13468856-16ae-cd23-9019-d940bd07e7a6.htm" />
+    <HelpKINode Title="about DryadLinqYarnCluster class" Url="html/13468856-16ae-cd23-9019-d940bd07e7a6.htm" />
+    <HelpKINode Title="constructor" Url="html/f4802b98-e1d5-4ba3-f5a0-082ec99a65bc.htm" />
+    <HelpKINode Title="fields" Url="html/339d38b7-2312-492c-7a89-75892abc128f.htm" />
+    <HelpKINode Title="methods" Url="html/21d84414-bf5e-17e1-dd4c-401dcdd3a2b5.htm" />
+    <HelpKINode Title="properties" Url="html/f9719d5a-9bc9-3469-6013-296d929a674c.htm" />
+  </HelpKINode>
+  <HelpKINode Title="DryadLinqYarnCluster.ApplicationMasterMbMemory field" Url="html/045739fc-900a-0647-6ee9-005cc06c4db8.htm" />
+  <HelpKINode Title="DryadLinqYarnCluster.Client method" Url="html/c0fa415f-11af-d518-039b-836bb927b059.htm" />
+  <HelpKINode Title="DryadLinqYarnCluster.ContainerMbMemory field" Url="html/41f865bc-de23-4aae-196c-dda45bb72b04.htm" />
+  <HelpKINode Title="DryadLinqYarnCluster.DefaultMaxNodes property" Url="html/b987eee1-cded-c6e8-46a0-849b162068b7.htm" />
+  <HelpKINode Title="DryadLinqYarnCluster.DefaultNumberOfContainers field" Url="html/bbd0e0f9-d703-4e48-be52-4af32e89cf93.htm" />
+  <HelpKINode Title="DryadLinqYarnCluster.DfsClient property" Url="html/8188c213-495b-bc8f-4e6e-0569335a6e5e.htm" />
+  <HelpKINode Title="DryadLinqYarnCluster.DryadLinqYarnCluster constructor" Url="html/f4802b98-e1d5-4ba3-f5a0-082ec99a65bc.htm" />
+  <HelpKINode Title="DryadLinqYarnCluster.HdfsPort field" Url="html/e7cf5b43-2c32-ba9f-a93d-08bd7040e9ac.htm" />
+  <HelpKINode Title="DryadLinqYarnCluster.HeadNode property" Url="html/5c883b48-7787-4391-6c3b-06ff186927fa.htm" />
+  <HelpKINode Title="DryadLinqYarnCluster.Kind property" Url="html/27db3a5f-8711-2792-8f34-edd8d32b4348.htm" />
+  <HelpKINode Title="DryadLinqYarnCluster.LauncherNode field" Url="html/50d53cf2-4cca-71ea-759b-33fbd00cbb58.htm" />
+  <HelpKINode Title="DryadLinqYarnCluster.LauncherPort field" Url="html/0f90ac55-df02-2629-39d7-0b55b85f83d4.htm" />
+  <HelpKINode Title="DryadLinqYarnCluster.MakeInternalClusterUri method" Url="html/c581021c-ff5a-81a5-82da-4a3fa204d32d.htm" />
+  <HelpKINode Title="DryadLinqYarnCluster.NameNode field" Url="html/0e6bea7b-5b1a-69fe-68e3-716f26b0e86a.htm" />
+  <HelpKINode Title="DryadLinqYarnCluster.Queue property" Url="html/e9f22e22-7a36-cfd9-abbc-eec539394a19.htm" />
+  <HelpKINode Title="DryadLinqYarnCluster.User field" Url="html/db93e9ab-a1f4-43a4-66ba-6ba3a81bc77d.htm" />
+  <HelpKINode Title="DryadLinqYarnCluster.WebHdfsPort field" Url="html/c5b65aec-10c1-f76f-1e2b-59b434ee70ab.htm" />
+  <HelpKINode Title="DryadLinqYarnCluster.YarnPort field" Url="html/24ede546-0768-6f82-1aa4-7c51bf04909f.htm" />
   <HelpKINode Title="Egress method" Url="html/76dc89db-d2f7-c6b1-ee72-231a3e1881fc.htm" />
   <HelpKINode Title="ElementType method" Url="html/b2f8d418-599c-d187-da9e-38de1cb3b178.htm" />
-  <HelpKINode Title="EnableMultiThreadingInVertex property" Url="html/e5330d19-786b-ff5d-45d5-63906af83283.htm" />
   <HelpKINode Title="EnableSpeculativeDuplication property" Url="html/446c7fd3-88cd-80be-dc09-2e6a58cc0653.htm" />
   <HelpKINode Title="Equality operator">
     <HelpKINode Title="LineRecord.Equality Operator " Url="html/85b0619b-7cb3-8abb-41a0-e721890b4b4b.htm" />
@@ -315,7 +357,7 @@
     <HelpKINode Title="LineRecord.Equals Method " Url="html/6bb38453-9d1d-3ec5-507f-cf38853cffed.htm" />
     <HelpKINode Title="Pair(T1, T2).Equals Method " Url="html/5e55be13-9e9b-2600-32d3-ba9ca745aa61.htm" />
   </HelpKINode>
-  <HelpKINode Title="Error enumeration member" Url="html/7f48283a-3fd5-7bf1-1b43-e0164f893f54.htm" />
+  <HelpKINode Title="Error enumeration member" Url="html/0bebfe2a-dcec-f4bd-c2e6-0754204f4192.htm" />
   <HelpKINode Title="ErrorCode property" Url="html/56710010-4bb7-345f-c29b-7eeb00164b0e.htm" />
   <HelpKINode Title="ExecutorKind enumeration" Url="html/e652bfe9-c973-2744-87c1-e63cf9db4f56.htm" />
   <HelpKINode Title="ExecutorKind property" Url="html/2deb1aaa-bfdc-353f-0c97-a8adbb809785.htm" />
@@ -417,8 +459,8 @@
   <HelpKINode Title="ForkValue&lt;T&gt;.GetHashCode method" Url="html/1418da77-2d3c-0a21-3c41-ba2ea3abb075.htm" />
   <HelpKINode Title="ForkValue&lt;T&gt;.HasValue property" Url="html/8ebdf81f-127f-f1d9-4eb8-1cab9ef04768.htm" />
   <HelpKINode Title="ForkValue&lt;T&gt;.Value property" Url="html/901dcf86-c65c-a976-7b3b-e334fc1d93cf.htm" />
-  <HelpKINode Title="FromEnumerable(Of T) method" Url="html/3f22686d-c67f-2db6-f48b-73e16e30652b.htm" />
-  <HelpKINode Title="FromEnumerable&lt;T&gt; method" Url="html/3f22686d-c67f-2db6-f48b-73e16e30652b.htm" />
+  <HelpKINode Title="FromEnumerable(Of T) method" Url="html/518c1277-e80e-5fdc-3db7-c7270e465f9f.htm" />
+  <HelpKINode Title="FromEnumerable&lt;T&gt; method" Url="html/518c1277-e80e-5fdc-3db7-c7270e465f9f.htm" />
   <HelpKINode Title="FromStore method" Url="html/bb6433fa-fa92-45b8-b706-1ac9fc37d063.htm" />
   <HelpKINode Title="GenericAssociative(Of TAssoc, TAccumulate) class">
     <HelpKINode Title="GenericAssociative(TAssoc, TAccumulate) Class" Url="html/a49d01fb-8518-8fe8-02b4-7fd06cec7ed4.htm" />
@@ -479,9 +521,11 @@
   </HelpKINode>
   <HelpKINode Title="HasThird property" Url="html/fdcf7716-268c-05d8-c969-99fcc6611106.htm" />
   <HelpKINode Title="HasValue property" Url="html/8ebdf81f-127f-f1d9-4eb8-1cab9ef04768.htm" />
+  <HelpKINode Title="HdfsPort field" Url="html/e7cf5b43-2c32-ba9f-a93d-08bd7040e9ac.htm" />
   <HelpKINode Title="HeadNode property">
     <HelpKINode Title="DryadLinqCluster.HeadNode Property " Url="html/20b0ceec-2c28-4a0c-f876-d10e8bef2c80.htm" />
     <HelpKINode Title="DryadLinqContext.HeadNode Property " Url="html/21b0689d-8e56-2eec-1ee9-f466c31ba722.htm" />
+    <HelpKINode Title="DryadLinqYarnCluster.HeadNode Property " Url="html/5c883b48-7787-4391-6c3b-06ff186927fa.htm" />
   </HelpKINode>
   <HelpKINode Title="IAssociative(Of TAccumulate) interface">
     <HelpKINode Title="IAssociative(TAccumulate) Interface" Url="html/8ac439be-5f1e-cce5-eea2-11de7aa46929.htm" />
@@ -595,9 +639,9 @@
     <HelpKINode Title="LineRecord.Inequality Operator " Url="html/417d2a6e-1f42-50c2-9fc9-25877bf4f0c5.htm" />
     <HelpKINode Title="Pair(T1, T2).Inequality Operator " Url="html/3bf777a3-e426-ee8f-f3de-10021739d621.htm" />
   </HelpKINode>
-  <HelpKINode Title="Information enumeration member" Url="html/7f48283a-3fd5-7bf1-1b43-e0164f893f54.htm" />
-  <HelpKINode Title="Ingress(Of T) method" Url="html/3bf58a6c-aa87-cb1f-9aea-1c3c59c898d1.htm" />
-  <HelpKINode Title="Ingress&lt;T&gt; method" Url="html/3bf58a6c-aa87-cb1f-9aea-1c3c59c898d1.htm" />
+  <HelpKINode Title="Information enumeration member" Url="html/0bebfe2a-dcec-f4bd-c2e6-0754204f4192.htm" />
+  <HelpKINode Title="Ingress(Of T) method" Url="html/732ee21c-7fe8-3dbc-df38-0bdfff4b56c5.htm" />
+  <HelpKINode Title="Ingress&lt;T&gt; method" Url="html/732ee21c-7fe8-3dbc-df38-0bdfff4b56c5.htm" />
   <HelpKINode Title="Initialize method">
     <HelpKINode Title="GenericDecomposable(TDecomposable, TSource, TAccumulate, TResult).Initialize Method " Url="html/7ad863dd-2b05-4189-31b3-b8e3fe344c31.htm" />
     <HelpKINode Title="IDecomposable(TSource, TAccumulate, TResult).Initialize Method " Url="html/a65ccdbb-51b0-b1a1-1e8d-ccfd30971385.htm" />
@@ -616,8 +660,13 @@
   <HelpKINode Title="JobUsername property" Url="html/024262a5-8d35-80f8-1b76-7a6242ad400b.htm" />
   <HelpKINode Title="Key property" Url="html/3455cc4c-9167-df7a-419d-73f08bc8d22b.htm" />
   <HelpKINode Title="Keys property" Url="html/22264f86-180e-2fa8-6fe6-791984d633a7.htm" />
-  <HelpKINode Title="Kind property" Url="html/615c02e9-bed8-c196-6e0a-7db0f9bd5966.htm" />
+  <HelpKINode Title="Kind property">
+    <HelpKINode Title="DryadLinqCluster.Kind Property " Url="html/615c02e9-bed8-c196-6e0a-7db0f9bd5966.htm" />
+    <HelpKINode Title="DryadLinqYarnCluster.Kind Property " Url="html/27db3a5f-8711-2792-8f34-edd8d32b4348.htm" />
+  </HelpKINode>
   <HelpKINode Title="LastAsQuery method" Url="html/5b19d6a4-77d1-1e89-dfc2-d28d904f0856.htm" />
+  <HelpKINode Title="LauncherNode field" Url="html/50d53cf2-4cca-71ea-759b-33fbd00cbb58.htm" />
+  <HelpKINode Title="LauncherPort field" Url="html/0f90ac55-df02-2629-39d7-0b55b85f83d4.htm" />
   <HelpKINode Title="LessThan operator" Url="html/52db89c1-d554-4ea0-8823-03e81b8bcf68.htm" />
   <HelpKINode Title="Level field" Url="html/185c1846-bd97-af24-9a74-6b5679232636.htm" />
   <HelpKINode Title="Line property" Url="html/44d81f82-621f-45fe-49c0-0ce97fd2d81b.htm" />
@@ -651,7 +700,10 @@
   <HelpKINode Title="LongTakeWhile&lt;TSource&gt; method" Url="html/1361c8c8-c04b-e5f2-6112-9f62b5af8fcb.htm" />
   <HelpKINode Title="LongWhere(Of TSource) method" Url="html/a9e6f3c2-457f-4d7d-af58-7a4827a47f92.htm" />
   <HelpKINode Title="LongWhere&lt;TSource&gt; method" Url="html/a9e6f3c2-457f-4d7d-af58-7a4827a47f92.htm" />
-  <HelpKINode Title="MakeDefaultUri method" Url="html/a6795b03-3dc7-3b8e-96af-20c0bf78461a.htm" />
+  <HelpKINode Title="MakeInternalClusterUri method">
+    <HelpKINode Title="DryadLinqCluster.MakeInternalClusterUri Method " Url="html/e732c2ae-e1a4-ab32-cda3-864552bb14c2.htm" />
+    <HelpKINode Title="DryadLinqYarnCluster.MakeInternalClusterUri Method " Url="html/c581021c-ff5a-81a5-82da-4a3fa204d32d.htm" />
+  </HelpKINode>
   <HelpKINode Title="MapReduce(Of TSource, TMap, TKey, TResult) method" Url="html/6613acc6-d94d-28ed-f5ce-28ad5967f7f0.htm" />
   <HelpKINode Title="MapReduce&lt;TSource, TMap, TKey, TResult&gt; method" Url="html/6613acc6-d94d-28ed-f5ce-28ad5967f7f0.htm" />
   <HelpKINode Title="MatchClientNetFrameworkVersion property" Url="html/646b413a-cfac-0795-0766-86606d8a5410.htm" />
@@ -673,6 +725,7 @@
   <HelpKINode Title="Microsoft.Research.DryadLinq.DryadLinqMetaData class" Url="html/5e3ae825-91af-0ff7-6ae4-f98f18bd6e58.htm" />
   <HelpKINode Title="Microsoft.Research.DryadLinq.DryadLinqQueryable class" Url="html/6d67ec6b-96ed-0a8b-0ad4-1c0568c7bf91.htm" />
   <HelpKINode Title="Microsoft.Research.DryadLinq.DryadLinqStreamInfo class" Url="html/562bb8ee-21e0-0f88-c57c-64a244256648.htm" />
+  <HelpKINode Title="Microsoft.Research.DryadLinq.DryadLinqYarnCluster class" Url="html/13468856-16ae-cd23-9019-d940bd07e7a6.htm" />
   <HelpKINode Title="Microsoft.Research.DryadLinq.ExecutorKind enumeration" Url="html/e652bfe9-c973-2744-87c1-e63cf9db4f56.htm" />
   <HelpKINode Title="Microsoft.Research.DryadLinq.ForkTuple(Of T1, T2) structure" Url="html/28af6b37-22b3-448f-cf9f-ea15b5aa90d6.htm" />
   <HelpKINode Title="Microsoft.Research.DryadLinq.ForkTuple(Of T1, T2, T3) structure" Url="html/07206258-2e2e-6aa3-4c79-0c0674875849.htm" />
@@ -702,9 +755,10 @@
   <HelpKINode Title="Microsoft.Research.DryadLinq.Pair(Of T1, T2) structure" Url="html/4937c0d0-14bc-0943-1166-e434ec5c8dfd.htm" />
   <HelpKINode Title="Microsoft.Research.DryadLinq.Pair&lt;T1, T2&gt; structure" Url="html/4937c0d0-14bc-0943-1166-e434ec5c8dfd.htm" />
   <HelpKINode Title="Microsoft.Research.DryadLinq.PlatformKind enumeration" Url="html/db48824c-598d-a2a7-24db-a422d19467b1.htm" />
-  <HelpKINode Title="Microsoft.Research.DryadLinq.QueryTraceLevel enumeration" Url="html/7f48283a-3fd5-7bf1-1b43-e0164f893f54.htm" />
+  <HelpKINode Title="Microsoft.Research.DryadLinq.QueryLoggingLevel enumeration" Url="html/0bebfe2a-dcec-f4bd-c2e6-0754204f4192.htm" />
   <HelpKINode Title="Microsoft.Research.DryadLinq.ResourceAttribute class" Url="html/f48da9e0-e74d-da3a-ca41-d3afe376271d.htm" />
   <HelpKINode Title="MinAsQuery method" Url="html/9d6119ab-121a-148e-3170-b5b252aaef07.htm" />
+  <HelpKINode Title="NameNode field" Url="html/0e6bea7b-5b1a-69fe-68e3-716f26b0e86a.htm" />
   <HelpKINode Title="NodeGroup property" Url="html/3bcf5415-69d6-0f64-fa4f-fa1ba7cade31.htm" />
   <HelpKINode Title="None enumeration member" Url="html/9266635e-c3ea-7e66-528b-f44b55a2daca.htm" />
   <HelpKINode Title="NullableAttribute class">
@@ -717,7 +771,7 @@
   <HelpKINode Title="NullableAttribute.CanBeNull property" Url="html/4cf712fd-ccc7-ba39-e732-6fdaf9453187.htm" />
   <HelpKINode Title="NullableAttribute.NullableAttribute constructor" Url="html/3d9008bb-980e-9fdb-7522-d29320396ef8.htm" />
   <HelpKINode Title="NumberOfInputs property" Url="html/f6c4c853-03b8-57aa-cf35-5e7884f6d55b.htm" />
-  <HelpKINode Title="Off enumeration member" Url="html/7f48283a-3fd5-7bf1-1b43-e0164f893f54.htm" />
+  <HelpKINode Title="Off enumeration member" Url="html/0bebfe2a-dcec-f4bd-c2e6-0754204f4192.htm" />
   <HelpKINode Title="OutputDataCompressionScheme property" Url="html/1b4bb2db-3cb5-2bb3-22b7-d0d1f24eb7a6.htm" />
   <HelpKINode Title="Pair(Of T1, T2) structure">
     <HelpKINode Title="Pair(T1, T2) Structure" Url="html/4937c0d0-14bc-0943-1166-e434ec5c8dfd.htm" />
@@ -758,7 +812,11 @@
   <HelpKINode Title="PlatformKind enumeration" Url="html/db48824c-598d-a2a7-24db-a422d19467b1.htm" />
   <HelpKINode Title="PlatformKind property" Url="html/bb90c987-f871-d38d-aced-5665dfb21853.htm" />
   <HelpKINode Title="Provider property" Url="html/da94daa0-4711-ab61-cba5-c5474946b285.htm" />
-  <HelpKINode Title="QueryTraceLevel enumeration" Url="html/7f48283a-3fd5-7bf1-1b43-e0164f893f54.htm" />
+  <HelpKINode Title="QueryLoggingLevel enumeration" Url="html/0bebfe2a-dcec-f4bd-c2e6-0754204f4192.htm" />
+  <HelpKINode Title="Queue property">
+    <HelpKINode Title="DryadLinqContext.Queue Property " Url="html/663fb267-558f-613d-823d-51be890031a4.htm" />
+    <HelpKINode Title="DryadLinqYarnCluster.Queue Property " Url="html/e9f22e22-7a36-cfd9-abbc-eec539394a19.htm" />
+  </HelpKINode>
   <HelpKINode Title="RangePartition method" Url="html/f90db211-91a6-9160-f0b1-f7b5d6267e24.htm" />
   <HelpKINode Title="Read method" Url="html/2bfc09c6-4fdc-09e9-91ef-8aa7972d8966.htm" />
   <HelpKINode Title="ReadBool method" Url="html/2ee81ea8-7bae-c5c3-321d-a2f34f52376e.htm" />
@@ -766,8 +824,6 @@
   <HelpKINode Title="ReadChar method" Url="html/f9f3883f-e817-f693-6540-03eaa31f66fe.htm" />
   <HelpKINode Title="ReadChars method" Url="html/5523eb71-f765-488d-a0ed-570dcebea4a3.htm" />
   <HelpKINode Title="ReadCompactInt32 method" Url="html/521aa3b5-08a2-a367-d7cb-e385573c0327.htm" />
-  <HelpKINode Title="ReadData(Of T) method" Url="html/b3b5d8dc-09fb-27ab-fbab-b2e58ab970a3.htm" />
-  <HelpKINode Title="ReadData&lt;T&gt; method" Url="html/b3b5d8dc-09fb-27ab-fbab-b2e58ab970a3.htm" />
   <HelpKINode Title="ReadDateTime method" Url="html/72e693e2-7766-ed09-a7a3-03c782937026.htm" />
   <HelpKINode Title="ReadDecimal method" Url="html/74b7a3c4-0a88-c5e0-7fd7-7bcdadb47cf5.htm" />
   <HelpKINode Title="ReadDouble method" Url="html/f8a16c4a-7d02-1d28-3f87-0c648c533771.htm" />
@@ -806,7 +862,7 @@
   <HelpKINode Title="ResourcesToRemove property" Url="html/b21ce425-bc26-fe1e-cd75-dee611a38fda.htm" />
   <HelpKINode Title="RewriteUri(Of T) method" Url="html/325384d4-2a45-fe6c-b801-212e9d856332.htm" />
   <HelpKINode Title="RewriteUri&lt;T&gt; method" Url="html/325384d4-2a45-fe6c-b801-212e9d856332.htm" />
-  <HelpKINode Title="RuntimeTraceLevel property" Url="html/b0be9bd4-afbe-4239-4dbb-6a5405eeb1c1.htm" />
+  <HelpKINode Title="RuntimeLoggingLevel property" Url="html/0c126eb4-1cc0-f498-b083-f8bf5b62a26b.htm" />
   <HelpKINode Title="Scheme property" Url="html/8c73442d-fbb2-4170-5d0f-2a61d34c83ca.htm" />
   <HelpKINode Title="Second property">
     <HelpKINode Title="ForkTuple(T1, T2).Second Property " Url="html/e91d270e-8169-d4e6-5c47-e01fddea6886.htm" />
@@ -833,6 +889,7 @@
     <HelpKINode Title="ForkTuple(T1, T2, T3).Third Property " Url="html/c90df8c7-3a30-7c79-ce29-c37b9def4567.htm" />
     <HelpKINode Title="IMultiQueryable(T1, T2, T3).Third Property " Url="html/8ed8b95d-2db1-67a2-d98c-c9192b2e0bc4.htm" />
   </HelpKINode>
+  <HelpKINode Title="ThreadsPerWorker property" Url="html/42e3bf34-ac92-2e90-cb0d-3d5a2c1f5073.htm" />
   <HelpKINode Title="ToStore method" Url="html/dfd04264-0973-a546-1ef7-4971c13a4d71.htm" />
   <HelpKINode Title="ToString method">
     <HelpKINode Title="DryadLinqBinaryReader.ToString Method " Url="html/74d1e42c-3b08-ea09-0b8b-c841914deab0.htm" />
@@ -840,18 +897,20 @@
     <HelpKINode Title="LineRecord.ToString Method " Url="html/e45f62f1-20db-4823-babb-6e0310fa18d7.htm" />
     <HelpKINode Title="Pair(T1, T2).ToString Method " Url="html/cc3a4b94-829d-7c14-e4b8-5502f3f48564.htm" />
   </HelpKINode>
+  <HelpKINode Title="User field" Url="html/db93e9ab-a1f4-43a4-66ba-6ba3a81bc77d.htm" />
   <HelpKINode Title="Value property">
     <HelpKINode Title="ForkValue(T).Value Property " Url="html/901dcf86-c65c-a976-7b3b-e334fc1d93cf.htm" />
     <HelpKINode Title="Pair(T1, T2).Value Property " Url="html/851049b8-d045-8c03-239a-552bbc87e72d.htm" />
   </HelpKINode>
-  <HelpKINode Title="Verbose enumeration member" Url="html/7f48283a-3fd5-7bf1-1b43-e0164f893f54.htm" />
+  <HelpKINode Title="Verbose enumeration member" Url="html/0bebfe2a-dcec-f4bd-c2e6-0754204f4192.htm" />
   <HelpKINode Title="version">
-    <HelpKINode Title="Version 0.1.5" Url="html/48b50bec-3e7d-4a00-97bc-9c673d3cad41.htm" />
+    <HelpKINode Title="Version 0.2.0" Url="html/bbba8118-81fb-4997-a55c-b75ea829d721.htm" />
     <HelpKINode Title="1.0.0.0" Url="html/a2eaaf5d-f1d8-4319-844e-a458cc72e4db.htm" />
     <HelpKINode Title="history" Url="html/a5d9b686-8282-4120-ae0e-5a9f11a2ac0b.htm" />
   </HelpKINode>
   <HelpKINode Title="Wait method" Url="html/7ffb4590-0ee6-b22c-d148-d971fb69f7c8.htm" />
-  <HelpKINode Title="Warning enumeration member" Url="html/7f48283a-3fd5-7bf1-1b43-e0164f893f54.htm" />
+  <HelpKINode Title="Warning enumeration member" Url="html/0bebfe2a-dcec-f4bd-c2e6-0754204f4192.htm" />
+  <HelpKINode Title="WebHdfsPort field" Url="html/c5b65aec-10c1-f76f-1e2b-59b434ee70ab.htm" />
   <HelpKINode Title="Welcome" Url="html/e203b95e-0737-40f6-9c16-fc84484a5bad.htm" />
   <HelpKINode Title="Write method">
     <HelpKINode Title="DryadLinqBinaryWriter.Write Method " Url="html/a520e94d-0d05-1c66-4b54-06b43eac5735.htm" />
@@ -861,6 +920,7 @@
   <HelpKINode Title="WriteChars method" Url="html/21fec768-ab9c-536d-b901-9fbe1ab4b958.htm" />
   <HelpKINode Title="WriteCompact method" Url="html/39ca1745-5c7e-3a08-8aa3-ba34af15e044.htm" />
   <HelpKINode Title="WriteRawBytes method" Url="html/b1ad85ba-1fa8-77de-a82a-c04f1436060d.htm" />
+  <HelpKINode Title="YarnPort field" Url="html/24ede546-0768-6f82-1aa4-7c51bf04909f.htm" />
   <HelpKINode Title="YARN_AZURE enumeration member" Url="html/db48824c-598d-a2a7-24db-a422d19467b1.htm" />
   <HelpKINode Title="YARN_NATIVE enumeration member" Url="html/db48824c-598d-a2a7-24db-a422d19467b1.htm" />
 </HelpKI>
