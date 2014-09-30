@@ -20,7 +20,7 @@ limitations under the License.
 
 #pragma once
 
-using namespace Microsoft::Research::Peloponnese::Storage;
+using namespace Microsoft::Research::Peloponnese::Azure;
 
 DRCLASS(DrAzureInputStream) : public DrInputStream
 {

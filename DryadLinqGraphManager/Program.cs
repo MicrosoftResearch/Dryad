@@ -28,6 +28,13 @@ using Microsoft.Research.Dryad;
 
 namespace Microsoft.Research.Dryad.GraphManager
 {
+    internal class ConfigDependency : Microsoft.Research.Peloponnese.Shared.AssemblyDependencyAttribute
+    {
+        public ConfigDependency() : base("Microsoft.Research.Dryad.GraphManager.exe.config", false)
+        {
+        }
+    }
+
     class Program
     {
         static Uri dfsDirectory;

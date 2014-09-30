@@ -565,7 +565,42 @@ namespace Microsoft.Research.Dryad.ProcessService
             return true;
         }
 
-        public void Launch(int processId, string commandLine)
+        private void SplitCmdLine(string cmdLine, out string cmd, out string args)
+        {
+            cmd = "";
+            args = "";
+            int lastSpacePos = 0;
+            bool rootedPath = Path.IsPathRooted(cmdLine);
+            string candPath = cmdLine;
+
+            while (true)
+            {                
+                if (!rootedPath)
+                {
+                    candPath = Path.Combine(Environment.CurrentDirectory, candPath);
+                }
+                if (File.Exists(candPath))
+                {
+                    cmd = candPath;
+                    args = (lastSpacePos > 0) ? cmdLine.Substring(lastSpacePos) : "";
+                    return;
+                }
+
+                int spacePos = cmdLine.IndexOf(' ', lastSpacePos);
+                if (spacePos != -1)
+                {
+                    candPath = cmdLine.Substring(0, spacePos);
+                    lastSpacePos = spacePos + 1;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            throw new ApplicationException("Couldn't split command line into command line and arguments.");
+        }
+
+        public void Launch(int processId, string commandLine, string arguments)
         {
             ProcessRecord process;
             lock (processTable)
@@ -588,29 +623,23 @@ namespace Microsoft.Research.Dryad.ProcessService
                 startInfo.RedirectStandardError = true;
                 startInfo.WorkingDirectory = Path.Combine(serviceWorkingDirectory, processId.ToString());
                 logger.Log(String.Format("Working directory: '{0}'", startInfo.WorkingDirectory));
-
-                string[] args = commandLine.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                string arg = "";
-                for (int i = 1; i < args.Length; i++)
-                {
-                    arg += args[i] + " ";
-                }
-
+                
                 // Use either FQ path or path relative to job path  
-                if (Path.IsPathRooted(args[0]))
+                if (Path.IsPathRooted(commandLine))
                 {
-                    startInfo.FileName = args[0];
+                    startInfo.FileName = commandLine;
                 }
                 else
                 {
-                    startInfo.FileName = Path.Combine(serviceWorkingDirectory, args[0]);
+                    startInfo.FileName = Path.Combine(serviceWorkingDirectory, commandLine);
                 }
+                
+                startInfo.Arguments = arguments;
                 logger.Log(String.Format("FileName: '{0}'", startInfo.FileName));
 
-                // Add environment variable to vertex host process
-                startInfo.Arguments = arg;
-                logger.Log(String.Format("args: '{0}'", arg));
+                logger.Log(String.Format("args: '{0}'", arguments));
 
+                // Add environment variable to vertex host process
                 Uri genericUri = new Uri(processServer.BaseURI);
                 Uri localUri = new Uri(genericUri.Scheme + "://localhost:" + genericUri.Port + genericUri.PathAndQuery);
                 string processUpdateURI = localUri.ToString() + processId.ToString();

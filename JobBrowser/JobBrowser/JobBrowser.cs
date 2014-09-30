@@ -393,6 +393,10 @@ namespace Microsoft.Research.DryadAnalysis
             this.graphViewer.InsertingEdge = false;
             this.staticGraphZoomLevel = 0;
 
+            this.diagnoseToolStripMenuItem.Visible = job.ClusterConfiguration.SupportsDiagnosis;
+            this.diagnoseToolStripMenuItem1.Visible = job.ClusterConfiguration.SupportsDiagnosis;
+            this.diagnoseToolStripMenuItem2.Visible = job.ClusterConfiguration.SupportsDiagnosis;
+
             this.planDrawSurface = new DrawingSurface2D(this.panel_jobSchedule);
             this.planDrawSurface.SetMargins(4, 4, 4, 4);
             this.panel_jobSchedule.MouseDoubleClick += this.panel_jobSchedule_MouseDoubleClick;
@@ -1671,7 +1675,7 @@ namespace Microsoft.Research.DryadAnalysis
             else
             {
                 manager.Status("Extracting contents of " + path, StatusKind.LongOp);
-                ISharedStreamReader sr = path.GetStream();
+                ISharedStreamReader sr = path.GetStream(false);
                 if (sr.Exception != null)
                 {
                     error += " [Error " + sr.Exception.Message + "]";
@@ -3010,7 +3014,7 @@ namespace Microsoft.Research.DryadAnalysis
                 long done = 0;
                 foreach (var file in files)
                 {
-                    ISharedStreamReader sr = file.GetStream();
+                    ISharedStreamReader sr = file.GetStream(false);
                     if (sr.Exception != null)
                     {
                         logViewer.Status("Error opening file: " + sr.Exception.Message, StatusKind.Error);
@@ -3075,7 +3079,7 @@ namespace Microsoft.Research.DryadAnalysis
                 return false;
             }
 
-            ISharedStreamReader sr = stdout.GetStream();
+            ISharedStreamReader sr = stdout.GetStream(false);
             if (sr.Exception != null)
             {
                 logViewer.Status("Error opening JM stdout: " + sr.Exception.Message, StatusKind.Error);
@@ -3310,7 +3314,7 @@ namespace Microsoft.Research.DryadAnalysis
                 }
 
                 this.Status("Caching " + file.Name, StatusKind.LongOp);
-                ISharedStreamReader reader = file.GetStream();
+                ISharedStreamReader reader = file.GetStream(false);
 // ReSharper disable UnusedVariable
                 foreach (string line in reader.ReadAllLines())
 // ReSharper restore UnusedVariable
@@ -3433,7 +3437,7 @@ namespace Microsoft.Research.DryadAnalysis
                     continue;
                 }
 
-                ISharedStreamReader reader = file.GetStream();
+                ISharedStreamReader reader = file.GetStream(false);
                 // ReSharper disable once UnusedVariable
                 foreach (string line in reader.ReadAllLines())
                 {

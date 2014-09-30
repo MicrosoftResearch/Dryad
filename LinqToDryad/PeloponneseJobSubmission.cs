@@ -32,6 +32,10 @@ namespace Microsoft.Research.DryadLinq
     abstract class PeloponneseJobSubmission : IDryadLinqJobSubmission
     {
         private DryadLinqContext m_context;
+        protected IEnumerable<string> m_peloponneseGMFiles;
+        protected IEnumerable<string> m_dryadGMFiles;
+        protected IEnumerable<string> m_peloponneseWorkerFiles;
+        protected IEnumerable<string> m_dryadWorkerFiles;
         private string m_cmdLine;
         private string m_queryPlan;
         private Dictionary<string, HashSet<string>> m_localResources;
@@ -45,49 +49,63 @@ namespace Microsoft.Research.DryadLinq
         abstract public string GetJobId();
         abstract public JobStatus GetStatus();
         abstract public JobStatus TerminateJob();
-
-        static private string[] sharedDryadFiles =
-        {
-            "DryadLinqGraphManager.exe",
-            "DryadLinqGraphManager.exe.config",
-            "Microsoft.Research.Dryad.dll",
-            "DryadHttpClusterInterface.dll",
-            "DryadLocalScheduler.dll",
-
-            "ProcessService.exe",
-            "ProcessService.pdb",
-            "VertexHost.exe",
-            "VertexHost.pdb",
-            "VertexHost.exe.config",
-            "Microsoft.Research.DryadLinq.dll",
-            "Microsoft.Research.DryadLinq.pdb",
-            "DryadLinqNativeChannels.dll",
-            "DryadLinqNativeChannels.pdb",
-            "DryadManagedChannel.dll",
-            "DryadManagedChannel.pdb"
-        };
+        abstract public JobStatus WaitForCompletion();
+        
 
         public PeloponneseJobSubmission(DryadLinqContext context)
         {
             m_context = context;
             m_localResources = new Dictionary<string, HashSet<string>>();
+
+            m_peloponneseGMFiles = Peloponnese.ClusterUtils.ConfigHelpers
+                .ListPeloponneseResources(context.PeloponneseHomeDirectory)
+                .Select(r => r.ToLower());
+            IEnumerable<string> graphManagerFiles = Peloponnese.Shared.DependencyLister.Lister
+                .ListDependencies(Path.Combine(context.DryadHomeDirectory, "Microsoft.Research.Dryad.GraphManager.exe"))
+                .Select(r => r.ToLower());
+            m_dryadGMFiles = graphManagerFiles.Except(m_peloponneseGMFiles);
+
+            string[] additionalWorkerFiles =
+            {
+                "Microsoft.Research.Dryadlinq.dll",
+                "Microsoft.Research.Dryad.DryadLinq.NativeWrapper.dll"
+            };
+
+            IEnumerable<string> processServiceFiles = Peloponnese.Shared.DependencyLister.Lister
+                .ListDependencies(Path.Combine(context.DryadHomeDirectory, "Microsoft.Research.Dryad.ProcessService.exe"))
+                .Select(r => r.ToLower());
+            IEnumerable<string> vertexHostFiles = Peloponnese.Shared.DependencyLister.Lister
+                .ListDependencies(Path.Combine(context.DryadHomeDirectory, "Microsoft.Research.Dryad.VertexHost.exe"))
+                .Concat(additionalWorkerFiles.Select(f => Path.Combine(context.DryadHomeDirectory, f)))
+                .Select(r => r.ToLower());
+            IEnumerable<string> workerFiles = processServiceFiles.Union(vertexHostFiles);
+
+            m_peloponneseWorkerFiles = workerFiles.Intersect(m_peloponneseGMFiles);
+            m_dryadWorkerFiles = workerFiles.Except(m_peloponneseGMFiles);
         }
 
         static protected bool IsValidDryadDirectory(string directory)
         {
+            string[] sampleDryadFiles = 
+            {
+                "Microsoft.Research.Dryad.GraphManager.exe",
+                "Microsoft.Research.Dryad.GraphManager.exe.config",
+            };
+
             IEnumerable<string> filesPresent =
                 Directory.EnumerateFiles(directory, "*", SearchOption.TopDirectoryOnly)
                 .Select(x => Path.GetFileName(x).ToLower());
 
-            IEnumerable<string> filesNeeded = sharedDryadFiles.Select(x => x.ToLower());
+            IEnumerable<string> filesNeeded = sampleDryadFiles.Select(x => x.ToLower());
 
-            return (filesPresent.Intersect(filesNeeded).Count() == sharedDryadFiles.Length);
+            return (filesPresent.Intersect(filesNeeded).Count() == sampleDryadFiles.Length);
         }
 
-        static private bool IsSharedDryadFile(string fileName)
+        private bool IsDryadWorkerFile(string fileName)
         {
-            IEnumerable<string> sharedFiles = sharedDryadFiles.Select(x => x.ToLower());
-            return sharedDryadFiles.Contains(fileName.ToLower());
+            return
+                m_dryadWorkerFiles.Select(f => Path.GetFileName(f)).Contains(fileName.ToLower()) ||
+                m_peloponneseWorkerFiles.Select(f => Path.GetFileName(f)).Contains(fileName.ToLower());
         }
 
         public void AddJobOption(string fieldName, string fieldVal)
@@ -106,7 +124,8 @@ namespace Microsoft.Research.DryadLinq
             var fileName = Path.GetFileName(pathName);
             var directory = Path.GetDirectoryName(pathName);
 
-            if (directory == Context.DryadHomeDirectory && IsSharedDryadFile(fileName))
+            if ((directory == Context.DryadHomeDirectory || directory == Context.PeloponneseHomeDirectory)
+                && IsDryadWorkerFile(fileName))
             {
                 // we deal with these resources elsewhere
                 return;
@@ -131,9 +150,9 @@ namespace Microsoft.Research.DryadLinq
         }
 
         protected abstract XElement MakeJMConfig();
-        protected abstract XElement MakeWorkerConfig(string configPath, XElement peloponneseResource);
+        protected abstract XElement MakeWorkerConfig(string configPath);
 
-        protected XDocument MakeConfig(string psConfigPath, XElement peloponneseResource)
+        protected XDocument MakeConfig(string psConfigPath)
         {
             var configDoc = new XDocument();
             var docElement = new XElement("PeloponneseConfig");
@@ -148,7 +167,7 @@ namespace Microsoft.Research.DryadLinq
             serverElement.Add(prefixElement);
 
             serverElement.Add(MakeJMConfig());
-            serverElement.Add(MakeWorkerConfig(psConfigPath, peloponneseResource));
+            serverElement.Add(MakeWorkerConfig(psConfigPath));
 
             docElement.Add(serverElement);
 

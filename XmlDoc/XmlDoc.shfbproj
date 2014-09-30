@@ -85,6 +85,7 @@
     <None Include="Content\Resources.aml" />
     <None Include="Content\Resources\Running a job on HDInsight.aml" />
     <None Include="Content\VersionHistory\v0.1.2.aml" />
+    <None Include="Content\VersionHistory\v0.2.0.aml" />
     <None Include="Content\VersionHistory\VersionHistory.aml" />
     <None Include="Content\Welcome.aml" />
   </ItemGroup>

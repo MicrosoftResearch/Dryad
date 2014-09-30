@@ -570,7 +570,7 @@ DrString DrClusterInternal::TranslateFileToURI(DrString leafName, DrString direc
 }
 
 void DrClusterInternal::ScheduleProcess(DrAffinityListRef affinities,
-                                        DrString name, DrString commandLine,
+                                        DrString name, DrString commandLineArgs,
                                         DrProcessTemplatePtr processTemplate,
                                         DrPSRListenerPtr listener)
 {
@@ -603,8 +603,8 @@ void DrClusterInternal::ScheduleProcess(DrAffinityListRef affinities,
 
     DrLogI("Starting schedule process for %s.%s",
            processTemplate->GetProcessClass().GetChars(), name.GetChars());
-
-    IProcess^ rawProcess = m_cluster->NewProcess(process, commandLine.GetString());
+	
+    IProcess^ rawProcess = m_cluster->NewProcess(process, processTemplate->GetCommandLineBase().GetString(), commandLineArgs.GetString());
     process->SetProcess(rawProcess);
 
     DrLogI("Assigned GUID %s to process for %s.%s",

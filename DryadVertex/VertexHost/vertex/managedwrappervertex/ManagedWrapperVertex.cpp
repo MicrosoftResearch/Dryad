@@ -28,7 +28,6 @@ limitations under the License.
 #include <mscoree.h>
 #include <wrappernativeinfo.h>
 
-
 #pragma managed
 
 #pragma warning(disable:4947) // so that we can use Assembly::LoadWithPartialName()
@@ -198,18 +197,25 @@ void ManagedWrapperVertex::Main(WorkQueue* workQueue,
         logName = System::IO::Path::Combine(logDirectory, logName);
     }
 
+	int threadsPerWorker = 1;
+	System::String^ threadsPerWorkerStr = System::Environment::GetEnvironmentVariable("DRYAD_THREADS_PER_WORKER");
+    if (threadsPerWorkerStr != nullptr)
+    {
+		threadsPerWorker = Int32::Parse(threadsPerWorkerStr);
+    }
+    DrLogI("ManagedWrapperVertex: threadsPerWorker %u", threadsPerWorker);
+
     DrLogI("ManagedWrapperVertex: %p %u %u", nativeInfo, numberOfInputChannels, numberOfOutputChannels);
     DrLogI("ManagedWrapperVertex: Calling %s.%s", GetArgument(2), GetArgument(3));
     DrLogging::FlushLog();
-
 
     DrStr128 errorMsg;
     DrError error;
 
     {
         //
-        // Instead of invoking the vertex entry point directly from here, we delegate it to the bridge method in the Microsoft.Hpc.Linq assembly, specifically:
-        //     static int Microsoft.Hpc.Linq.Internal.VertexEnv.VertexBridge(string vertexBridgeArgs)
+        // Instead of invoking the vertex entry point directly from here, we delegate it to the bridge method in the Microsoft.Research.DryadLinq assembly, specifically:
+        //     static int Microsoft.Research.DryadLinq.Internal.VertexEnv.VertexBridge(string vertexBridgeArgs)
         //
         // This indirect method of invoking the vertex entry point is used so that any type load / assembly load problems coming from user code 
         // can be caught and reported with full details using the same mechanism that other vertex failures go through (exception dumped into vertexexception.txt etc.)
@@ -217,8 +223,10 @@ void ManagedWrapperVertex::Main(WorkQueue* workQueue,
         // The format of vertexBridgeArgs is simply a comma separated string packing vertex assembly, class, method name, and the *actual* vertex method args (==the native channel string)
         //     L"<vertexAssembly>,<vertexClassName>,<vertexMethodName>,<vertexMethodArgs>"
         //
-        System::String ^bridgeAssemblyPartialName = gcnew System::String(L"Microsoft.Research.DryadLinq");
-        System::String ^bridgeClassName = gcnew System::String(L"Microsoft.Research.DryadLinq.Internal.VertexEnv");
+        System::String^ classFullName = gcnew System::String(GetArgument(2));
+        System::String^ assemblyName = classFullName->Substring(0, classFullName->LastIndexOf('.'));
+        System::String ^bridgeAssemblyName = gcnew System::String(assemblyName);
+        System::String ^bridgeClassName = gcnew System::String(assemblyName + ".Internal.VertexEnv");
         System::String ^bridgeMethodName = gcnew System::String(L"VertexBridge");
 
         //
@@ -235,20 +243,18 @@ void ManagedWrapperVertex::Main(WorkQueue* workQueue,
             vertexMethodArgs->Append(gcnew System::String(arg.GetString()));
         }
 
-
         //
         // Get assembly path, class name, and method name, and construct the vertex bridge args with the following format:
         //     "<vertexAssembly>,<vertexClassName>,<vertexMethodName>,<vertexMethodArgs>"
         //        
         System::Text::StringBuilder ^vertexBridgeArg = gcnew System::Text::StringBuilder();
-        vertexBridgeArg->Append(gcnew System::String(GetArgument(1)));   // path to vertex DLL as passed to the vertex host, e.g. L"c:\\HpcTemp\\user\\jobID\\Microsoft.Hpc.Linq0.dll";
+        vertexBridgeArg->Append(gcnew System::String(GetArgument(1)));   // path to vertex DLL as passed to the vertex host, e.g. L"\\HpcTemp\\user\\jobID\\Microsoft.Research.DryadLinq0.dll";
         vertexBridgeArg->Append(",");
-        vertexBridgeArg->Append(gcnew System::String(GetArgument(2)));   // full name of class that contains vertex entry method, e.g. L"Microsoft.Hpc.Linq.HpcLinq__Vertex";
+        vertexBridgeArg->Append(gcnew System::String(GetArgument(2)));   // full name of class that contains vertex entry method, e.g. L"Microsoft.Research.DryadLinq.DryadLinq__Vertex";
         vertexBridgeArg->Append(",");
         vertexBridgeArg->Append(gcnew System::String(GetArgument(3)));   // vertex entry method name L"Select__1";
         vertexBridgeArg->Append(",");		
         vertexBridgeArg->Append(vertexMethodArgs->ToString());
-
 
         DrLogI("ManagedWrapperVertex: Calling into Vertex Bridge to invoke Vertex Entry: %s", GetArgument(3));
         DrLogging::FlushLog();
@@ -260,12 +266,22 @@ void ManagedWrapperVertex::Main(WorkQueue* workQueue,
         //                
         try
         {
-            System::Console::WriteLine("Assembly name " + bridgeAssemblyPartialName);
-            System::Reflection::Assembly ^vertexBridgeAsm = System::Reflection::Assembly::LoadWithPartialName(bridgeAssemblyPartialName);
-            System::Type ^vertexBridgeType = vertexBridgeAsm->GetType(gcnew System::String(bridgeClassName));
-            System::Reflection::MethodInfo ^vertexBridgeMethod = vertexBridgeType->GetMethod(gcnew System::String(bridgeMethodName), 
-                                                                                             static_cast<System::Reflection::BindingFlags>(System::Reflection::BindingFlags::NonPublic | 
-                                                                                                                                           System::Reflection::BindingFlags::Static));
+            System::Reflection::Assembly ^vertexBridgeAsm;
+            try
+            {
+                vertexBridgeAsm = System::Reflection::Assembly::Load(bridgeAssemblyName);
+            }
+            catch (System::Exception ^ie)
+            {
+                DrLogI("ManagedWrapperVertex: Failed to load assembly %s: %s", bridgeAssemblyName, ie->ToString());
+                System::String^ asmLoc = System::IO::Path::Combine("..", bridgeAssemblyName + ".dll");
+                vertexBridgeAsm = System::Reflection::Assembly::LoadFrom(asmLoc);
+            }
+            System::Type ^vertexBridgeType = vertexBridgeAsm->GetType(bridgeClassName);
+            System::Reflection::MethodInfo ^vertexBridgeMethod
+                = vertexBridgeType->GetMethod(bridgeMethodName, 
+                                              static_cast<System::Reflection::BindingFlags>(System::Reflection::BindingFlags::NonPublic | 
+                                                                                            System::Reflection::BindingFlags::Static));
 
             cli::array<System::Object^> ^invokeArgs = gcnew array<System::Object^>(2);
             invokeArgs[0] = logName;
@@ -302,7 +318,7 @@ void ManagedWrapperVertex::Main(WorkQueue* workQueue,
             error = (DrError)hr;
             errorMsg.Set("Error returned from managed runtime invocation, ");
             errorMsg.Append(DRERRORSTRING(error));
-			errorMsg.Append("\n");
+            errorMsg.Append("\n");
             DrLogE( "Error returned from managed runtime invocation. %s (%d)", DRERRORSTRING(error), error);
 
             //

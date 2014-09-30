@@ -30,8 +30,8 @@ DRCLASS(DrHdfsInputStream) : public DrInputStream
 {
 public:   
     DrHdfsInputStream();
-    HRESULT Open(DrUniversePtr universe, DrNativeString streamUri);
-    HRESULT OpenInternal(DrUniversePtr universe, DrString streamUri);
+    HRESULT Open(DrUniversePtr universe, DrNativeString streamUri, DrNativeString recordType);
+    HRESULT OpenInternal(DrUniversePtr universe, DrString streamUri, DrString recordType);
     DrNativeString GetError();
 
     virtual DrString GetStreamName() DROVERRIDE;

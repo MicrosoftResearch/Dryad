@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/01/nuspec.xsd">
     <metadata minClientVersion="2.5">
         <id>Microsoft.Research.Dryad</id>
-        <version>0.1.3-beta</version>
+        <version>0.2.0-beta</version>
         <title>Dryad and DryadLINQ for YARN</title>
         <authors>bigdatadev@microsoft.com</authors>
         <owners>bigdatadev@microsoft.com,Microsoft</owners>
@@ -17,7 +17,8 @@ Dryad provides reliable, distributed computing on thousands of servers for large
         <language>en-US</language>
         <dependencies>
             <group targetFramework=".NETFramework4.5">
-                <dependency id="Microsoft.Research.Peloponnese" version="0.7.2-beta" />
+                <dependency id="Microsoft.Research.Peloponnese.Client" version="0.8.0-beta" />
+                <!--<dependency id="zlib" version="1.2.8.6" />-->
             </group>
         </dependencies>
         <frameworkAssemblies>
@@ -36,31 +37,50 @@ Dryad provides reliable, distributed computing on thousands of servers for large
       </references>
     </metadata>
     <files>     
-        <file src="bin\signed\Microsoft.Research.DryadLinq.dll" target="lib\net45\Microsoft.Research.DryadLinq.dll" />
-        <file src="bin\Release\Microsoft.Research.DryadLinq.pdb" target="lib\net45\Microsoft.Research.DryadLinq.pdb" />
-        <file src="bin\Release\Microsoft.Research.DryadLinq.xml" target="lib\net45\Microsoft.Research.DryadLinq.xml" />
-        <file src="bin\Release\DryadHttpClusterInterface.pdb" target="lib\net45\DryadHttpClusterInterface.pdb" />
-        <file src="bin\Release\DryadLinqGraphManager.pdb" target="lib\net45\DryadLinqGraphManager.pdb" />
-      
-        <file src="bin\signed\DryadLINQNativeChannels.dll" target="lib\net45\DryadLINQNativeChannels.dll" />
-        <file src="bin\Release\DryadLINQNativeChannels.pdb" target="lib\net45\DryadLINQNativeChannels.pdb" />
-      
-        <file src="bin\signed\DryadLocalScheduler.dll" target="lib\net45\DryadLocalScheduler.dll" />
-        <file src="bin\Release\DryadLocalScheduler.pdb" target="lib\net45\DryadLocalScheduler.pdb" />
-        <file src="bin\signed\DryadManagedChannel.dll" target="lib\net45\DryadManagedChannel.dll" />
-        <file src="bin\Release\DryadManagedChannel.pdb" target="lib\net45\DryadManagedChannel.pdb" />
-        <file src="bin\signed\Microsoft.Research.Dryad.dll" target="lib\net45\Microsoft.Research.Dryad.dll" />
-        <file src="bin\Release\Microsoft.Research.Dryad.pdb" target="lib\net45\Microsoft.Research.Dryad.pdb" />
-        <file src="bin\Release\ProcessService.pdb" target="lib\net45\ProcessService.pdb" />
-        <file src="bin\Release\DryadLinqGraphManager.exe.config" target="lib\net45\DryadLinqGraphManager.exe.config" />
-        <file src="bin\signed\DryadLinqGraphManager.exe" target="lib\net45\DryadLinqGraphManager.exe" />
-        <file src="bin\signed\ProcessService.exe" target="lib\net45\ProcessService.exe" />
-        <file src="bin\Release\ProcessService.exe.config" target="lib\net45\ProcessService.exe.config" />
-        <file src="bin\signed\DryadHttpClusterInterface.dll" target="lib\net45\DryadHttpClusterInterface.dll" />
-        <file src="bin\Release\VertexHost.exe.config" target="lib\net45\VertexHost.exe.config" />
-        <file src="bin\signed\VertexHost.exe" target="lib\net45\VertexHost.exe" />
-        <file src="bin\Release\VertexHost.pdb" target="lib\net45\VertexHost.pdb" />
-        <file src="Microsoft.Research.Dryad.targets" target="build\Microsoft.Research.Dryad.targets" />
-        <file src="Install.ps1" target="tools\Install.ps1" />
+      <!-- file src="bin\signed\Microsoft.Research.Dryad.DryadLinq.dll" target="lib\net45\Microsoft.Research.Dryad.DryadLinq.dll" /> -->
+      <file src="bin\Release\Microsoft.Research.DryadLinq.dll" target="lib\net45\Microsoft.Research.DryadLinq.dll" />
+      <file src="bin\Release\Microsoft.Research.DryadLinq.pdb" target="lib\net45\Microsoft.Research.DryadLinq.pdb" />
+      <file src="bin\Release\Microsoft.Research.DryadLinq.xml" target="lib\net45\Microsoft.Research.DryadLinq.xml" />
+
+      <!-- <file src="bin\signed\Microsoft.Research.Dryad.ManagedChannel.dll" target="lib\net45\Microsoft.Research.Dryad.ManagedChannel.dll" /> -->
+      <file src="bin\Release\Microsoft.Research.Dryad.ManagedChannel.dll" target="lib\net45\Microsoft.Research.Dryad.ManagedChannel.dll" />
+      <file src="bin\Release\Microsoft.Research.Dryad.ManagedChannel.pdb" target="lib\net45\Microsoft.Research.Dryad.ManagedChannel.pdb" />
+
+      <!-- <file src="bin\signed\Microsoft.Research.Dryad.DryadLinq.NativeWrapper.dll" target="lib\net45\Microsoft.Research.Dryad.DryadLinq.NativeWrapper.dll" /> -->
+      <file src="bin\Release\Microsoft.Research.Dryad.DryadLinq.NativeWrapper.dll" target="lib\net45\Microsoft.Research.Dryad.DryadLinq.NativeWrapper.dll" />
+      <file src="bin\Release\Microsoft.Research.Dryad.DryadLinq.NativeWrapper.pdb" target="lib\net45\Microsoft.Research.Dryad.DryadLinq.NativeWrapper.pdb" />
+
+      <!-- <file src="bin\signed\Microsoft.Research.Dryad.VertexHostBody.dll" target="lib\net45\Microsoft.Research.Dryad.VertexHostBody.dll" /> -->
+      <file src="bin\Release\Microsoft.Research.Dryad.VertexHostBody.dll" target="lib\net45\Microsoft.Research.Dryad.VertexHostBody.dll" />
+      <file src="bin\Release\Microsoft.Research.Dryad.VertexHostBody.pdb" target="lib\net45\Microsoft.Research.Dryad.VertexHostBody.pdb" />
+
+      <!-- <file src="bin\signed\Microsoft.Research.Dryad.VertexHost.exe" target="lib\net45\Microsoft.Research.Dryad.VertexHost.exe" /> -->
+      <file src="bin\Release\Microsoft.Research.Dryad.VertexHost.exe" target="lib\net45\Microsoft.Research.Dryad.VertexHost.exe" />
+      <file src="bin\Release\Microsoft.Research.Dryad.VertexHost.exe.config" target="lib\net45\Microsoft.Research.Dryad.VertexHost.exe.config" />
+      <file src="bin\Release\Microsoft.Research.Dryad.VertexHost.pdb" target="lib\net45\Microsoft.Research.Dryad.VertexHost.pdb" />
+
+      <!-- <file src="bin\signed\Microsoft.Research.Dryad.ProcessService.exe" target="lib\net45\Microsoft.Research.Dryad.ProcessService.exe" /> -->
+      <file src="bin\Release\Microsoft.Research.Dryad.ProcessService.exe" target="lib\net45\Microsoft.Research.Dryad.ProcessService.exe" />
+      <file src="bin\Release\Microsoft.Research.Dryad.ProcessService.exe.config" target="lib\net45\Microsoft.Research.Dryad.ProcessService.exe.config" />
+      <file src="bin\Release\Microsoft.Research.Dryad.ProcessService.pdb" target="lib\net45\Microsoft.Research.Dryad.ProcessService.pdb" />
+
+      <!-- file src="bin\signed\Microsoft.Research.Dryad.HttpClusterInterface.dll" target="lib\net45\Microsoft.Research.Dryad.HttpClusterInterface.dll" /> -->
+      <file src="bin\Release\Microsoft.Research.Dryad.HttpClusterInterface.dll" target="lib\net45\Microsoft.Research.Dryad.HttpClusterInterface.dll" />
+      <file src="bin\Release\Microsoft.Research.Dryad.HttpClusterInterface.pdb" target="lib\net45\Microsoft.Research.Dryad.HttpClusterInterface.pdb" />
+
+      <!-- <file src="bin\signed\Microsoft.Research.Dryad.LocalScheduler.dll" target="lib\net45\Microsoft.Research.Dryad.LocalScheduler.dll" /> -->
+      <file src="bin\Release\Microsoft.Research.Dryad.LocalScheduler.dll" target="lib\net45\Microsoft.Research.Dryad.LocalScheduler.dll" />
+      <file src="bin\Release\Microsoft.Research.Dryad.LocalScheduler.pdb" target="lib\net45\Microsoft.Research.Dryad.LocalScheduler.pdb" />
+
+      <!-- <file src="bin\signed\Microsoft.Research.Dryad.dll" target="lib\net45\Microsoft.Research.Dryad.dll" /> -->
+      <file src="bin\Release\Microsoft.Research.Dryad.dll" target="lib\net45\Microsoft.Research.Dryad.dll" />
+      <file src="bin\Release\Microsoft.Research.Dryad.pdb" target="lib\net45\Microsoft.Research.Dryad.pdb" />
+
+      <!-- file src="bin\signed\Microsoft.Research.Dryad.GraphManager.exe" target="lib\net45\Microsoft.Research.Dryad.GraphManager.exe" /> -->
+      <file src="bin\Release\Microsoft.Research.Dryad.GraphManager.exe" target="lib\net45\Microsoft.Research.Dryad.GraphManager.exe" />
+      <file src="bin\Release\Microsoft.Research.Dryad.GraphManager.exe.config" target="lib\net45\Microsoft.Research.Dryad.GraphManager.exe.config" />
+      <file src="bin\Release\Microsoft.Research.Dryad.GraphManager.pdb" target="lib\net45\Microsoft.Research.Dryad.GraphManager.pdb" />
+
+      <file src="Microsoft.Research.Dryad.targets" target="build\Microsoft.Research.Dryad.targets" />
     </files>
 </package>

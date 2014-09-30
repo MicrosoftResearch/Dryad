@@ -19,6 +19,7 @@ limitations under the License.
 
 */
 
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -142,6 +143,8 @@ namespace Microsoft.Research.DryadAnalysis
                 ClusterConfiguration config = ClusterConfiguration.KnownClusterByName(clusterName);
 
                 this.Configuration = config;
+                this.diagnoseToolStripMenuItem.Visible = config.SupportsDiagnosis;
+                this.diagnoseToolStripMenuItem1.Visible = config.SupportsDiagnosis;
             }
             catch (Exception ex)
             {
@@ -602,12 +605,8 @@ namespace Microsoft.Research.DryadAnalysis
 
             ToolStripItem strip = item.OwnerItem;
             string clus = strip.Text;
-            var config = this.EditCluster(clus);
-            if (config != null)
-            {
-                ClusterConfiguration.AddKnownCluster(config);
-                this.AddClusterNameToMenu(config.Name);
-            }
+            var conf = this.EditCluster(clus);
+            this.ConfigurationChanged(conf);
         }
 
         void selItem_Click(object sender, EventArgs e)
@@ -620,9 +619,8 @@ namespace Microsoft.Research.DryadAnalysis
             this.ClusterSelected(clus);
         }
 
-        void AddNewCluster(object sender, EventArgs e)
+        private void ConfigurationChanged(ClusterConfiguration conf)
         {
-            ClusterConfiguration conf = this.EditCluster(null);
             if (conf == null) return;
 
             // you cannot have two cache clusters at the same time
@@ -650,6 +648,13 @@ namespace Microsoft.Research.DryadAnalysis
 
             ClusterConfiguration.AddKnownCluster(conf);
             this.AddClusterNameToMenu(conf.Name);
+            this.Status("Added cluster " + conf.Name, StatusKind.OK);
+        }
+
+        void AddNewCluster(object sender, EventArgs e)
+        {
+            ClusterConfiguration conf = this.EditCluster(null);
+            this.ConfigurationChanged(conf);
         }
 
         /// <summary>
@@ -661,10 +666,23 @@ namespace Microsoft.Research.DryadAnalysis
         {
             ClusterConfigEditor editor = new ClusterConfigEditor();
 
-            if (clusterName != null)
+            try
             {
-                var config = ClusterConfiguration.KnownClusterByName(clusterName);
-                editor.SetConfigToEdit(config);
+                if (clusterName != null)
+                {
+                    var config = ClusterConfiguration.KnownClusterByName(clusterName);
+                    editor.SetConfigToEdit(config);
+                }
+                else
+                {
+                    editor.SetConfigToEdit(null);
+                }
+            }
+            catch (Exception)
+            {
+                // This can happen when the cluster serialization has changed
+                // and we can no longer read the saved properties
+                editor.SetConfigToEdit(null);
             }
             DialogResult res = editor.ShowDialog();
             if (res == System.Windows.Forms.DialogResult.OK)

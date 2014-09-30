@@ -49,20 +49,13 @@ namespace Microsoft.Research.Dryad.ProcessService
         public const Int32 HdfsServiceDefaultHttpPort = 50070;
 
         // Recognized values are: OFF, CRITICAL, ERROR, WARN, INFO, VERBOSE
-        public const string traceLevelEnvVar = "DRYAD_TRACE_LEVEL";
-        public const string traceOff = "OFF";
-        public const string traceCritical = "CRITICAL";
-        public const string traceError = "ERROR";
-        public const string traceWarning = "WARN";
-        public const string traceInfo = "INFO";
-        public const string traceVerbose = "VERBOSE";
-
-        public const int traceOffNum = 0;
-        public const int traceCriticalNum = 1;
-        public const int traceErrorNum = 3;
-        public const int traceWarningNum = 7;
-        public const int traceInfoNum = 15;
-        public const int traceVerboseNum = 31;
+        public const string loggingLevelEnvVar = "DRYAD_LOGGING_LEVEL";
+        public const string loggingOff = "OFF";
+        public const string loggingCritical = "CRITICAL";
+        public const string loggingError = "ERROR";
+        public const string loggingWarning = "WARN";
+        public const string loggingInfo = "INFO";
+        public const string loggingVerbose = "VERBOSE";
 
         // DrError.h values used in managed code
         // need to keep this section in sync with drerror.h changes...

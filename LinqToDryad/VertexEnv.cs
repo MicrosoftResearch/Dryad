@@ -46,10 +46,9 @@ namespace Microsoft.Research.DryadLinq.Internal
         private string[] m_argList;
         private DryadLinqVertexParams m_vertexParams;
         private bool m_useLargeBuffer;
-        private bool m_multiThreading;
 
         /// <summary>
-        /// Initializes an instnace of VertexEnv. This is called in auto-generated code.
+        /// Initializes an instnace of VertexEnv. This is called in auto-generated vertex code.
         /// </summary>
         /// <param name="args"></param>
         /// <param name="vertexParams"></param>
@@ -64,23 +63,25 @@ namespace Microsoft.Research.DryadLinq.Internal
             this.m_nextOutputPort = 0;
             this.m_vertexParams = vertexParams;
             this.m_useLargeBuffer = vertexParams.UseLargeBuffer;
-            this.m_multiThreading = vertexParams.MultiThreading;
             if (this.m_numberOfOutputs > 0)
             {
                 this.SetInitialWriteSizeHint();
             }
 
-            Debug.Assert(vertexParams.InputArity <= this.m_numberOfInputs);
-            Debug.Assert(vertexParams.OutputArity <= this.m_numberOfOutputs);
-        }
-
-        /// <summary>
-        /// Determines whether to run the DryadLINQ local vertex runtime in multi-threaded mode.
-        /// </summary>
-        public bool MultiThreading
-        {
-            get { return m_multiThreading; }
-            set { m_multiThreading = value; }
+            // Set the thread count for DryadLINQ vertex runtime
+            string threadCountStr = Environment.GetEnvironmentVariable("DRYAD_THREADS_PER_WORKER");
+            DryadLinqVertex.ThreadCount = Environment.ProcessorCount;
+            if (!String.IsNullOrEmpty(threadCountStr))
+            {
+                if (!Int32.TryParse(threadCountStr, out DryadLinqVertex.ThreadCount))
+                {
+                    throw new DryadLinqException("The env variable DRYAD_THREADS_PER_WORKER was set to " + threadCountStr);
+                }
+                if (DryadLinqVertex.ThreadCount < 1)
+                {
+                    DryadLinqVertex.ThreadCount = Environment.ProcessorCount;
+                }
+            }
         }
 
         internal IntPtr NativeHandle
@@ -311,7 +312,7 @@ namespace Microsoft.Research.DryadLinq.Internal
         // assembly load exceptions can be caught and reported in full detail.
         private static void VertexBridge(string logFileName, string vertexBridgeArgs)
         {
-            DryadLinqLog.Initialize(Constants.TraceInfoLevel, logFileName);
+            DryadLinqLog.Initialize(Constants.LoggingInfoLevel, logFileName);
             DryadLinqLog.AddInfo(".NET runtime version = v{0}.{1}.{2}",
                                  Environment.Version.Major,
                                  Environment.Version.Minor,

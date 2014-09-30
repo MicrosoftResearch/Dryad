@@ -57,7 +57,8 @@ namespace Microsoft.Research.DryadLinq.Internal
             DynamicMethod dm = new DynamicMethod("GetObjField",
                                                  typeof(S),
                                                  new Type[] { typeT },
-                                                 typeT);
+                                                 typeT,
+                                                 true);
             ILGenerator ilgen = dm.GetILGenerator();
             ilgen.Emit(OpCodes.Ldarg_0);
             ilgen.Emit(OpCodes.Ldfld, finfo);
@@ -83,7 +84,8 @@ namespace Microsoft.Research.DryadLinq.Internal
             DynamicMethod dm = new DynamicMethod("SetObjField",
                                                  typeof(void),
                                                  new Type[] { typeT, typeof(S) },
-                                                 typeT);
+                                                 typeT,
+                                                 true);
             ILGenerator ilgen = dm.GetILGenerator();
             ilgen.Emit(OpCodes.Ldarg_0);
             ilgen.Emit(OpCodes.Ldarg_1);
@@ -110,7 +112,8 @@ namespace Microsoft.Research.DryadLinq.Internal
             DynamicMethod dm = new DynamicMethod("GetStructField",
                                                  typeof(S),
                                                  new Type[] { typeT.MakeByRefType() },
-                                                 typeT);
+                                                 typeT,
+                                                 true);
             ILGenerator ilgen = dm.GetILGenerator();
             ilgen.Emit(OpCodes.Ldarg_0);
             ilgen.Emit(OpCodes.Ldfld, finfo);
@@ -136,7 +139,8 @@ namespace Microsoft.Research.DryadLinq.Internal
             DynamicMethod dm = new DynamicMethod("SetStructField",
                                                  typeof(void),
                                                  new Type[] { typeT.MakeByRefType(), typeof(S) },
-                                                 typeT);
+                                                 typeT,
+                                                 true);
             ILGenerator ilgen = dm.GetILGenerator();
             ilgen.Emit(OpCodes.Ldarg_0);
             ilgen.Emit(OpCodes.Ldarg_1);

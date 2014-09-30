@@ -173,7 +173,7 @@ namespace Microsoft.Research.DryadLinq
     internal class ReflectedNames
     {
         internal const string DataProvider_GetPartitionedTable = "GetPartitionedTable";
-        internal const string DataProvider_Ingress = "Ingress";
-        internal const string DLQ_ToStore = "ToStoreInternal";
+        internal const string DLQ_ToStoreInternal = "ToStoreInternal";
+        internal const string DLQ_ToStoreInternalAux = "ToStoreInternalAux";
     }
 }

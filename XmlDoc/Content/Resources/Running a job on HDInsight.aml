@@ -122,11 +122,15 @@
             <linkTarget>_blank</linkTarget>
           </externalLink>, and click on the <command>Hadoop YARN Status</command> shortcut link on the desktop, you can see all these
           jobs running.</para>
-          <para>Unfortunately because of the current configuration of HDInsight clusters, all DryadLINQ logs are deleted immediately
+          <para>Unfortunately because of the current configuration of HDInsight clusters, all DryadLINQ logs are archived immediately
           when the application exits, and you will get a "Failed redirect for container" error if you try to navigate to the logs of
           a completed application. We have tried to report errors in user application code back so that they are visible in the
           <link xlink:href="91822db3-8a00-4307-ad8a-595c94f449b0">DryadLINQ Job Browser</link> to avoid the need to consult
-          the logs.</para>
+          the logs.  If you do need to consult the logs, remote desktop to your HDInsight cluster, then click on the 
+          <command>Hadoop Command Line</command> link on the desktop, and then run a command similar to 
+          <command>yarn logs -applicationId &lt;APPLICATION_ID&gt; -appOwner &lt;CLUSTER_USER_NAME&gt;</command> where you replace 
+          &lt;APPLICATION_ID&gt; and &lt;CLUSTER_USER_NAME&gt; with values appropriate to your job and cluster configuration.
+          </para>
           <para>
             <mediaLinkInline>
               <image xlink:href="Dryad on Azure Architecture"/>

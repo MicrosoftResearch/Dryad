@@ -1241,7 +1241,7 @@ namespace Microsoft.Research.Tools
         /// <param name="url">Url to reach.</param>
         /// <returns>A streamreader that returns the loaded web page.</returns>
         /// <param name="credentials">Credentials to use.</param>
-        public static StreamReader Navigate(string url, ICredentials credentials)
+        public static Stream Navigate(string url, ICredentials credentials)
         {
             CookieContainer cookiejar = new CookieContainer();
             HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
@@ -1258,9 +1258,7 @@ namespace Microsoft.Research.Tools
             System.Diagnostics.Trace.Assert(resp.StatusCode == HttpStatusCode.OK);
             Trace.TraceInformation("Received response");
 
-            // ReSharper disable once AssignNullToNotNullAttribute
-            StreamReader respReader = new StreamReader(resp.GetResponseStream());
-            return respReader;
+            return resp.GetResponseStream();
         }
 
         /// <summary>
@@ -2888,54 +2886,9 @@ namespace Microsoft.Research.Tools
     }
 
     /// <summary>
-    /// An abstract class for streaming through files piece by piece.
-    /// </summary>
-    public interface IFileStreamer
-    {
-        /// <summary>
-        /// Done reading file.
-        /// </summary>
-        void Close();
-        /// <summary>
-        /// Read one "line" from the file.
-        /// </summary>
-        /// <returns>The line parsed into pieces.</returns>
-        string[] ReadLine();
-        /// <summary>
-        /// Read the file header.
-        /// </summary>
-        /// <returns>The line parsed into pieces.</returns>
-        string[] ReadHeader();
-        /// <summary>
-        /// Write the file header.
-        /// </summary>
-        /// <param name="header">Header to write.</param>
-        void WriteHeader(IEnumerable<string> header);
-        /// <summary>
-        /// Write a line in the file.
-        /// </summary>
-        /// <param name="line">Line to write.</param>
-        void WriteLine(IEnumerable<string> line);
-        /// <summary>
-        /// Start the stream from the beginning.
-        /// </summary>
-        void Reset();
-        /// <summary>
-        /// The whole contents of the file.
-        /// </summary>
-        /// <returns>The complete file contents.</returns>
-        IEnumerable<string[]> ReadFile();
-
-        /// <summary>
-        /// Line being parsed.
-        /// </summary>
-        long CurrentLineNumber { get; }
-    }
-
-    /// <summary>
     /// Base implementation of file streamer.
     /// </summary>
-    public abstract class BaseFileStreamer : IFileStreamer
+    public abstract class BaseFileStreamer 
     {
         /// <summary>
         /// True if the file is expected to contain a header.
@@ -2984,7 +2937,8 @@ namespace Microsoft.Research.Tools
         /// <param name="filename">File to access.</param>
         /// <param name="mode">File mode.</param>
         /// <param name="statusReporter">Delegate used to report errors.</param>
-        protected BaseFileStreamer(string filename, FileMode mode, StatusReporter statusReporter)
+        /// <param name="keepNewlines">If true keep newlines.</param>
+        protected BaseFileStreamer(string filename, FileMode mode, bool keepNewlines, StatusReporter statusReporter)
         {
             this.reader = null;
             this.writer = null;
@@ -2992,19 +2946,19 @@ namespace Microsoft.Research.Tools
             this.mode = mode;
             this.statusReporter = statusReporter;
             // ReSharper disable once DoNotCallOverridableMethodsInConstructor
-            this.Reset();
+            this.Reset(keepNewlines);
         }
 
         /// <summary>
         /// Go to the beginning.
         /// </summary>
-        public virtual void Reset()
+        public virtual void Reset(bool keepNewlines)
         {
             this.Close();
             switch (this.mode)
             {
                 case FileMode.Open:
-                    this.reader = new FileSharedStreamReader(filename);
+                    this.reader = new FileSharedStreamReader(filename, keepNewlines);
                     if (this.reader.Exception != null)
                         throw this.reader.Exception;
                     this.writer = null;
@@ -3150,7 +3104,7 @@ namespace Microsoft.Research.Tools
         /// <param name="mode">Mode of access.</param>
         /// <param name="statusReporter">Delegate used to report errors.</param>
         public KVPFileStreamer(string filename, FileMode mode, StatusReporter statusReporter)
-            : base(filename, mode, statusReporter)
+            : base(filename, mode, false, statusReporter)
         {
         }
 
@@ -3213,7 +3167,7 @@ namespace Microsoft.Research.Tools
         /// <param name="hasHeader">True if the file contains a header.</param>
         /// <param name="statusReporter">Delegate used to report errors.</param>
         public CSVFileStreamer(string filename, FileMode mode, bool hasHeader, StatusReporter statusReporter)
-            : base(filename, mode, statusReporter)
+            : base(filename, mode, false, statusReporter)
         {
             this.HasHeader = hasHeader;
             this.header = null;
@@ -3580,6 +3534,10 @@ namespace Microsoft.Research.Tools
         /// Delegate to call when stream is closed if caching.
         /// </summary>
         Action onClose;
+        /// <summary>
+        /// If true the reader keeps all newlines.
+        /// </summary>
+        private bool readerKeepsNewlines;
 
         /// <summary>
         /// A shared stream reader representing an exception.
@@ -3594,16 +3552,19 @@ namespace Microsoft.Research.Tools
         /// <summary>
         /// Actual stream where the data is being read from.
         /// </summary>
-        protected StreamReader actualReader;
+        protected ISimpleStreamReader actualReader;
 
         /// <summary>
         /// Create a stream reader for the specified stream.
         /// </summary>
         /// <param name="reader">Stream to read.</param>
-        public SharedStreamReader(StreamReader reader)
+        /// <param name="keepNewlines">Keep newlines in the input stream.</param>
+        public SharedStreamReader(ISimpleStreamReader reader, bool keepNewlines)
         {
             this.actualReader = reader;
             this.cacheWriter = null;
+            this.readerKeepsNewlines = keepNewlines;
+            this.readerKeepsNewlines = false;
         }
 
         /// <summary>
@@ -3612,8 +3573,10 @@ namespace Microsoft.Research.Tools
         /// <param name="reader">Stream to read.</param>
         /// <param name="cacheWriter">Use this stream to copy the file to a cache.</param>
         /// <param name="onClose">Delegate to call when stream is completely read.</param>
-        public SharedStreamReader(StreamReader reader, StreamWriter cacheWriter, Action onClose)
+        /// <param name="readerKeepsNewlines">If true the reader keeps all newlines.</param>
+        public SharedStreamReader(ISimpleStreamReader reader, StreamWriter cacheWriter, bool readerKeepsNewlines, Action onClose)
         {
+            this.readerKeepsNewlines = readerKeepsNewlines;
             this.actualReader = reader;
             this.cacheWriter = cacheWriter;
             this.onClose = onClose;
@@ -3624,8 +3587,10 @@ namespace Microsoft.Research.Tools
         /// </summary>
         /// <param name="cw">Stream used to write to the cache.</param>
         /// <param name="onCl">Action to invoke on close.</param>
-        public void SetCacheWriter(StreamWriter cw, Action onCl)
+        /// <param name="keepNewlines">If true keep newlines.</param>
+        public void SetCacheWriter(StreamWriter cw, bool keepNewlines, Action onCl)
         {
+            this.readerKeepsNewlines = keepNewlines;
             this.cacheWriter = cw;
             this.onClose = onCl;
         }
@@ -3635,8 +3600,9 @@ namespace Microsoft.Research.Tools
         /// </summary>
         public SharedStreamReader()
         {
-            this.actualReader = StreamReader.Null;
+            this.actualReader = new WrapperSimpleStreamReader(StreamReader.Null);
             this.cacheWriter = null;
+            this.readerKeepsNewlines = false;
         }
 
         /// <summary>
@@ -3653,12 +3619,17 @@ namespace Microsoft.Research.Tools
         /// <summary>
         /// Read one line from the stream.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The read line.</returns>
         public override string ReadLine()
         {
             string line = this.actualReader.ReadLine();
             if (this.cacheWriter != null)
-                this.cacheWriter.WriteLine(line);
+            {
+                if (this.readerKeepsNewlines)
+                    this.cacheWriter.Write(line);
+                else
+                    this.cacheWriter.WriteLine(line);
+            }
             return line;
         }
 
@@ -3667,7 +3638,6 @@ namespace Microsoft.Research.Tools
         /// </summary>
         public override void Close()
         {
-            if (this.actualReader != StreamReader.Null)
                 this.actualReader.Close();
             if (this.cacheWriter != null)
                 this.cacheWriter.Close();
@@ -3690,10 +3660,10 @@ namespace Microsoft.Research.Tools
         /// <param name="token">Can be used to cancel the reading.</param>
         public override string ReadToEnd(CancellationToken token)
         {
-            string result = this.actualReader.ReadToEnd();
+            token.ThrowIfCancellationRequested();
+            string result = this.actualReader.ReadToEnd(token);
             if (this.cacheWriter != null)
             {
-                token.ThrowIfCancellationRequested();
                 this.cacheWriter.Write(result);
                 this.cacheWriter.Close();
                 if (this.onClose != null)
@@ -3725,13 +3695,14 @@ namespace Microsoft.Research.Tools
         /// Create a stream reader for the specified file.
         /// </summary>
         /// <param name="file">File to read.</param>
-        public FileSharedStreamReader(string file)
+        /// <param name="keepNewline">If true keep newlines.</param>
+        public FileSharedStreamReader(string file, bool keepNewline)
         {
             try
             {
                 this.file = file;
-                Stream rd = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite); 
-                this.actualReader = new StreamReader(rd);
+                Stream rd = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                this.actualReader = new SimpleStreamReader(rd, keepNewline);
             }
 
             catch (Exception ex)
@@ -3749,13 +3720,14 @@ namespace Microsoft.Research.Tools
         /// <param name="file">File to read from.</param>
         /// <param name="cache">Cache here the contents read from the file.</param>
         /// <param name="onClose">Action to invoke when file is closed.</param>
-        public FileSharedStreamReader(string file, StreamWriter cache, Action onClose)
+        /// <param name="keepNewlines">If true keep newlines.</param>
+        public FileSharedStreamReader(string file, StreamWriter cache, bool keepNewlines, Action onClose)
         {
             try
             {
                 Stream rd = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                this.actualReader = new StreamReader(rd);
-                this.SetCacheWriter(cache, onClose);
+                this.actualReader = new SimpleStreamReader(rd, true);
+                this.SetCacheWriter(cache, keepNewlines, onClose);
             }
             catch (Exception ex)
             {
@@ -3788,6 +3760,7 @@ namespace Microsoft.Research.Tools
         /// True if we have reached the end of the stream.
         /// </summary>
         bool endOfStream;
+        private bool keepNewlines;
 
         /// <summary>
         /// End of the stream.
@@ -3810,9 +3783,11 @@ namespace Microsoft.Research.Tools
         /// <summary>
         /// A string iterator reading from this data.
         /// </summary>
-        /// <param name="data"></param>
-        public StringIteratorStreamReader(IEnumerable<string> data)
+        /// <param name="data">Strings to read from; each is a "line".</param>
+        /// <param name="keepNewlines">If true keep the newlines.</param>
+        public StringIteratorStreamReader(IEnumerable<string> data, bool keepNewlines)
         {
+            this.keepNewlines = keepNewlines;
             this.contents = data.GetEnumerator();
             this.endOfStream = !this.contents.MoveNext();
         }
@@ -3820,7 +3795,7 @@ namespace Microsoft.Research.Tools
         /// <summary>
         /// Read one line from the stream.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>One line from the set of strings.</returns>
         public override string ReadLine()
         {
             string line = this.contents.Current;
@@ -3842,6 +3817,512 @@ namespace Microsoft.Research.Tools
         {
             this.endOfStream = true;
             this.contents = null;
+        }
+    }
+
+    /// <summary>
+    /// A completely stripped-down StreamReader; only 3 public methods.
+    /// </summary>
+    public interface ISimpleStreamReader
+        : IDisposable
+    {
+        /// <summary>
+        /// Read one line of text.
+        /// </summary>
+        /// <returns>The read line.</returns>
+        string ReadLine();
+        /// <summary>
+        /// True if we have reached the end of stream.
+        /// </summary>
+        bool EndOfStream { get; }
+        /// <summary>
+        /// Read all the data from the stream.
+        /// </summary>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>All the data in the stream.</returns>
+        string ReadToEnd(CancellationToken token);
+        /// <summary>
+        /// Close the stream.
+        /// </summary>
+        void Close();
+    }
+
+    /// <summary>
+    /// A simple stream reader which wraps a true StreamReader.
+    /// This class is only here for compatibility purposes, it should be unused.
+    /// </summary>
+    public class WrapperSimpleStreamReader : ISimpleStreamReader
+    {
+        private StreamReader reader;
+
+        /// <summary>
+        /// Create a Wrapper around a stream reader.
+        /// </summary>
+        /// <param name="reader">Stream reader to wrap.</param>
+        public WrapperSimpleStreamReader(StreamReader reader)
+        {
+            this.reader = reader;
+        }
+
+        /// <summary>
+        /// Read one line of text.
+        /// </summary>
+        /// <returns>The read line.</returns>
+        public string ReadLine()
+        {
+            return this.reader.ReadLine();
+        }
+
+        /// <summary>
+        /// True if we have reached the end of stream.
+        /// </summary>
+        public bool EndOfStream
+        {
+            get { return this.reader.EndOfStream; }
+        }
+
+        /// <summary>
+        /// Read all the data from the stream.
+        /// </summary>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>All the data in the stream.</returns>
+        public string ReadToEnd(CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+            return this.reader.ReadToEnd();
+        }
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        /// <filterpriority>2</filterpriority>
+        public void Dispose()
+        {
+            this.reader.Dispose();
+        }
+
+        /// <summary>
+        /// Close the stream.
+        /// </summary>
+        public void Close()
+        {
+            this.reader.Close();
+        }
+    }
+
+    /// <summary>
+    /// A simple stream reader.  This is almost like a standard StreamReader, but
+    /// has the option not to strip the end-of-line characters in ReadLine.
+    /// </summary>
+    public class SimpleStreamReader : ISimpleStreamReader
+    {
+        /// <summary>
+        /// Stream we are reading from.
+        /// </summary>
+        private Stream stream;
+        /// <summary>
+        /// If true do not strip the End of line characters.
+        /// </summary>
+        private bool keepEndOfLine;
+
+        /// <summary>
+        /// FIFO buffer.
+        /// </summary>
+        /// <typeparam name="T">Type of data stored in buffer.</typeparam>
+        private class Buffer<T>
+        {
+            /// <summary>
+            /// Data in buffer.
+            /// </summary>
+            public T[] Data;
+            /// <summary>
+            /// Last index of data available in the buffer.
+            /// </summary>
+            public int EndOfData;
+            /// <summary>
+            /// Current position for reading from buffer.
+            /// </summary>
+            public int CurrentPosition;
+
+            private const int minBufferSize = 4096;
+
+            /// <summary>
+            /// Allocate a buffer.
+            /// </summary>
+            /// <param name="size">Buffer size.</param>
+            public Buffer(int size)
+            {
+                if (size < minBufferSize)
+                    size = minBufferSize;
+
+                this.Data = new T[size];
+                this.EndOfData = 0;
+                this.CurrentPosition = 0;
+            }
+
+            /// <summary>
+            /// Actual size of allocated buffer.
+            /// </summary>
+            public int Size
+            {
+                get
+                {
+                    return this.Data.Length;
+                }
+            }
+
+            /// <summary>
+            /// True if the buffer is empty.
+            /// </summary>
+            /// <returns>A boolean indicating whether there is any data in the buffer.</returns>
+            public bool IsEmpty()
+            {
+                return this.CurrentPosition == this.EndOfData;
+            }
+
+            /// <summary>
+            /// Items available in the buffer.
+            /// </summary>
+            public int ItemsAvailable
+            {
+                get { return this.EndOfData - this.CurrentPosition; }
+            }
+
+            /// <summary>
+            /// Value at specified index in buffer.
+            /// </summary>
+            /// <param name="index">Index of value in buffer.</param>
+            /// <returns>The value in the buffer.</returns>
+            public T this[int index]
+            {
+                get
+                {
+                    if (index < 0 || index > this.EndOfData)
+                        throw new ArgumentOutOfRangeException("index", "must be between 0 and " + this.EndOfData);
+                    return this.Data[index];
+                }
+            }
+
+            /// <summary>
+            /// Delete first items from the buffer.
+            /// </summary>
+            /// <param name="items">Number of items to delete.</param>
+            public void DeletePreamble(int items)
+            {
+                if (this.EndOfData < items)
+                    throw new ArgumentException("Cannot delete " + items + " from buffer since only " + this.EndOfData + " are present");
+                Buffer.BlockCopy(this.Data, items, this.Data, 0, this.EndOfData - items);
+                this.EndOfData -= items;
+            }
+        }
+
+        /// <summary>
+        /// Buffer for read data.
+        /// </summary>
+        private Buffer<byte> byteBuffer;
+        /// <summary>
+        /// Buffer for decoded data.
+        /// </summary>
+        private Buffer<char> charBuffer;
+        
+        private bool checkPreamble;
+
+        /// <summary>
+        /// Files may have a preamble which indicates the data encoding.
+        /// </summary>
+        private byte[] preamble;
+        /// <summary>
+        /// If true encoding must be detected.
+        /// </summary>
+        private bool encodingUnknown;
+
+        // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
+        private Encoding dataEncoding;
+        private Decoder dataDecoder;
+
+        /// <summary>
+        /// Create a SimpleStream reader to read from a stream.
+        /// </summary>
+        /// <param name="Stream">Stream to read from.</param>
+        /// <param name="keepEndOfLine">If true do not strip the end of line characters.</param>
+        public SimpleStreamReader(Stream Stream, bool keepEndOfLine = false)
+            : this(Stream, keepEndOfLine, Encoding.UTF8, true)
+        {
+        }
+
+        /// <summary>
+        /// Create a SimpleStream reader reading from a stream.
+        /// </summary>
+        /// <param name="stream">Stream to read from.</param>
+        /// <param name="keepEndOfLine">If true do not strip the end of line characters.</param>
+        /// <param name="bufferSize">Size of buffer to use when reading from the underlying stream.</param>
+        /// <param name="encoding">Character encoding to use.</param>
+        /// <param name="detectEncoding">If true detect the encoding.</param>
+        public SimpleStreamReader(Stream stream, bool keepEndOfLine, Encoding encoding, bool detectEncoding, int bufferSize = 4096)
+        {
+            if (stream == null)
+                throw new ArgumentNullException("stream");
+            if (!stream.CanRead)
+                throw new ArgumentException("StreamNotReadable");
+            if (bufferSize <= 0)
+                throw new ArgumentOutOfRangeException("bufferSize");
+
+            this.dataEncoding = encoding;
+            this.dataDecoder = this.dataEncoding.GetDecoder();
+
+            this.stream = stream;
+            this.keepEndOfLine = keepEndOfLine;
+
+            this.byteBuffer = new Buffer<byte>(bufferSize);
+            int charSize = encoding.GetMaxCharCount(this.byteBuffer.Size);
+            this.charBuffer = new Buffer<char>(charSize);
+            this.encodingUnknown = detectEncoding;
+            this.preamble = encoding.GetPreamble();
+            this.checkPreamble = (this.preamble.Length > 0);
+        }
+
+        /// <summary>
+        /// Read one line of text.
+        /// </summary>
+        /// <returns>The read line.</returns>
+        public string ReadLine()
+        {
+            if (this.stream == null)
+                throw new InvalidOperationException("Reader closed");
+
+            if (this.charBuffer.IsEmpty())
+            {
+                if (this.ReadAndConvert() == 0) return null;
+            }
+
+            StringBuilder sb = new StringBuilder();
+            do
+            {
+                int i = this.charBuffer.CurrentPosition;
+                do
+                {
+                    char ch = this.charBuffer[i];
+                    if (ch == '\r' || ch == '\n')
+                    {
+                        int offset = this.keepEndOfLine ? 1 : 0;
+                        sb.Append(this.charBuffer.Data, this.charBuffer.CurrentPosition, i + offset - this.charBuffer.CurrentPosition);
+
+                        this.charBuffer.CurrentPosition = i + 1;
+                        if (ch == '\r')
+                        {
+                            // check for \r\n
+                            if (this.charBuffer.CurrentPosition < this.charBuffer.EndOfData || // one more character available
+                                this.ReadAndConvert() > 0) // read next batch
+                            {
+                                if (this.charBuffer[this.charBuffer.CurrentPosition] == '\n')
+                                    this.charBuffer.CurrentPosition++;
+                                if (this.keepEndOfLine)
+                                    sb.Append('\n');
+                            }
+                        }
+                        return sb.ToString();
+                    }
+                    i++;
+                } while (i < this.charBuffer.EndOfData);
+                sb.Append(this.charBuffer.Data, this.charBuffer.CurrentPosition, this.charBuffer.ItemsAvailable);
+            }
+            while (this.ReadAndConvert() > 0);
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// True if we have reached the end of stream.
+        /// </summary>
+        public bool EndOfStream
+        {
+            get
+            {
+                if (this.stream == null)
+                    throw new InvalidOperationException("Reader closed");
+                if (!this.charBuffer.IsEmpty())
+                    return false;
+
+                int numRead = this.ReadAndConvert();
+                return numRead == 0;
+            }
+        }
+
+        private bool CheckForPreamble()
+        {
+            if (this.checkPreamble)
+            {
+                int len = (this.byteBuffer.EndOfData >= (this.preamble.Length)) ?
+                    (this.preamble.Length - this.byteBuffer.CurrentPosition) : this.byteBuffer.ItemsAvailable;
+
+                for (int i = 0; i < len; i++)
+                {
+                    if (this.byteBuffer.Data[this.byteBuffer.CurrentPosition + i] != this.preamble[this.byteBuffer.CurrentPosition + i])
+                    {
+                        this.checkPreamble = false;
+                        return false;
+                    }
+                }
+
+                // preamble found
+                this.byteBuffer.DeletePreamble(this.preamble.Length);
+                this.byteBuffer.CurrentPosition = 0;
+                this.checkPreamble = false;
+                this.encodingUnknown = false;
+            }
+            return this.checkPreamble;
+        }
+
+        /// <summary>
+        /// Read one buffer of bytes, and transfer them to a byte of chars.
+        /// Return number of chars transferred.
+        /// </summary>
+        /// <returns>The number of chars read.</returns>
+        private int ReadAndConvert()
+        {
+            this.charBuffer.EndOfData = this.charBuffer.CurrentPosition = 0;
+            if (!this.checkPreamble)
+                this.byteBuffer.EndOfData = 0;
+
+            do
+            {
+                if (this.checkPreamble)
+                {
+                    int len = stream.Read(this.byteBuffer.Data, this.byteBuffer.CurrentPosition, this.byteBuffer.Size - this.byteBuffer.CurrentPosition);
+                    if (len == 0)
+                    {
+                        if (this.byteBuffer.EndOfData > 0)
+                        {
+                            this.charBuffer.EndOfData += this.dataDecoder.GetChars(this.byteBuffer.Data, 0, this.byteBuffer.EndOfData, this.charBuffer.Data, this.charBuffer.EndOfData);
+                            this.byteBuffer.CurrentPosition = this.byteBuffer.EndOfData = 0;
+                        }
+                        return this.charBuffer.EndOfData;
+                    }
+
+                    this.byteBuffer.EndOfData += len;
+                }
+                else
+                {
+                    this.byteBuffer.EndOfData = stream.Read(this.byteBuffer.Data, 0, this.byteBuffer.Size);
+
+                    if (this.byteBuffer.EndOfData == 0) //  EOF
+                        return this.charBuffer.EndOfData;
+                }
+
+                if (this.CheckForPreamble())
+                    continue;
+
+                if (this.encodingUnknown && this.byteBuffer.EndOfData >= 2)
+                    this.DetectEncoding();
+
+                this.charBuffer.EndOfData += this.dataDecoder.GetChars(this.byteBuffer.Data, 0, this.byteBuffer.EndOfData, this.charBuffer.Data, this.charBuffer.EndOfData);
+            } while (this.charBuffer.EndOfData == 0);
+            return this.charBuffer.EndOfData;
+        }
+
+        private void DetectEncoding()
+        {
+            // first few bytes in the buffer, starting at 0
+            int len = this.byteBuffer.EndOfData;
+
+            if (len < 2)
+                return;
+            this.encodingUnknown = false;
+            bool changed = false;
+            if (this.byteBuffer[0] == 0xFE && this.byteBuffer[1] == 0xFF)
+            {
+                // Big Endian Unicode
+                this.dataEncoding = new UnicodeEncoding(true, true);
+                this.byteBuffer.DeletePreamble(2);
+                changed = true;
+            }
+            else if (this.byteBuffer[0] == 0xFF && this.byteBuffer[1] == 0xFE)
+            {
+                if (len < 4 || this.byteBuffer[2] != 0 || this.byteBuffer[3] != 0)
+                {
+                    this.dataEncoding = new UnicodeEncoding(false, true);
+                    this.byteBuffer.DeletePreamble(2);
+                    changed = true;
+                }
+                else
+                {
+                    this.dataEncoding = new UTF32Encoding(false, true);
+                    this.byteBuffer.DeletePreamble(4);
+                    changed = true;
+                }
+            }
+            else if (len >= 3 && this.byteBuffer[0] == 0xEF && this.byteBuffer[1] == 0xBB && this.byteBuffer[2] == 0xBF)
+            {
+                this.dataEncoding = Encoding.UTF8;
+                this.byteBuffer.DeletePreamble(3);
+                changed = true;
+            }
+            else if (len >= 4 && this.byteBuffer[0] == 0 && this.byteBuffer[1] == 0 &&
+                     this.byteBuffer[2] == 0xFE && this.byteBuffer[3] == 0xFF)
+            {
+                this.dataEncoding = new UTF32Encoding(true, true);
+                this.byteBuffer.DeletePreamble(4);
+                changed = true;
+            }
+            else if (len == 2)
+                this.encodingUnknown = true;
+
+            if (changed)
+            {
+                this.dataDecoder = this.dataEncoding.GetDecoder();
+                int maxCharsPerBuffer = this.dataEncoding.GetMaxCharCount(byteBuffer.Size);
+                this.charBuffer = new Buffer<char>(maxCharsPerBuffer);
+            }
+        }
+
+        /// <summary>
+        /// Read all the data from the stream.
+        /// </summary>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>All the data in the stream.</returns>
+        public string ReadToEnd(CancellationToken token)
+        {
+            if (this.stream == null)
+                throw new InvalidOperationException("Stream closed");
+
+            StringBuilder builder = new StringBuilder();
+            do
+            {
+                token.ThrowIfCancellationRequested();
+                builder.Append(this.charBuffer.Data, this.charBuffer.CurrentPosition, this.charBuffer.ItemsAvailable);
+                this.charBuffer.CurrentPosition = this.charBuffer.EndOfData;
+                this.ReadAndConvert();
+            } while (this.charBuffer.EndOfData > 0);
+
+            return builder.ToString();
+        }
+
+        /// <summary>
+        /// Close the stream.
+        /// </summary>
+        public void Close()
+        {
+            this.Dispose(true);
+        }
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        /// <filterpriority>2</filterpriority>
+        public void Dispose()
+        {
+            this.Dispose(false);
+        }
+
+        /// <summary>
+        /// Internal dispose method.
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected void Dispose(bool disposing)
+        {
+            this.stream.Dispose();
+            this.stream = null;
+            this.charBuffer = null;
+            this.byteBuffer = null;
         }
     }
 }

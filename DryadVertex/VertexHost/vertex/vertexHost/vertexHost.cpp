@@ -174,27 +174,27 @@ void SetLoggingLevel()
     GetLoggingFileName(logFileName);
     DrLogging::Initialize(logFileName);
 
-    WCHAR traceLevel [MAX_PATH];
-    HRESULT hr = DrGetEnvironmentVariable(L"DRYAD_TRACE_LEVEL", traceLevel);
+    WCHAR loggingLevel [MAX_PATH];
+    HRESULT hr = DrGetEnvironmentVariable(L"DRYAD_LOGGING_LEVEL", loggingLevel);
     if(hr == DrError_OK)
     {
-        if(wcscmp(traceLevel, L"OFF") == 0)
+        if(wcscmp(loggingLevel, L"OFF") == 0)
         {
             DrLogging::SetLoggingLevel(LogLevel_Off);
         }
-        else if(wcscmp(traceLevel, L"CRITICAL") == 0)
+        else if(wcscmp(loggingLevel, L"CRITICAL") == 0)
         {
             DrLogging::SetLoggingLevel(LogLevel_Assert);
         }
-        else if(wcscmp(traceLevel, L"ERROR") == 0)
+        else if(wcscmp(loggingLevel, L"ERROR") == 0)
         {
             DrLogging::SetLoggingLevel(LogLevel_Error);
         }
-        else if(wcscmp(traceLevel, L"WARN") == 0)
+        else if(wcscmp(loggingLevel, L"WARN") == 0)
         {
             DrLogging::SetLoggingLevel(LogLevel_Warning);
         }
-        else if(wcscmp(traceLevel, L"INFO") == 0)
+        else if(wcscmp(loggingLevel, L"INFO") == 0)
         {
             DrLogging::SetLoggingLevel(LogLevel_Info);
         }
@@ -249,104 +249,119 @@ static void ExceptionHandler(System::Object^ sender, System::UnhandledExceptionE
 //
 // Start up vertex host
 //
-[System::Security::SecurityCriticalAttribute]
-[System::Runtime::ExceptionServices::HandleProcessCorruptedStateExceptionsAttribute]
-#if defined(_AMD64_)
-int wmain(int argc, wchar_t* wargv[])
-#else
-int __cdecl wmain(int argc, wchar_t* wargv[])
-#endif
+public ref class VertexHost
 {
-    try
+public:
+    [System::Security::SecurityCriticalAttribute]
+    [System::Runtime::ExceptionServices::HandleProcessCorruptedStateExceptionsAttribute]
+    static int Main(array<System::String^>^ managedArgs)
     {
-        //
-        // Enable logging based on environment variable
-        //
-        SetLoggingLevel();
-
-        DrInitErrorTable();
-        DrInitExitCodeTable();
-        DrInitLastAccessTable();
-
-        // Set unhandled exception handler to catch anything thrown from 
-        // managed code
-        System::AppDomain^ currentDomain = System::AppDomain::CurrentDomain;
-        currentDomain->UnhandledException += gcnew System::UnhandledExceptionEventHandler(ExceptionHandler);
-
-        //
-        // trace for startup
-        //
-        DrLogI("Vertex Host starting");
-
-        //
-        // Get environment variable to know whether to break into debugger
-        //
-        BreakForDebugger();
-
-        //
-        // We call Register on the Managed Wrapper vertex factory to force its library to be linked.
-        // Registration actually occurs during static initialization.
-        //
-        s_factoryHWrapper.Register();
-
-        //
-        // Get command line arguments
-        //
-        char** argv;
-        DrGetUtf8CommandArgs(argc, wargv, &argv);
-
-        //
-        // Initialize the dryad communication layer with the command line arguments
-        //
-        int nOpts;
-        DrError e;
-        e = DryadInitialize(argc, argv, &nOpts);
-        if (e != DrError_OK)
+        try
         {
+            int argc = managedArgs->Length;
+            wchar_t** wargv = new wchar_t*[argc+1];
+            for (int i=0; i<argc; ++i)
+            {
+                pin_ptr<const wchar_t> wch = PtrToStringChars(managedArgs[i]);
+                wargv[i] = _wcsdup(wch);
+            }
+            wargv[argc] = NULL;
+
             //
-            // Report error in initializing cluster layer
+            // Enable logging based on environment variable
             //
-            DrLogE("Couldn't initialise Cluster");
+            SetLoggingLevel();
+
+            DrInitErrorTable();
+            DrInitExitCodeTable();
+            DrInitLastAccessTable();
+
+            // Set unhandled exception handler to catch anything thrown from 
+            // managed code
+            System::AppDomain^ currentDomain = System::AppDomain::CurrentDomain;
+            currentDomain->UnhandledException += gcnew System::UnhandledExceptionEventHandler(ExceptionHandler);
+
+            //
+            // trace for startup
+            //
+            DrLogE("Vertex Host starting");
+
+            //
+            // Get environment variable to know whether to break into debugger
+            //
+            BreakForDebugger();
+
+            //
+            // We call Register on the Managed Wrapper vertex factory to force its library to be linked.
+            // Registration actually occurs during static initialization.
+            //
+            s_factoryHWrapper.Register();
+
+            //
+            // Get command line arguments
+            //
+            char** argv;
+            DrGetUtf8CommandArgs(argc, wargv, &argv);
+
+            for (int i=0; i<managedArgs->Length; ++i)
+            {
+                free(wargv[i]);
+            }
+            delete [] wargv;
+
+            //
+            // Initialize the dryad communication layer with the command line arguments
+            //
+            int nOpts;
+            DrError e;
+            e = DryadInitialize(argc, argv, &nOpts);
+            if (e != DrError_OK)
+            {
+                //
+                // Report error in initializing cluster layer
+                //
+                DrLogE("Couldn't initialise Cluster");
+                return 1;
+            }
+
+            //
+            // Update the argument list to just those parameters that weren't used by cluster init
+            //
+            EliminateArguments(&argc, argv, 1, nOpts);
+
+            //
+            // Call main function to continue execution of vertex
+            //
+            int exitCode = DryadVertexMain(argc, argv, NULL);
+
+            //
+            // Close the cluster connection after dryadvertexmain returns
+            //
+            e = DryadShutdown();
+            if (e == DrError_OK)
+            {
+                //
+                // Report success
+                //
+                DrLogI("Completed uninitialise cluster");
+            }
+            else
+            {
+                //
+                // Report failure
+                //
+                DrLogE("Couldn't uninitialise cluster");
+            }
+
+            return exitCode;
+        }
+        catch (System::Exception^ e)
+        {
+            DrLogA("Unhandled exception: %s", DrString(e->ToString()).GetChars());
             return 1;
         }
-
-        //
-        // Update the argument list to just those parameters that weren't used by cluster init
-        //
-        EliminateArguments(&argc, argv, 1, nOpts);
-
-        //
-        // Call main function to continue execution of vertex
-        //
-        int exitCode = DryadVertexMain(argc, argv, NULL);
-
-        //
-        // Close the cluster connection after dryadvertexmain returns
-        //
-        e = DryadShutdown();
-        if (e == DrError_OK)
-        {
-            //
-            // Report success
-            //
-            DrLogI("Completed uninitialise cluster");
-        }
-        else
-        {
-            //
-            // Report failure
-            //
-            DrLogE("Couldn't uninitialise cluster");
-        }
-
-        return exitCode;
     }
-    catch (System::Exception^ e)
-    {
-        DrLogA("Unhandled exception: %s", DrString(e->ToString()).GetChars());
-        return 1;
-    }
-}
+};
 
 //
 // Simple data class which contains the byte array and its length.

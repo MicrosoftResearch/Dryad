@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DryadLinqTests", "DryadLinqTests.csproj", "{4EA15885-003F-4B4D-A7DB-C172C2F23161}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "DryadLinqFSharpTests", "DryadLinqFSharpTests\DryadLinqFSharpTests.fsproj", "{D0153361-1B5D-4715-8EE3-AA824F89CBC3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4EA15885-003F-4B4D-A7DB-C172C2F23161}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4EA15885-003F-4B4D-A7DB-C172C2F23161}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4EA15885-003F-4B4D-A7DB-C172C2F23161}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{4EA15885-003F-4B4D-A7DB-C172C2F23161}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{4EA15885-003F-4B4D-A7DB-C172C2F23161}.Debug|x64.ActiveCfg = Debug|x64
+		{4EA15885-003F-4B4D-A7DB-C172C2F23161}.Debug|x64.Build.0 = Debug|x64
+		{4EA15885-003F-4B4D-A7DB-C172C2F23161}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4EA15885-003F-4B4D-A7DB-C172C2F23161}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4EA15885-003F-4B4D-A7DB-C172C2F23161}.Release|Mixed Platforms.ActiveCfg = Release|x64
+		{4EA15885-003F-4B4D-A7DB-C172C2F23161}.Release|Mixed Platforms.Build.0 = Release|x64
+		{4EA15885-003F-4B4D-A7DB-C172C2F23161}.Release|x64.ActiveCfg = Release|x64
+		{4EA15885-003F-4B4D-A7DB-C172C2F23161}.Release|x64.Build.0 = Release|x64
+		{D0153361-1B5D-4715-8EE3-AA824F89CBC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0153361-1B5D-4715-8EE3-AA824F89CBC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0153361-1B5D-4715-8EE3-AA824F89CBC3}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{D0153361-1B5D-4715-8EE3-AA824F89CBC3}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{D0153361-1B5D-4715-8EE3-AA824F89CBC3}.Debug|x64.ActiveCfg = Debug|x64
+		{D0153361-1B5D-4715-8EE3-AA824F89CBC3}.Debug|x64.Build.0 = Debug|x64
+		{D0153361-1B5D-4715-8EE3-AA824F89CBC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0153361-1B5D-4715-8EE3-AA824F89CBC3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0153361-1B5D-4715-8EE3-AA824F89CBC3}.Release|Mixed Platforms.ActiveCfg = Release|x64
+		{D0153361-1B5D-4715-8EE3-AA824F89CBC3}.Release|Mixed Platforms.Build.0 = Release|x64
+		{D0153361-1B5D-4715-8EE3-AA824F89CBC3}.Release|x64.ActiveCfg = Release|x64
+		{D0153361-1B5D-4715-8EE3-AA824F89CBC3}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

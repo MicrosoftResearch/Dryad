@@ -35,7 +35,7 @@ using System.Diagnostics;
 using Microsoft.Research.DryadLinq.Internal;
 using System.IO.Compression;
 
-using Microsoft.Research.Peloponnese.Storage;
+using Microsoft.Research.Peloponnese.Azure;
 
 namespace Microsoft.Research.DryadLinq
 {
@@ -76,7 +76,7 @@ namespace Microsoft.Research.DryadLinq
         /// The scheme of this data provider.
         /// </summary>
         public abstract string Scheme { get; }
-        
+
         /// <summary>
         /// Gets the metadata of a specified dataset.
         /// </summary>
@@ -126,12 +126,14 @@ namespace Microsoft.Research.DryadLinq
         /// <param name="metaData">The metadata for the collection.</param>
         /// <param name="outputScheme">The compression scheme used to store the collection.</param>
         /// <param name="isTemp">true to only store the collection temporarily with a time lease.</param>
+        /// <param name="serializer">A stream-based serializer.</param>
         public abstract void Ingress<T>(DryadLinqContext context,
                                         IEnumerable<T> source,
                                         Uri dataSetUri,
                                         DryadLinqMetaData metaData,
                                         CompressionScheme outputScheme,
-                                        bool isTemp = false);
+                                        bool isTemp,
+                                        Expression<Action<IEnumerable<T>, Stream>> serializer);
 
         /// <summary>
         /// Creates an instance of Stream for a dataset at a specified location. This is
@@ -197,29 +199,35 @@ namespace Microsoft.Research.DryadLinq
         /// <typeparam name="T">The record type of the dataset.</typeparam>
         /// <param name="context">An instance of <see cref="DryadLinqContext"/></param>
         /// <param name="dataSetUri">The URI of the dataset</param>
-        /// <returns>A query object representing the dsc file set data.</returns>
-        internal static DryadLinqQuery<T> GetPartitionedTable<T>(DryadLinqContext context, Uri dataSetUri)
+        /// <param name="deserializer">A stream-based deserializer</param>
+        /// <returns>A query object representing the specified dataset.</returns>
+        internal static DryadLinqQuery<T> 
+            GetPartitionedTable<T>(DryadLinqContext context, 
+                                   Uri dataSetUri,
+                                   Expression<Func<Stream, IEnumerable<T>>> deserializer)
         {
             string scheme = DataPath.GetScheme(dataSetUri);
             DataProvider dataProvider = DataProvider.GetDataProvider(scheme);
-            DryadLinqProvider queryProvider = new DryadLinqProvider(context);
             dataSetUri = dataProvider.RewriteUri<T>(context, dataSetUri);
-            return new DryadLinqQuery<T>(null, queryProvider, dataProvider, dataSetUri);
+            return new DryadLinqQuery<T>(context, dataProvider, dataSetUri, deserializer);
         }
 
         /// <summary>
-        /// Reads a specified dataset. 
+        /// Reads the dataset specified by a URI.
         /// </summary>
-        /// <typeparam name="T">The record type of the dataset.</typeparam>
+        /// <typeparam name="T">The record type of the dataset</typeparam>
         /// <param name="context">An instance of <see cref="DryadLinqContext"/></param>
-        /// <param name="dataSetUri">The URI of the dataset.</param>
-        /// <returns>A sequence of records as IEnumerable{T}.</returns>
-        public static IEnumerable<T> ReadData<T>(DryadLinqContext context, Uri dataSetUri)
+        /// <param name="dataSetUri">The URI of the dataset</param>
+        /// <param name="deserializer">A stream-based deserializer</param>
+        /// <returns>A sequence of records as IEnumerable{T}</returns>
+        internal static IEnumerable<T> ReadData<T>(DryadLinqContext context, 
+                                                   Uri dataSetUri,
+                                                   Expression<Func<Stream, IEnumerable<T>>> deserializer)
         {
             string scheme = DataPath.GetScheme(dataSetUri);
             DataProvider dataProvider = DataProvider.GetDataProvider(scheme);
             dataSetUri = dataProvider.RewriteUri<T>(context, dataSetUri);
-            return new DryadLinqQueryEnumerable<T>(context, dataProvider, dataSetUri);
+            return new DryadLinqQueryEnumerable<T>(context, dataProvider, dataSetUri, deserializer);
         }
 
         /// <summary>
@@ -232,19 +240,25 @@ namespace Microsoft.Research.DryadLinq
         /// <param name="metaData">The metadata of the data.</param>
         /// <param name="outputScheme">The compression scheme.</param>
         /// <param name="isTemp">true if the data is only stored temporarily.</param>
+        /// <param name="serializer">A stream-based serializer</param>
+        /// <param name="deserializer">A stream-based deserializer</param>
         /// <returns>An instance of IQueryable{T} for the data.</returns>
         internal static DryadLinqQuery<T> StoreData<T>(DryadLinqContext context,
                                                        IEnumerable<T> source,
                                                        Uri dataSetUri,
                                                        DryadLinqMetaData metaData,
                                                        CompressionScheme outputScheme,
-                                                       bool isTemp = false)
+                                                       bool isTemp,
+                                                       Expression<Action<IEnumerable<T>, Stream>> serializer,
+                                                       Expression<Func<Stream, IEnumerable<T>>> deserializer)
         {
             string scheme = DataPath.GetScheme(dataSetUri);
             DataProvider dataProvider = DataProvider.GetDataProvider(scheme);
             dataSetUri = dataProvider.RewriteUri<T>(context, dataSetUri);
-            dataProvider.Ingress(context, source, dataSetUri, metaData, outputScheme, isTemp);
-            return DataProvider.GetPartitionedTable<T>(context, dataSetUri);
+            dataProvider.Ingress(context, source, dataSetUri, metaData, outputScheme, isTemp, serializer);
+            DryadLinqQuery<T> res = DataProvider.GetPartitionedTable<T>(context, dataSetUri, deserializer);
+            res.CheckAndInitialize();    // must initialize
+            return res;
         }
     }
 
@@ -284,7 +298,7 @@ namespace Microsoft.Research.DryadLinq
 
         public override Uri GetTemporaryStreamUri(DryadLinqContext context, string path)
         {
-            return context.Cluster.MakeDefaultUri(DataPath.TEMPORARY_STREAM_NAME_PREFIX + path);
+            return context.Cluster.MakeInternalClusterUri("tmp", DataPath.TEMPORARY_STREAM_NAME_PREFIX, path);
         }
 
         public override DryadLinqMetaData GetMetaData(DryadLinqContext context, Uri dataSetUri)
@@ -293,11 +307,28 @@ namespace Microsoft.Research.DryadLinq
             return null;
         }
 
+        public override Uri RewriteUri<T>(DryadLinqContext context, Uri dataSetUri, FileAccess access)
+        {
+            UriBuilder builder = new UriBuilder(dataSetUri);
+            NameValueCollection query = System.Web.HttpUtility.ParseQueryString(builder.Query);
+
+            if (access != FileAccess.Write &&
+                typeof(T) == typeof(Microsoft.Research.DryadLinq.LineRecord))
+            {
+                query["seekBoundaries"] = "Microsoft.Research.DryadLinq.LineRecord";
+            }
+
+            builder.Query = query.ToString();
+            return builder.Uri;
+        }
+
         public override DryadLinqStreamInfo GetStreamInfo(DryadLinqContext context, Uri dataSetUri)
         {
             Int32 parCnt = 0;
             Int64 size = -1;
-            context.Cluster.DfsClient.GetContentSummary(dataSetUri.AbsolutePath, ref size, ref parCnt);
+            NameValueCollection query = System.Web.HttpUtility.ParseQueryString(dataSetUri.Query);
+            bool expandBlocks = (query["seekboundaries"] == "Microsoft.Research.DryadLinq.LineRecord");
+            context.GetHdfsClient.GetDirectoryContentSummary(dataSetUri, expandBlocks, ref size, ref parCnt);
             if (parCnt == 0)
             {
                 throw new DryadLinqException("Got 0 partition count for " + dataSetUri.AbsoluteUri);
@@ -310,26 +341,36 @@ namespace Microsoft.Research.DryadLinq
                                         Uri dataSetUri,
                                         DryadLinqMetaData metaData,
                                         CompressionScheme outputScheme,
-                                        bool isTemp = false)
+                                        bool isTemp,
+                                        Expression<Action<IEnumerable<T>, Stream>> serializer)
         {
-            throw new DryadLinqException("TBA");
+            DryadLinqFactory<T> factory = (DryadLinqFactory<T>)DryadLinqCodeGen.GetFactory(context, typeof(T));
+            using (Stream stream = context.GetHdfsClient.GetDfsStreamWriter(dataSetUri))
+            {
+                DryadLinqBlockStream nativeStream = new DryadLinqBlockStream(stream);
+                DryadLinqRecordWriter<T> writer = factory.MakeWriter(nativeStream);
+                foreach (T rec in source)
+                {
+                    writer.WriteRecordSync(rec);
+                }
+                writer.Close();
+            }
         }
 
         public override Stream Egress(DryadLinqContext context, Uri dataSetUri)
         {
-            throw new DryadLinqException("TBA");
+            return context.GetHdfsClient.GetDfsDirectoryStreamReader(dataSetUri);
         }
 
         public override void CheckExistence(DryadLinqContext context, Uri dataSetUri, bool deleteIfExists)
         {
-            WebHdfsClient client = new WebHdfsClient(dataSetUri.Host, 8033, 50070);
-            if (client.IsFileExists(dataSetUri.AbsolutePath))
+            if (context.GetHdfsClient.IsFileExists(dataSetUri))
             {
                 if (!deleteIfExists)
                 {
                     throw new DryadLinqException("Can't output to existing HDFS collection " + dataSetUri.AbsoluteUri);
                 }
-                client.DeleteDfsFile(dataSetUri.AbsolutePath);
+                context.GetHdfsClient.DeleteDfsFile(dataSetUri, true);
             }
         }
     }
@@ -379,48 +420,58 @@ namespace Microsoft.Research.DryadLinq
                                         Uri dataSetUri,
                                         DryadLinqMetaData metaData,
                                         CompressionScheme compressionScheme,
-                                        bool isTemp = false)
+                                        bool isTemp,
+                                        Expression<Action<IEnumerable<T>, Stream>> serializer)
         {
+            string fileName = dataSetUri.LocalPath;
+            if (!String.IsNullOrEmpty(dataSetUri.Host))
+            {
+                fileName = @"\\" + dataSetUri.Host + fileName;
+            }
+
             // Write the partition:
-            string partDir = context.PartitionUncPath;
-            if (partDir == null)
-            {
-                partDir = Path.GetDirectoryName(dataSetUri.LocalPath);
-            }
-            
-            if (!Path.IsPathRooted(partDir))
-            {
-                partDir = Path.Combine("/", partDir);
-            }
+            string partDir = Path.GetDirectoryName(fileName);
             partDir = Path.Combine(partDir, DryadLinqUtil.MakeUniqueName());
             Directory.CreateDirectory(partDir);
-            string partPath = Path.Combine(partDir, "Part");
-            string partFilePath = partPath + ".00000000";
+            string uncPath = Path.Combine(partDir, "Part");
+            string partitionPath = uncPath + ".00000000";
             DryadLinqFactory<T> factory = (DryadLinqFactory<T>)DryadLinqCodeGen.GetFactory(context, typeof(T));
-            using (FileStream fstream = new FileStream(partFilePath, FileMode.CreateNew, FileAccess.Write))
+            using (FileStream fstream = new FileStream(partitionPath, FileMode.CreateNew, FileAccess.Write))
             {
-                DryadLinqFileBlockStream nativeStream = new DryadLinqFileBlockStream(fstream, compressionScheme);
-                DryadLinqRecordWriter<T> writer = factory.MakeWriter(nativeStream);
-                foreach (T rec in source)
+                if (serializer == null)
                 {
-                    writer.WriteRecordSync(rec);
+                    DryadLinqFileBlockStream nativeStream = new DryadLinqFileBlockStream(fstream, compressionScheme);
+                    DryadLinqRecordWriter<T> writer = factory.MakeWriter(nativeStream);
+                    foreach (T rec in source)
+                    {
+                        writer.WriteRecordSync(rec);
+                    }
+                    writer.Close();
                 }
-                writer.Close();
+                else
+                {
+                    Action<IEnumerable<T>, Stream> serializerFunc = serializer.Compile();
+                    serializerFunc(source, fstream);
+                }
             }
 
             // Write the partfile:
-            FileInfo finfo = new FileInfo(partFilePath);
-            using (StreamWriter writer = File.CreateText(dataSetUri.LocalPath))
+            long partSize = new FileInfo(partitionPath).Length;
+            using (StreamWriter writer = File.CreateText(fileName))
             {
-                writer.WriteLine(partPath);
+                writer.WriteLine(uncPath);
                 writer.WriteLine("1");
-                writer.WriteLine("{0},{1},{2}", 0, finfo.Length, Environment.MachineName);
+                writer.WriteLine("{0},{1}", 0, partSize);
             }
         }
 
         public override Stream Egress(DryadLinqContext context, Uri dataSetUri)
         {
             string fileName = dataSetUri.LocalPath;
+            if (!String.IsNullOrEmpty(dataSetUri.Host))
+            {
+                fileName = @"\\" + dataSetUri.Host + fileName;
+            }
             var lines = File.ReadAllLines(fileName);
             if (lines.Length < 3)
             {
@@ -433,6 +484,10 @@ namespace Microsoft.Research.DryadLinq
         public override void CheckExistence(DryadLinqContext context, Uri dataSetUri, bool deleteIfExists)
         {
             string fileName = dataSetUri.LocalPath;
+            if (!String.IsNullOrEmpty(dataSetUri.Host))
+            {
+                fileName = @"\\" + dataSetUri.Host + fileName;
+            }
             if (File.Exists(fileName))
             {
                 if (!deleteIfExists)
@@ -459,18 +514,17 @@ namespace Microsoft.Research.DryadLinq
 
         private string[] GetPartitionPaths(string[] lines)
         {
-            bool isLocalPath = lines[0].Contains(':');
             string[] filePathArray = new string[lines.Length - 2];
             for (int i = 2; i < lines.Length; i++)
             {
                 int idx = i - 2;
                 string[] fields = lines[i].Split(',');
-                if (fields[2].Contains(':'))
+                if (fields.Length > 2 && fields[2].Contains(':'))
                 {
                     string[] parts = fields[2].Split(':');
                     filePathArray[idx] = String.Format(@"\\{0}\{1}", parts[0], parts[1]);
                 }
-                else if (isLocalPath)
+                else if (Path.IsPathRooted(lines[0]))
                 {
                     filePathArray[idx] = String.Format("{0}.{1:X8}", lines[0], idx);
                 }
@@ -500,13 +554,13 @@ namespace Microsoft.Research.DryadLinq
 
         public override Uri GetTemporaryStreamUri(DryadLinqContext context, string path)
         {
-            return context.Cluster.MakeDefaultUri(DataPath.TEMPORARY_STREAM_NAME_PREFIX + path);
+            return context.Cluster.MakeInternalClusterUri(DataPath.TEMPORARY_STREAM_NAME_PREFIX, path);
         }
 
         public override Uri RewriteUri<T>(DryadLinqContext context, Uri dataSetUri, FileAccess access)
         {
             string account, key, container, blob;
-            AzureUtils.FromAzureUri(dataSetUri, out account, out key, out container, out blob);
+            Microsoft.Research.Peloponnese.Azure.Utils.FromAzureUri(dataSetUri, out account, out key, out container, out blob);
 
             UriBuilder builder = new UriBuilder(dataSetUri);
             NameValueCollection query = System.Web.HttpUtility.ParseQueryString(builder.Query);
@@ -562,25 +616,34 @@ namespace Microsoft.Research.DryadLinq
                                         Uri dataSetUri,
                                         DryadLinqMetaData metaData,
                                         CompressionScheme compressionScheme,
-                                        bool isTemp = false)
+                                        bool isTemp,
+                                        Expression<Action<IEnumerable<T>, Stream>> serializer)
         {
             string account, key, container, blob;
-            AzureUtils.FromAzureUri(dataSetUri, out account, out key, out container, out blob);
+            Utils.FromAzureUri(dataSetUri, out account, out key, out container, out blob);
             if (compressionScheme != CompressionScheme.None)
             {
                 throw new DryadLinqException("Not implemented: writing to Azure temporary storage with compression enabled");
             }
             AzureDfsClient client = new AzureDfsClient(account, key, container);
             DryadLinqFactory<T> factory = (DryadLinqFactory<T>)DryadLinqCodeGen.GetFactory(context, typeof(T));
-            using (Stream stream = client.GetFileStreamWriterAsync(blob).Result)
+            using (Stream stream = client.GetDfsStreamWriterAsync(dataSetUri).Result)
             {
-                DryadLinqBlockStream nativeStream = new DryadLinqBlockStream(stream);
-                DryadLinqRecordWriter<T> writer = factory.MakeWriter(nativeStream);
-                foreach (T rec in source)
+                if (serializer == null)
                 {
-                    writer.WriteRecordSync(rec);
+                    DryadLinqBlockStream nativeStream = new DryadLinqBlockStream(stream);
+                    DryadLinqRecordWriter<T> writer = factory.MakeWriter(nativeStream);
+                    foreach (T rec in source)
+                    {
+                        writer.WriteRecordSync(rec);
+                    }
+                    writer.Close();
                 }
-                writer.Close();
+                else
+                {
+                    Action<IEnumerable<T>, Stream> serializerFunc = serializer.Compile();
+                    serializerFunc(source, stream);
+                }
             }
         }
 
@@ -589,7 +652,6 @@ namespace Microsoft.Research.DryadLinq
             try
             {
                 AzureCollectionPartition partition = new AzureCollectionPartition(dataSetUri);
-
                 if (!partition.IsCollectionExists())
                 {
                     throw new DryadLinqException("Input collection " + dataSetUri + " does not exist");

@@ -123,7 +123,12 @@ namespace Microsoft.Research.DryadLinq.Internal
         /// </summary>
         ~DryadLinqTextWriter()
         {
-            this.Close();
+            // Only release native resoure here
+            if (this.m_curDataBlockInfo.ItemHandle != IntPtr.Zero)
+            {
+                this.m_nativeStream.ReleaseDataBlock(this.m_curDataBlockInfo.ItemHandle);
+                this.m_curDataBlockInfo.ItemHandle = IntPtr.Zero;
+            }
         }
 
         /// <summary>

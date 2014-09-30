@@ -929,6 +929,37 @@ RChannelBufferHdfsWriter::RChannelBufferHdfsWriter(const char* uri)
                 Hdfs::InstanceAccessor ia(bridge);
                 ia.Discard();
             }
+
+            char envUserName[128];
+            DWORD ret = ::GetEnvironmentVariableA("USER", envUserName, sizeof(envUserName));
+            if (ret > 0 && ret < sizeof(envUserName)-1)
+            {
+                m_user.Set(envUserName);
+                DrLogI("Hdfs writer set user to %s from environment", m_user.GetString());
+            }
+            else
+            {
+                if (ret == 0 && GetLastError() != ERROR_ENVVAR_NOT_FOUND)
+                {
+                    DrLogW("Can't get USER environment variable: %s", DRERRORSTRING(DrGetLastError()));
+                }
+                if (ret >= sizeof(envUserName)-1)
+                {
+                    DrLogW("USER environment is too long: %d", ret);
+                }
+
+                DWORD bufSize = sizeof(envUserName);
+                BOOL bRet = ::GetUserNameA(envUserName, &bufSize);
+                if (bRet == 0)
+                {
+                    DrLogW("Can't get username: %s", DRERRORSTRING(DrGetLastError()));
+                }
+                else
+                {
+                    m_user.Set(envUserName);
+                    DrLogI("Hdfs writer set user to %s from username", m_user.GetString());
+                }
+            }
         }
     }
 }
@@ -1021,12 +1052,27 @@ bool RChannelBufferHdfsWriter::Open(Hdfs::Instance** pInstance,
     Hdfs::InstanceAccessor ia(instance);
 
     Hdfs::Writer* writer;
-    bool openedWriter = ia.OpenWriter(filePath.GetString(), false, &writer);
+    bool openedWriter = ia.OpenCreate(filePath.GetString(), 1024 * 1024, -1, &writer);
     if (!openedWriter)
     {
         char* errorMsg = ia.GetExceptionMessage();
         DrStr64 description;
         description.SetF("Can't open HDFS file '%s': %s",
+                         m_uri.GetString(), errorMsg);
+        HadoopNative::DisposeString(errorMsg);
+
+        m_completionItem.Attach(MakeErrorItem(DryadError_ChannelOpenError,
+                                description.GetString()));
+
+        ia.Discard();
+        return false;
+    }
+    bool setPermissions = ia.SetOwnerAndPermission(filePath.GetString(), m_user.GetString(), NULL, 0644);
+    if (!setPermissions)
+    {
+        char* errorMsg = ia.GetExceptionMessage();
+        DrStr64 description;
+        description.SetF("Can't set HDFS file permissions '%s': %s",
                          m_uri.GetString(), errorMsg);
         HadoopNative::DisposeString(errorMsg);
 

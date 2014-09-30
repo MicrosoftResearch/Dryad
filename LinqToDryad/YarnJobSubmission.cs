@@ -38,57 +38,53 @@ namespace Microsoft.Research.DryadLinq
     internal class YarnJobSubmission : PeloponneseJobSubmission
     {
         private ClusterJob m_job;
+        private Uri baseStagingUri;
 
-        public YarnJobSubmission(DryadLinqContext context) : base(context)
+        public YarnJobSubmission(DryadLinqContext context, Uri baseStagingUri) : base(context)
         {
+            this.baseStagingUri = baseStagingUri;
         }
 
-        private string DryadDfs
+        private Uri PeloponneseDfs
         {
-            get { return Context.Cluster.DfsClient.Combine("staging", "dryad"); }
+            get { return Context.Cluster.DfsClient.Combine(baseStagingUri, "peloponnese"); }
         }
 
-        private string UserDfs
+        private Uri DryadDfs
         {
-            get { return Context.Cluster.DfsClient.Combine("user", Environment.UserName, "staging"); }
+            get { return Context.Cluster.DfsClient.Combine(baseStagingUri, "dryad"); }
+        }
+
+        private Uri UserDfs
+        {
+            get { return Context.Cluster.DfsClient.Combine(baseStagingUri, Environment.UserName, "dryadJob" ); }
         }
 
         protected override XElement MakeJMConfig()
         {
+            var environment = new Dictionary<string, string>();
+            environment.Add(Constants.LoggingLevelEnvVar, Constants.LoggingStringFromLevel((int)Context.RuntimeLoggingLevel).ToString());
+
             var qpPath = Path.Combine("..", "..", Path.GetFileName(QueryPlan));
-            var jmPath = Path.Combine("..", "..", "DryadLinqGraphManager.exe");
-            string jobDirectoryTemplate = Context.Cluster.Client(Context).JobDirectoryTemplate.Replace("_BASELOCATION_", "dryad-jobs");
-            string logDirParam = Microsoft.Research.Peloponnese.Storage.AzureUtils.CmdLineEncode(jobDirectoryTemplate);
-            string[] jmArgs = {"--dfs=" + logDirParam, "VertexHost.exe", qpPath }; // +" --break";
+            var jmPath = Path.Combine("..", "..", "Microsoft.Research.Dryad.GraphManager.exe");
+            string jobDirectoryTemplate =
+                Context.Cluster.Client(Context).JobDirectoryTemplate.AbsoluteUri.Replace("_BASELOCATION_", "dryad-jobs");
+            string logDirParam = Microsoft.Research.Peloponnese.Utils.CmdLineEncode(jobDirectoryTemplate);
+            string[] jmArgs = { "--dfs=" + logDirParam, "Microsoft.Research.Dryad.VertexHost.exe", qpPath }; // +" --break";
             return ConfigHelpers.MakeProcessGroup(
-                "jm", "local", 1, 1, true,
+                         "jm", "local", 1, 1, -1, true,
                          jmPath, jmArgs, "LOG_DIRS", "graphmanager-stdout.txt",
                          "graphmanager-stderr.txt",
-                null, null);
+                         null, environment);
         }
 
-        protected override XElement MakeWorkerConfig(string configPath, XElement peloponneseResource)
+        protected override XElement MakeWorkerConfig(string configPath)
         {
             var waiters = new List<Task<XElement>>();
 
-            IEnumerable<string> dryadFiles = new[]
-                {
-                    "ProcessService.exe",
-                    "ProcessService.pdb",
-                    "VertexHost.exe",
-                    "VertexHost.pdb",
-                    "VertexHost.exe.config",
-                    "Microsoft.Research.DryadLinq.dll",
-                    "Microsoft.Research.DryadLinq.pdb",
-                    "DryadLinqNativeChannels.dll",
-                    "DryadLinqNativeChannels.pdb",
-                    "DryadManagedChannel.dll",
-                    "DryadManagedChannel.pdb"
-                };
-
-            dryadFiles = dryadFiles.Select(x => Path.Combine(Context.DryadHomeDirectory, x));
-
-            waiters.Add(ConfigHelpers.MakeResourceGroupAsync(Context.Cluster.DfsClient, DryadDfs, true, dryadFiles));
+            waiters.Add(ConfigHelpers.MakePeloponneseWorkerResourceGroupAsync(Context.Cluster.DfsClient, baseStagingUri, Context.PeloponneseHomeDirectory));
+            waiters.Add(ConfigHelpers.MakeResourceGroupAsync(Context.Cluster.DfsClient, PeloponneseDfs, true, m_peloponneseWorkerFiles));
+            waiters.Add(ConfigHelpers.MakeResourceGroupAsync(Context.Cluster.DfsClient, DryadDfs, true, m_dryadWorkerFiles));
 
             // add job-local resources to each worker directory, using public versions of the standard Dryad files
             foreach (var rg in LocalResources)
@@ -107,19 +103,18 @@ namespace Microsoft.Research.DryadLinq
             }
 
             var resources = new List<XElement>();
-            resources.Add(peloponneseResource);
             foreach (var t in waiters)
             {
                 resources.Add(t.Result);
             }
 
-            var psPath = "ProcessService.exe";
+            var psPath = "Microsoft.Research.Dryad.ProcessService.exe";
             string[]  psArgs = { Path.GetFileName(configPath) };
             int maxNodes = (Context.JobMaxNodes == null) ? -1 : Context.JobMaxNodes.Value;
             return ConfigHelpers.MakeProcessGroup(
-                "Worker", "yarn", -1, maxNodes, false,
-                psPath, psArgs, "LOG_DIRS", "processservice-stdout.txt", "processservice-stderr.txt",
-                resources, null);
+                         "Worker", "yarn", -1, maxNodes, Context.ContainerMbMemory, false,
+                         psPath, psArgs, "LOG_DIRS", "processservice-stdout.txt", "processservice-stderr.txt",
+                         resources, null);
         }
 
         private string MakeProcessServiceConfig()
@@ -138,7 +133,18 @@ namespace Microsoft.Research.DryadLinq
             psPrefixElement.Value = "/peloponnese/dpservice/";
             psElement.Add(psPrefixElement);
 
+            var environment = new Dictionary<string, string>();
+            environment.Add(Constants.LoggingLevelEnvVar, Constants.LoggingStringFromLevel((int)Context.RuntimeLoggingLevel).ToString());
+            environment.Add("DRYAD_THREADS_PER_WORKER", Context.ThreadsPerWorker.ToString());
+
             var envElement = new XElement("Environment");
+            foreach (var e in environment)
+            {
+                var varElement = new XElement("Variable");
+                varElement.SetAttributeValue("var", e.Key);
+                varElement.Value = e.Value;
+                envElement.Add(varElement);
+            }
             psElement.Add(envElement);
 
             docElement.Add(psElement);
@@ -152,25 +158,14 @@ namespace Microsoft.Research.DryadLinq
             return psConfigPath;
         }
 
-        private XDocument MakeLauncherConfig(string configPath, XElement peloponneseResource)
+        private XDocument MakeLauncherConfig(string configPath)
         {
             List<Task<XElement>> waiters = new List<Task<XElement>>();
-            if (!ConfigHelpers.RunningFromNugetPackage)
-            {
-                IEnumerable<string> dryadFiles = new[]
-                {
-                    "DryadLinqGraphManager.exe",
-                    "DryadLinqGraphManager.exe.config",
-                    "Microsoft.Research.Dryad.dll",
-                    "DryadHttpClusterInterface.dll",
-                    "DryadLocalScheduler.dll"
-                };
-                dryadFiles = dryadFiles.Select(x => Path.Combine(Context.DryadHomeDirectory, x));
 
-                waiters.Add(ConfigHelpers.MakeResourceGroupAsync(Context.Cluster.DfsClient, DryadDfs, true, dryadFiles));
-            }
+            waiters.Add(ConfigHelpers.MakePeloponneseResourceGroupAsync(Context.Cluster.DfsClient, baseStagingUri, Context.PeloponneseHomeDirectory));
+            waiters.Add(ConfigHelpers.MakeResourceGroupAsync(Context.Cluster.DfsClient, DryadDfs, true, m_dryadGMFiles));
+
             IEnumerable<string> userFiles = new[] { configPath, QueryPlan };
-
             waiters.Add(ConfigHelpers.MakeResourceGroupAsync(Context.Cluster.DfsClient, UserDfs, false, userFiles));
 
             try
@@ -179,11 +174,10 @@ namespace Microsoft.Research.DryadLinq
             }
             catch (Exception e)
             {
-                throw new DryadLinqException("Hdfs resource make failed", e);
+                throw new DryadLinqException("Dfs resource make failed", e);
             }
 
             List<XElement> resources = new List<XElement>();
-            resources.Add(peloponneseResource);
             foreach (var t in waiters)
             {
                 resources.Add(t.Result);
@@ -195,42 +189,40 @@ namespace Microsoft.Research.DryadLinq
                 appName = "DryadLINQ.App";
             }
 
-            return ConfigHelpers.MakeLauncherConfig(appName, Path.GetFileName(configPath), resources, JobDirectory);
+            return ConfigHelpers.MakeLauncherConfig(appName, Path.GetFileName(configPath), Context.Queue, 
+                Context.ApplicationMasterMbMemory, resources, JobDirectory);
         }
 
         private XDocument GenerateConfig()
         {
-            XElement peloponneseResource = ConfigHelpers.MakePeloponneseResourceGroup(
-                Context.Cluster.DfsClient, Context.PeloponneseHomeDirectory);
-
             string psConfigPath = MakeProcessServiceConfig();
 
             // this will cause the psConfig to be uploaded to the DFS during MakeConfig
             AddLocalFile(psConfigPath);
 
-            var configDoc = MakeConfig(psConfigPath, peloponneseResource);
+            var configDoc = MakeConfig(psConfigPath);
 
             string configPath = DryadLinqCodeGen.GetPathForGeneratedFile("ppmConfig.xml", null);
             configDoc.Save(configPath);
 
-            return MakeLauncherConfig(configPath, peloponneseResource);
+            return MakeLauncherConfig(configPath);
         }
 
         public override string ErrorMsg
         {
             get 
             {
-                if (m_job == null)
+                if (this.m_job == null)
                 {
                     return null;
                 }
-                return m_job.ErrorMsg;
+                return this.m_job.ErrorMsg;
             }
         }
 
         public override JobStatus GetStatus()
         {
-            if (m_job == null)
+            if (this.m_job == null)
             {
                 return JobStatus.NotSubmitted;
             }
@@ -261,7 +253,24 @@ namespace Microsoft.Research.DryadLinq
             }
         }
 
-        public string JobDirectory { get { return Context.Cluster.Client(Context).JobDirectoryTemplate.Replace("_BASELOCATION_", "dryad-jobs"); } }
+        /// <summary>
+        /// Waits for the job to complete
+        /// </summary>
+        /// <returns>The status of the job.</returns>
+        public override JobStatus WaitForCompletion()
+        {
+            m_job.Join();
+            return this.GetStatus();
+        }
+
+        private string JobDirectory
+        {
+            get
+            {
+                return Context.Cluster.Client(Context).JobDirectoryTemplate.AbsoluteUri
+                    .Replace("_BASELOCATION_", "dryad-jobs");
+            }
+        }
 
         public override void SubmitJob()
         {
@@ -282,7 +291,7 @@ namespace Microsoft.Research.DryadLinq
 
             try
             {
-                m_job = Context.Cluster.Client(Context).Submit(config, JobDirectory);
+                this.m_job = Context.Cluster.Client(Context).Submit(config, new Uri(JobDirectory));
             }
             catch (Exception e)
             {
@@ -292,19 +301,19 @@ namespace Microsoft.Research.DryadLinq
 
         public override JobStatus TerminateJob()
         {
-            m_job.Kill();
+            this.m_job.Kill();
             return GetStatus();
         }
 
         public override string GetJobId()
         {
-            if (m_job == null)
+            if (this.m_job == null)
             {
                 return "Unknown";
             }
             else
             {
-                return m_job.Id;
+                return this.m_job.Id;
             }
         }
     }

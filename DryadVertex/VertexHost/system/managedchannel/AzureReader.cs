@@ -27,7 +27,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-using Microsoft.Research.Peloponnese.Storage;
+using Microsoft.Research.Peloponnese.Azure;
 
 namespace Microsoft.Research.Dryad.Channel
 {
@@ -74,7 +74,7 @@ namespace Microsoft.Research.Dryad.Channel
         {
             Log.LogInformation("Opening read for " + source.AbsoluteUri);
             string account, key, container, blobName;
-            AzureUtils.FromAzureUri(source, out account, out key, out container, out blobName);
+            Utils.FromAzureUri(source, out account, out key, out container, out blobName);
             client = new AzureDfsClient(account, key, container, false, new PeloponneseLogger(Log.Logger));
             client.SetParallelThreadCount(4);
 
@@ -94,7 +94,7 @@ namespace Microsoft.Research.Dryad.Channel
         private async Task OpenBlob()
         {
             string account, key, container, blobName;
-            AzureUtils.FromAzureUri(source, out account, out key, out container, out blobName);
+            Utils.FromAzureUri(source, out account, out key, out container, out blobName);
 
             NameValueCollection query = System.Web.HttpUtility.ParseQueryString(source.Query);
 
@@ -105,9 +105,11 @@ namespace Microsoft.Research.Dryad.Channel
                 ++blobIndex;
             }
 
-            Log.LogInformation("Opening read for blob " + blobName);
+            Uri blobUri = Utils.ToAzureUri(account, container, blobName, null, key);
+
+            Log.LogInformation("Opening read for blob " + blobUri.AbsoluteUri);
             
-            readStream = (await client.GetDfsFileStreamAsync(blobName, ExecutionTimeout, new PeloponneseLogger(Log.Logger))).Stream;
+            readStream = (await client.GetDfsStreamReaderAsync(blobUri, ExecutionTimeout, new PeloponneseLogger(Log.Logger)));
 
             long offset = -1;
             if (query["offset"] != null)
@@ -215,7 +217,7 @@ namespace Microsoft.Research.Dryad.Channel
             int toRead = (int)Math.Min((long)managedBuffer.Length, bytesToRead);
 
             Log.LogInformation("About to read buffer length " + toRead);
-            readData.nRead = await AzureUtils.WrapInRetry(new PeloponneseLogger(Log.Logger), async () =>
+            readData.nRead = await Utils.WrapInRetry(new PeloponneseLogger(Log.Logger), async () =>
                 {
                     return await readStream.ReadAsync(managedBuffer, 0, toRead);
                 });
@@ -301,7 +303,7 @@ namespace Microsoft.Research.Dryad.Channel
             {
                 int toRead = (int)Math.Min(buffer.LongLength, endOffset - currentOffset);
 
-                int nRead = await AzureUtils.WrapInRetry(new PeloponneseLogger(Log.Logger), async () =>
+                int nRead = await Utils.WrapInRetry(new PeloponneseLogger(Log.Logger), async () =>
                     {
                         return await readStream.ReadAsync(buffer, 0, toRead);
                     });

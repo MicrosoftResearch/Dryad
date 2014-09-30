@@ -37,7 +37,6 @@ namespace Microsoft.Research.DryadLinq.Internal
         private string m_vertexStageName;
         private bool m_useLargeBuffer;
         private string m_remoteArch;
-        private bool m_multiThreading;
 
         /// <summary>
         /// Initializes a new instance of the DryadLinqVertexParams class.
@@ -127,15 +126,6 @@ namespace Microsoft.Research.DryadLinq.Internal
         public UInt32 InputPortCount(UInt32 index)
         {
             return this.m_inputPortCounts[index];
-        }
-
-        /// <summary>
-        /// Determines if multi-threading is enabled for DryadLINQ vertex runtime.
-        /// </summary>
-        public bool MultiThreading
-        {
-            get { return this.m_multiThreading; }
-            set { this.m_multiThreading = value; }
         }
     }
 }

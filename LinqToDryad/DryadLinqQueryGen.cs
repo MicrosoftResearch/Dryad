@@ -59,6 +59,8 @@ namespace Microsoft.Research.DryadLinq
         private DLinqQueryNode[] m_queryPlan2;
         private DLinqQueryNode[] m_queryPlan3;
         private Uri[] m_outputTableUris;
+        private Expression[] m_serializers;
+        private Expression[] m_deserializers;
         private bool[] m_isTempOutput;
         private Type[] m_outputTypes;
         private QueryNodeInfo[] m_queryNodeInfos;
@@ -82,6 +84,8 @@ namespace Microsoft.Research.DryadLinq
         {
             this.m_queryExprs = new Expression[] { queryExpr };
             this.m_outputTableUris = new Uri[] { tableUri };
+            this.m_serializers = new Expression[] { null };
+            this.m_deserializers = new Expression[] { null };
             this.m_isTempOutput = new bool[] { isTempOutput };
             this.m_context = context;
             this.Initialize(vertexCodeGen);
@@ -95,26 +99,36 @@ namespace Microsoft.Research.DryadLinq
         {
             this.m_queryExprs = new Expression[qlist.Length];
             this.m_outputTableUris = new Uri[qlist.Length];
+            this.m_serializers = new Expression[qlist.Length];
+            this.m_deserializers = new Expression[qlist.Length];
             this.m_isTempOutput = new bool[qlist.Length];
             this.m_context = context;
             for (int i = 0; i < this.m_queryExprs.Length; i++)
             {
-                MethodCallExpression mcExpr = (MethodCallExpression)qlist[i];
-                this.m_queryExprs[i] = mcExpr.Arguments[0];
-
-                Uri tableUri;
-                if (mcExpr.Method.Name == ReflectedNames.DLQ_ToStore)
+                MethodCallExpression mcExpr = qlist[i] as MethodCallExpression;
+                
+                if (mcExpr != null && mcExpr.Method.Name == ReflectedNames.DLQ_ToStoreInternal)
                 {
+                    this.m_queryExprs[i] = mcExpr.Arguments[0];
                     ExpressionSimplifier<Uri> e2 = new ExpressionSimplifier<Uri>();
-                    tableUri = e2.Eval(mcExpr.Arguments[1]);
+                    this.m_outputTableUris[i] = e2.Eval(mcExpr.Arguments[1]);
+                    ExpressionSimplifier<bool> e3 = new ExpressionSimplifier<bool>();
+                    this.m_isTempOutput[i] = e3.Eval(mcExpr.Arguments[2]);
+                    this.m_serializers[i] = mcExpr.Arguments[3];
+                    this.m_deserializers[i] = mcExpr.Arguments[4];
+                }
+                else if (mcExpr != null && mcExpr.Method.Name == ReflectedNames.DLQ_ToStoreInternalAux)
+                {
+                    this.m_queryExprs[i] = mcExpr.Arguments[0];
+                    ExpressionSimplifier<Uri> e2 = new ExpressionSimplifier<Uri>();
+                    this.m_outputTableUris[i] = e2.Eval(mcExpr.Arguments[1]);
                     ExpressionSimplifier<bool> e3 = new ExpressionSimplifier<bool>();
                     this.m_isTempOutput[i] = e3.Eval(mcExpr.Arguments[2]);
                 }
                 else
                 {
-                    throw new DryadLinqException("Internal error: The method must be " + ReflectedNames.DLQ_ToStore);
+                    throw new DryadLinqException("Internal error: The method must be " + ReflectedNames.DLQ_ToStoreInternal);
                 }
-                this.m_outputTableUris[i] = tableUri;
             }
             this.Initialize(vertexCodeGen);
         }
@@ -238,7 +252,12 @@ namespace Microsoft.Research.DryadLinq
                 for (int i = 0; i < this.m_outputTableUris.Length; i++)
                 {
                     MethodInfo minfo1 = minfo.MakeGenericMethod(this.m_outputTypes[i]);
-                    object[] args = new object[] { this.m_context, this.m_outputTableUris[i] };
+                    LambdaExpression deserializer = null;
+                    if (this.m_deserializers[i] != null)
+                    {
+                        deserializer = DryadLinqExpression.GetLambda(this.m_deserializers[i]);
+                    }
+                    object[] args = new object[] { this.m_context, this.m_outputTableUris[i], deserializer };
                     this.m_outputTables[i] = (DryadLinqQuery)minfo1.Invoke(null, args);
                     this.m_outputTables[i].QueryExecutor = this.m_queryExecutor;
                 }
@@ -307,23 +326,34 @@ namespace Microsoft.Research.DryadLinq
                                                  SR.OutputTypeCannotBeAnonymous);
                 }
 
-                // Add dummy Apply to make Dryad happy (it doesn't like to hook inputs straight to outputs)
-                if ((queryNode is DLinqInputNode) || (forkCounts[queryNode] > 1))
+                if (this.m_serializers[i] != null)
                 {
-                    // Add a dummy Apply
-                    Type paramType = typeof(IEnumerable<>).MakeGenericType(queryNode.OutputTypes[0]);
-                    ParameterExpression param = Expression.Parameter(paramType, "x");
-                    Type type = typeof(Func<,>).MakeGenericType(paramType, paramType);
-                    LambdaExpression applyExpr = Expression.Lambda(type, param, param);
-                    DLinqQueryNode applyNode = new DLinqApplyNode(applyExpr, this.m_queryExprs[i], queryNode);
+                    // Add an Apply for the serializer if it is not null
+                    LambdaExpression serializer = DryadLinqExpression.GetLambda(this.m_serializers[i]);
+                    DLinqQueryNode applyNode = new DLinqApplyNode(serializer, this.m_queryExprs[i], queryNode);
                     applyNode.OutputDataSetInfo = queryNode.OutputDataSetInfo;
                     queryNode = applyNode;
                 }
-
-                if (queryNode is DLinqConcatNode)
+                else
                 {
-                    // Again, we add dummy Apply in certain cases to make Dryad happy
-                    ((DLinqConcatNode)queryNode).FixInputs();
+                    // Add dummy Apply to make Dryad happy (it doesn't like to hook inputs straight to outputs)
+                    if ((queryNode is DLinqInputNode) || (forkCounts[queryNode] > 1))
+                    {
+                        // Add a dummy Apply
+                        Type paramType = typeof(IEnumerable<>).MakeGenericType(queryNode.OutputTypes[0]);
+                        ParameterExpression param = Expression.Parameter(paramType, "x");
+                        Type type = typeof(Func<,>).MakeGenericType(paramType, paramType);
+                        LambdaExpression applyExpr = Expression.Lambda(type, param, param);
+                        DLinqQueryNode applyNode = new DLinqApplyNode(applyExpr, this.m_queryExprs[i], queryNode);
+                        applyNode.OutputDataSetInfo = queryNode.OutputDataSetInfo;
+                        queryNode = applyNode;
+                    }
+
+                    if (queryNode is DLinqConcatNode)
+                    {
+                        // Again, we add dummy Apply in certain cases to make Dryad happy
+                        ((DLinqConcatNode)queryNode).FixInputs();
+                    }
                 }
 
                 // Add the output node                
@@ -508,7 +538,7 @@ namespace Microsoft.Research.DryadLinq
                 foreach (var kvp in this.m_outputUriMap)
                 {
                     string outputPath = kvp.Key;
-                    if(m_inputUriMap.ContainsKey(outputPath))
+                    if (m_inputUriMap.ContainsKey(outputPath))
                     {
                         throw new DryadLinqException(DryadLinqErrorCode.OutputUriAlsoQueryInput,
                                                      String.Format(SR.OutputUriAlsoQueryInput, outputPath));
@@ -850,7 +880,6 @@ namespace Microsoft.Research.DryadLinq
             queryDoc.DocumentElement.AppendChild(elem);
 
             // Add the visualization element
-            //@@TODO[p2]: remove this element from the queryXML.
             elem = queryDoc.CreateElement("Visualization");
             elem.InnerText = "none";
             queryDoc.DocumentElement.AppendChild(elem);
@@ -913,9 +942,10 @@ namespace Microsoft.Research.DryadLinq
             }
 
             // Create an app config file for the VertexHost process, and add it to the resources
-            string vertexHostAppConfigPath = DryadLinqCodeGen.GetPathForGeneratedFile(Path.ChangeExtension(VertexHostExe, "exe.config"), null);
-            GenerateAppConfigResource(vertexHostAppConfigPath);
-            AddResourceToPlan(queryDoc, elem, vertexHostAppConfigPath, resourcesToExclude);
+            // don't generate this since we're shipping a real vertexhost.exe.config now
+            //string vertexHostAppConfigPath = DryadLinqCodeGen.GetPathForGeneratedFile(Path.ChangeExtension(VertexHostExe, "exe.config"), null);
+            //GenerateAppConfigResource(vertexHostAppConfigPath);
+            //AddResourceToPlan(queryDoc, elem, vertexHostAppConfigPath, resourcesToExclude);
 
             // Save and add the object store as a resource
             if (!DryadLinqObjectStore.IsEmpty)
@@ -1140,7 +1170,13 @@ namespace Microsoft.Research.DryadLinq
                 {
                     this.m_inputUriMap.Add(inputUri, inputNode);
                 }
-                return inputNode;
+                DLinqQueryNode resNode = inputNode;
+                if (inputNode.Table.Deserializer != null)
+                {
+                    // Add an Apply for the deserializer
+                    resNode = new DLinqApplyNode(inputNode.Table.Deserializer, expression, inputNode);
+                }
+                return resNode;
             }
             else
             {
@@ -3240,11 +3276,8 @@ namespace Microsoft.Research.DryadLinq
             Expression keySelectBody = Expression.Property(param, "Index");
             funcType = typeof(Func<,>).MakeGenericType(param.Type, keySelectBody.Type);
             LambdaExpression keySelectExpr = Expression.Lambda(funcType, keySelectBody, param);
-            DLinqQueryNode hdistNode = new DLinqHashPartitionNode(keySelectExpr,
-                                                                  null,
-                                                                  pcount,
-                                                                  queryExpr,
-                                                                  slideNode);
+            DLinqQueryNode hdistNode 
+                = new DLinqHashPartitionNode(keySelectExpr, null, pcount, queryExpr, slideNode);
 
             // Apply node for (x, y) => ProcessWindows(x, y, proclambda, windowSize)
             Type paramType1 = typeof(IEnumerable<>).MakeGenericType(body.Type);
@@ -3301,11 +3334,8 @@ namespace Microsoft.Research.DryadLinq
             param = Expression.Parameter(body.Type, "x");
             funcType = typeof(Func<,>).MakeGenericType(param.Type, param.Type);
             LambdaExpression keySelectExpr = Expression.Lambda(funcType, param, param);
-            DLinqQueryNode hdistNode = new DLinqHashPartitionNode(keySelectExpr,
-                                                                  null,
-                                                                  pcount,
-                                                                  queryExpr,
-                                                                  assignIndexNode);
+            DLinqQueryNode hdistNode 
+                = new DLinqHashPartitionNode(keySelectExpr, null, pcount, queryExpr, assignIndexNode);
 
             // Apply node for (x, y) => ApplyWithPartitionIndex(x, y, procLambda));
             Type paramType1 = typeof(IEnumerable<>).MakeGenericType(child.OutputTypes[0]);
@@ -4735,6 +4765,15 @@ namespace Microsoft.Research.DryadLinq
                 {
                     resNode = this.VisitDummy(expression);
                     break;
+                }
+                case ReflectedNames.DLQ_ToStoreInternal:
+                case ReflectedNames.DLQ_ToStoreInternalAux:
+                {
+                    //SHOULD NOT VISIT..
+                    //Later if we do allow ToStore in the middle of query chain, then we need to either
+                    //    1. update the source node with an outputeTableUri
+                    // OR 2. create an actual node and handle it later on  (tee, etc)
+                    throw new DryadLinqException("Internal error: Should never visit an expression of " + methodName);
                 }
             }
             #endregion

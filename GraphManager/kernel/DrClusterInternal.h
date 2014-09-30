@@ -165,9 +165,10 @@ public:
                                         DrResourcePtr srcResource, DrResourcePtr dstResource, int compressionMode) DROVERRIDE;
 
     virtual void ScheduleProcess(DrAffinityListRef affinities,
-                                 DrString name, DrString commandLine,
+                                 DrString name, DrString commandLineArgs,
                                  DrProcessTemplatePtr processTemplate,
                                  DrPSRListenerPtr listener) DROVERRIDE;
+
     virtual void CancelScheduleProcess(DrProcessHandlePtr process) DROVERRIDE;
 
     virtual void WaitForStateChange(DrProcessHandlePtr process, DrPSRListenerPtr listener) DROVERRIDE;

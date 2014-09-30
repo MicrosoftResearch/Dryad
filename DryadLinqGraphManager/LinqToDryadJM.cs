@@ -73,12 +73,12 @@ namespace Microsoft.Research.Dryad.GraphManager
 
         public static Uri AddDfsJobDirectoryFromArgs(string arg)
         {
-            string jobId = Microsoft.Research.Peloponnese.Storage.AzureUtils.ApplicationIdFromEnvironment();
-            string jobDirectoryBase = Microsoft.Research.Peloponnese.Storage.AzureUtils.CmdLineDecode(arg.Substring(arg.IndexOf('=') + 1));
+            string jobId = Microsoft.Research.Peloponnese.Yarn.Utils.ApplicationIdFromEnvironment();
+            string jobDirectoryBase = Microsoft.Research.Peloponnese.Utils.CmdLineDecode(arg.Substring(arg.IndexOf('=') + 1));
             string jobDirectorySpecific = jobDirectoryBase.Replace("_JOBID_", jobId);
 
             UriBuilder logLocation = new UriBuilder(jobDirectorySpecific);
-            logLocation.Path = logLocation.Path + "calypso.log";
+            logLocation.Path = logLocation.Path.TrimEnd('/') + "/calypso.log";
 
             DebugHelper.AddReporter(new DrCalypsoReporter(logLocation.Uri.AbsoluteUri));
 
@@ -94,7 +94,7 @@ namespace Microsoft.Research.Dryad.GraphManager
                 {
                     using (var hdfs = new Microsoft.Research.Peloponnese.Hdfs.HdfsInstance(dfsDirectory))
                     {
-                        string dfsPath = dfsDirectory.AbsolutePath + Path.GetFileName(localPath);
+                        string dfsPath = dfsDirectory.AbsolutePath.TrimEnd('/') + "/" + Path.GetFileName(localPath);
                         DryadLogger.LogInformation("Uploading " + localPath + " to " + dfsPath);
                         hdfs.UploadAll(localPath, dfsPath);
                     }
@@ -102,11 +102,12 @@ namespace Microsoft.Research.Dryad.GraphManager
                 else if (dfsDirectory.Scheme == "azureblob")
                 {
                     string account, key, container, blob;
-                    Microsoft.Research.Peloponnese.Storage.AzureUtils.FromAzureUri(dfsDirectory, out account, out key, out container, out blob);
-                    var azure = new Microsoft.Research.Peloponnese.Storage.AzureDfsClient(account, key, container);
-                    string dfsPath = blob + Path.GetFileName(localPath);
-                    DryadLogger.LogInformation("Uploading " + localPath + " to " + dfsPath);
-                    azure.PutDfsFile(localPath, dfsPath);
+                    Microsoft.Research.Peloponnese.Azure.Utils.FromAzureUri(dfsDirectory, out account, out key, out container, out blob);
+                    var azure = new Microsoft.Research.Peloponnese.Azure.AzureDfsClient(account, key, container);
+                    string dfsPath = blob.TrimEnd('/') + "/" + Path.GetFileName(localPath);
+                    Uri dfsUri = Microsoft.Research.Peloponnese.Azure.Utils.ToAzureUri(account, container, dfsPath, null, key);
+                    DryadLogger.LogInformation("Uploading " + localPath + " to " + dfsUri.AbsoluteUri);
+                    azure.PutDfsFile(dfsUri, localPath);
                 }
                 else if (dfsDirectory.Scheme == "file")
                 {
@@ -138,10 +139,11 @@ namespace Microsoft.Research.Dryad.GraphManager
                 else if (dfsDirectory.Scheme == "azureblob")
                 {
                     string account, key, container, blob;
-                    Microsoft.Research.Peloponnese.Storage.AzureUtils.FromAzureUri(dfsDirectory, out account, out key, out container, out blob);
-                    var azure = new Microsoft.Research.Peloponnese.Storage.AzureDfsClient(account, key, container);
+                    Microsoft.Research.Peloponnese.Azure.Utils.FromAzureUri(dfsDirectory, out account, out key, out container, out blob);
+                    var azure = new Microsoft.Research.Peloponnese.Azure.AzureDfsClient(account, key, container);
                     string dfsPath = blob + dfsName;
-                    azure.PutDfsFile(payloadBytes, dfsPath);
+                    Uri dfsUri = Microsoft.Research.Peloponnese.Azure.Utils.ToAzureUri(account, container, dfsPath, null, key);
+                    azure.PutDfsFile(dfsUri, payloadBytes);
                 }
                 else if (dfsDirectory.Scheme == "file")
                 {
@@ -207,7 +209,39 @@ namespace Microsoft.Research.Dryad.GraphManager
                             logDir = logDir.Split(',').First().Trim();
                             DrLogging.Initialize(Path.Combine(logDir, "graphmanager"), false);
                         }
-                        DrLogging.SetLoggingLevel(DrLogTypeManaged.Info);
+
+                        string logLevel = Environment.GetEnvironmentVariable("DRYAD_LOGGING_LEVEL");
+                        if (logLevel == null)
+                        {
+                            DrLogging.SetLoggingLevel(DrLogTypeManaged.Debug);
+                        }
+                        else
+                        {
+                            if (logLevel == "OFF")
+                            {
+                                DrLogging.SetLoggingLevel(DrLogTypeManaged.Off);
+                            }
+                            else if (logLevel == "CRITICAL")
+                            {
+                                DrLogging.SetLoggingLevel(DrLogTypeManaged.Assert);
+                            }
+                            else if (logLevel == "ERROR")
+                            {
+                                DrLogging.SetLoggingLevel(DrLogTypeManaged.Error);
+                            }
+                            else if (logLevel == "WARN")
+                            {
+                                DrLogging.SetLoggingLevel(DrLogTypeManaged.Warning);
+                            }
+                            else if (logLevel == "INFO")
+                            {
+                                DrLogging.SetLoggingLevel(DrLogTypeManaged.Info);
+                            }
+                            else
+                            {
+                                DrLogging.SetLoggingLevel(DrLogTypeManaged.Debug);
+                            }
+                        }
 
                         // Report start time to Artemis - must come after
                         // DrLogging is initialized so stdout is redirected

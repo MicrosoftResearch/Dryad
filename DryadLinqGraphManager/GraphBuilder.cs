@@ -92,7 +92,7 @@ namespace Microsoft.Research.Dryad.GraphManager
                 err = input.Open(app.GetUniverse(), new Uri(info.sources[0]).AbsolutePath);
                 if (!SUCCEEDED(err))
                 {
-                    string msg = String.Format("Could not read DSC input file {0}", info.sources[0]);
+                    string msg = String.Format("Could not read Partitioned file input {0}", info.sources[0]);
                     throw new LinqToDryadException(msg, err);
                 }
                 
@@ -127,7 +127,9 @@ namespace Microsoft.Research.Dryad.GraphManager
 
                 DryadLogger.LogInformation("Create input node", "Opening HDFS input fileset");
 
-                err = input.Open(app.GetUniverse(), info.sources[0]);
+                Uri srcUri = new Uri(info.sources[0]);
+                
+                err = input.Open(app.GetUniverse(), srcUri.GetLeftPart(UriPartial.Path), info.recordType);
                 if (!SUCCEEDED(err))
                 {
                     string msg = String.Format("Could not read HDFS input fileset {0}: {1}", info.sources[0], input.GetError());
@@ -182,10 +184,16 @@ namespace Microsoft.Research.Dryad.GraphManager
             if ( info.ioType == VertexInfo.IOType.PARTITIONEDFILE )
             {
                 DrPartitionOutputStream output = new DrPartitionOutputStream();
-                int err = output.Open(new Uri(info.sources[0]).AbsolutePath, info.partitionUncPath);
+                Uri sourceUri = new Uri(info.sources[0]);
+                string sourcePath = sourceUri.AbsolutePath;
+                if (!String.IsNullOrEmpty(sourceUri.Host))
+                {
+                    sourcePath = @"\\" + sourceUri.Host + sourcePath;
+                }
+                int err = output.Open(sourcePath, info.partitionUncPath);
                 if (!SUCCEEDED(err))
                 {
-                    string msg = String.Format("Could not open DSC output fileset {0}", info.sources[0]);
+                    string msg = String.Format("Could not open output fileset {0}", sourcePath);
                     throw new LinqToDryadException(msg, err);
                 }
                 

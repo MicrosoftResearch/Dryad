@@ -1,16 +1,85 @@
-﻿using Microsoft.Research.DryadLinq;
+/*
+Copyright (c) Microsoft Corporation
+
+All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in 
+compliance with the License.  You may obtain a copy of the License 
+at http://www.apache.org/licenses/LICENSE-2.0   
+
+
+THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER 
+EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTIES OR CONDITIONS OF 
+TITLE, FITNESS FOR A PARTICULAR PURPOSE, MERCHANTABLITY OR NON-INFRINGEMENT.  
+
+
+See the Apache Version 2.0 License for specific language governing permissions and 
+limitations under the License. 
+
+*/
+using Microsoft.Research.DryadLinq;
 using Microsoft.Research.Peloponnese.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 
 namespace DryadLinqTests
 {
     public class BasicAPITests
     {
-        public static bool ToStoreThrowsForNonQuery()
+        public static void Run(DryadLinqContext context, string matchPattern)
         {
+            TestLog.Message(" **********************");
+            TestLog.Message(" BasicAPITests ");
+            TestLog.Message(" **********************");
+
+            var tests = new Dictionary<string, Action>()
+              {
+                  {"ToStoreThrowsForNonQuery", () => ToStoreThrowsForNonQuery(context) },
+                  {"ToStoreGetEnumerator", () => ToStoreGetEnumerator(context) },
+                  {"GetEnumeratorNonToStoreTerminated", () => GetEnumeratorNonToStoreTerminated(context) },
+                  {"ToStoreSubmitGetEnumerator", () => ToStoreSubmitGetEnumerator(context) },
+                  {"SubmitNonToStoreTerminated", () => SubmitNonToStoreTerminated(context) },
+                  {"MaterializeToStoreTerminated", () => MaterializeToStoreTerminated(context) },
+                  {"MaterializeNonToStoreTerminated", () => MaterializeNonToStoreTerminated(context) },
+                  {"EnumeratePlainData", () => EnumeratePlainData(context) }, 
+                  {"CopyPlainDataViaToStoreSubmit", () => CopyPlainDataViaToStoreSubmit(context) },
+                  {"CopyPlainDataViaToStoreMaterialize", () => CopyPlainDataViaToStoreMaterialize(context) },
+                  {"PlainEnumerableAsDryadQueryToStoreSubmit", () => PlainEnumerableAsDryadQueryToStoreSubmit(context) },
+                  {"RepeatSubmit", () => RepeatSubmit(context) }, 
+                  // ToDo {"RepeatMaterialize", () => RepeatMaterialize(context) }, hangs
+                  {"MaterializeMentionsSameQueryTwice", () => MaterializeMentionsSameQueryTwice(context) },
+                  {"QueryOnDataBackedDLQ", () => QueryOnDataBackedDLQ(context) },
+                  {"Bug11781_CountandFirstOrDefault", () => Bug11781_CountandFirstOrDefault(context) },
+                  {"Bug11782_Aggregate", () => Bug11782_Aggregate(context) },
+                  {"Bug11782_LowLevelQueryableManipulation", () => Bug11782_LowLevelQueryableManipulation(context) },
+                  {"Bug11638_LongWhere", () => Bug11638_LongWhere(context) },
+                  {"AssumeRangePartition", () => AssumeRangePartition(context) },
+                  {"Bug11638_LongMethods", () => Bug11638_LongMethods(context) },
+                  {"ContextConfigIsReadOnly", () => ContextConfigIsReadOnly(context) },
+                  // ToDo{"ToggleSpeculativeDuplication", () => ToggleSpeculativeDuplication(context) },
+                  {"Bug15068_ConfigResourcesAPI", () => Bug15068_ConfigResourcesAPI(context) },
+                  {"Bug14449_ContextShouldExposeVersionIDs", () => Bug14449_ContextShouldExposeVersionIDs(context) }, // not valid anymore
+                  {"Bug_16341_SubmitThrowsForDifferentContexts", () => Bug_16341_SubmitThrowsForDifferentContexts(context) },
+                  {"Bug_16341_VariousTestsForSubmit", () => Bug_16341_VariousTestsForSubmit(context) },
+              };
+
+            foreach (var test in tests)
+            {
+                if (Regex.IsMatch(test.Key, matchPattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+                {
+                    test.Value.Invoke();
+                }
+            }
+        }
+
+        public static bool ToStoreThrowsForNonQuery(DryadLinqContext context) 
+        {
+            string testName = "ToStoreThrowsForNonQuery";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
@@ -20,352 +89,578 @@ namespace DryadLinqTests
                 //Should throw as we got into DryadLinq via AsQueryable() rather than via context.
                 passed &= false;
             }
-            catch (ArgumentException)
+            catch (Exception Ex)
             {
                 //expected
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
-        public static bool ToStoreGetEnumeratorThrows() // pass
+        public static bool ToStoreGetEnumerator(DryadLinqContext context) 
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "ToStoreGetEnumerator";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                string outFile = "unittest/output/ToStoreGetEnumeratorThrows.txt";
+                IEnumerable<int>[] result = new IEnumerable<int>[2];
 
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                                         "unittest/inputdata/SimpleFile.txt"));
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-
-                IQueryable<int> pt1 = simple.Select(x => x.First());
-                IQueryable<int> q1 = pt1.Select(x => 100 + x);
-
-                var output = q1.ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.containerName, outFile), true);
-                output.GetEnumerator();
-            }
-            catch (DryadLinqException)
-            {
-                passed &= false;
-            }
-            return passed;
-        }
-
-        public static bool GetEnumeratorNonToStoreTerminated()
-        {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
-            bool passed = true;
-            try
-            {
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.storageKey, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
-
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
-
-                IQueryable<int> q1 = pt1.Select(x => 100 + x);
-                IQueryable<int> q2 = q1.Where(x => true);
-                foreach (int x in q2) // throws here
+                // cluster
                 {
-                    //Console.WriteLine(x);
-                }
-                //@TODO: perform a sequence-equals test.
+                    context.LocalDebug = false;
+                    string outFile = "unittest/output/ToStoreGetEnumerator";
 
-                //IQueryable<LineRecord> format = q2.Select(x => new LineRecord(String.Format("{0}", x)));
-                //DryadLinqJobInfo output = format.ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.storageKey, Config.containerName,
-                //           "unittest/output/test2.txt")).SubmitAndWait();
-            }
-            catch (DryadLinqException)
-            {
-                passed &= false;
-            }
-            return passed;
-        }
-
-        public static bool ToStoreSubmitGetEnumerator() // pass
-        {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
-            bool passed = true;
-            try
-            {
-                string outFile = "unittest/output/ToStoreSubmitGetEnumerator.txt";
-
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.storageKey, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
-
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
-                var q1 = pt1.Select(x => 100 + x).HashPartition(x => x);
-                var q2 = q1.Where(x => true);
-                IQueryable<int> output = q2.ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.storageKey, Config.containerName, outFile), true);
-                DryadLinqJobInfo info = output.SubmitAndWait();
-
-                foreach (int x in output) // should not run a new dryad job.
-                {
-                    //Console.WriteLine(x);
-                }
-            }
-            catch (DryadLinqException)
-            {
-                passed &= false;
-            }
-            return passed;
-        }
-
-        public static bool SubmitNonToStoreTerminated()
-        {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
-            bool passed = true;
-            try
-            {
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.storageKey, Config.containerName,
-                                                         "unittest/inputdata/SimpleFile.txt"));
-
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
-
-                var q1 = pt1.Select(x => 100 + x);
-                var q2 = q1.Where(x => true);
-                q2.SubmitAndWait(); // throws here
-                var outPT = q2.ToList();
-                foreach (int x in outPT)
-                {
-                    //Console.WriteLine(x);
-                }
-            }
-            catch (DryadLinqException)
-            {
-                passed &= false;
-            }
-            return passed;
-        }
-
-        public static bool MaterializeToStoreTerminated()
-        {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
-            bool passed = true;
-            try
-            {
-                string outFile_a = "unittest/output/MaterializeToStoreTerminated_a.txt";
-                string outFile_b = "unittest/output/MaterializeToStoreTerminated_b.txt";
-
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.storageKey, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
-
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
-                IQueryable<int> query = pt1.Select(x => 100 + x);
-
-                var q1 = query.ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.storageKey, Config.containerName, outFile_a), true); //stream name w/o prefixed slash
-
-                var q2 = query.Where(x => true).ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.storageKey, Config.containerName, outFile_b), true);  //stream name w/ prefixed slash
-
-                DryadLinqQueryable.Submit(q1, q2); //materialize  // throws
-
-                var __unused2 = q1.Select(x => x); // Legal call, but BLOCKS 
-                foreach (int x in q2)
-                {
-                    //Console.WriteLine(x);
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    IQueryable<int> q1 = pt1.Select(x => 100 + x);
+                    IQueryable<int> output = q1.ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.containerName, outFile), true);
+                    var clusterOut = output.GetEnumerator();
+                    result[0] = output.AsEnumerable();
                 }
 
-                passed &= Utils.FileExists(Config.accountName, Config.storageKey, Config.containerName, outFile_a);
-                passed &= Utils.FileExists(Config.accountName, Config.storageKey, Config.containerName, outFile_b);
-
-                //@TODO: assert that only one query execution occurred.
-            }
-            catch (DryadLinqException)
-            {
-                passed &= false;
-            }
-            return passed;
-        }
-
-        public static bool MaterializeNonToStoreTerminated()
-        {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
-            bool passed = true;
-            try
-            {
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.storageKey, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
-
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
-                IQueryable<int> query = pt1.Select(x => 100 + x);
-
-                DryadLinqQueryable.Submit(query); //materialize // throws
-
-                foreach (int x in query)
+                // local
                 {
-                    //Console.WriteLine(x);
+                    context.LocalDebug = true;
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    IQueryable<int> q1 = pt1.Select(x => 100 + x);
+                    result[1] = q1.AsEnumerable();
                 }
 
-                //@TODO: assert that only one query execution occurred.
-            }
-            catch (DryadLinqException)
-            {
-                passed &= false;
-            }
-            return passed;
-        }
-
-        public static bool EnumeratePlainData()
-        {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
-            bool passed = true;
-            try
-            {
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.storageKey, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
-
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
-                foreach (int x in pt1) // throws
+                // compare result
+                try
                 {
-                    //Console.WriteLine(x);
+                    Validate.Check(result);
+                }
+                catch (Exception ex)
+                {
+                    TestLog.Message("Error: " + ex.Message);
+                    passed &= false;
                 }
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
-        
-        public static bool CopyPlainDataViaToStoreSubmit()
+
+        public static bool GetEnumeratorNonToStoreTerminated(DryadLinqContext context) 
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "GetEnumeratorNonToStoreTerminated";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                string outFile = "unittest/output/CopyPlainDataViaToStoreSubmit.txt";
+                IEnumerable<int>[] result = new IEnumerable<int>[2];
 
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.storageKey, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
-
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
-
-                var q = pt1.ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.storageKey, Config.containerName, outFile), true);
-                DryadLinqJobInfo info = q.Submit();
-                info.Wait();
-
-                foreach (int x in q)
+                // cluster
                 {
-                    //Console.WriteLine(x);
+                    context.LocalDebug = false;
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    IQueryable<int> q1 = pt1.Select(x => 100 + x);
+                    IQueryable<int> q2 = q1.Where(x => true);
+                    var clusterOut = q2.GetEnumerator();
+                    result[0] = q2.AsEnumerable();
                 }
 
-                passed &= Utils.FileExists(Config.accountName, Config.storageKey, Config.containerName, outFile);
-            }
-            catch (DryadLinqException)
-            {
-                passed &= false;
-            }
-            return passed;
-        }
-        
-        public static bool CopyPlainDataViaToStoreMaterialize()
-        {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
-            bool passed = true;
-            try
-            {
-                string outFile = "unittest/output/CopyPlainDataViaToStoreMaterialize.txt";
-
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.storageKey, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
-
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
-
-                var q = pt1.ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.storageKey, Config.containerName, outFile), true);
-                DryadLinqJobInfo info = DryadLinqQueryable.Submit(q);
-                info.Wait();
-
-                foreach (int x in q)
+                // local
                 {
-                    //Console.WriteLine(x);
+                    context.LocalDebug = true;
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    IQueryable<int> q1 = pt1.Select(x => 100 + x);
+                    IQueryable<int> q2 = q1.Where(x => true);
+                    result[1] = q2.AsEnumerable(); ;
                 }
 
-                passed &= Utils.FileExists(Config.accountName, Config.storageKey, Config.containerName, outFile);
+                // compare result
+                try
+                {
+                    Validate.Check(result);
+                }
+                catch (Exception ex)
+                {
+                    TestLog.Message("Error: " + ex.Message);
+                    passed &= false;
+                }
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
-        /*
-        public static bool PlainEnumerableAsDryadQueryToStoreSubmit()
+
+        public static bool ToStoreSubmitGetEnumerator(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "ToStoreSubmitGetEnumerator";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                string outFile = "unittest/output/PlainEnumerableAsDryadQueryToStoreSubmit.txt";
+                string outFile = "unittest/output/ToStoreSubmitGetEnumerator";
+                IEnumerable<int>[] result = new IEnumerable<int>[2];
+
+                // cluster
+                {
+                    context.LocalDebug = false;
+
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    var q1 = pt1.Select(x => 100 + x).HashPartition(x => x);
+                    var q2 = q1.Where(x => true);
+                    IQueryable<int> output = q2.ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.containerName, outFile), true);
+                    DryadLinqJobInfo info = output.SubmitAndWait();
+                    result[0] = output.AsEnumerable();
+
+                    passed &= Validate.outFileExists(outFile);
+                }
+
+                // local
+                {
+                    context.LocalDebug = true;
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    IQueryable<int> q1 = pt1.Select(x => 100 + x).HashPartition(x => x);
+                    IQueryable<int> q2 = q1.Where(x => true);
+                    result[1] = q2.AsEnumerable();
+                }
+
+                // compare result
+                try
+                {
+                    Validate.Check(result);
+                }
+                catch (Exception ex)
+                {
+                    TestLog.Message("Error: " + ex.Message);
+                    passed &= false;
+                }
+            }
+            catch (Exception Ex)
+            {
+                TestLog.Message("Error: " + Ex.Message);
+                passed &= false;
+            }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
+            return passed;
+        }
+
+        public static bool SubmitNonToStoreTerminated(DryadLinqContext context)
+        {
+            string testName = "SubmitNonToStoreTerminated";
+            TestLog.TestStart(testName);
+
+            bool passed = true;
+            try
+            {
+                IEnumerable<int>[] result = new IEnumerable<int>[2];
+
+                // cluster
+                {
+                    context.LocalDebug = false;
+
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    var q1 = pt1.Select(x => 100 + x);
+                    var q2 = q1.Where(x => true);
+                    q2.SubmitAndWait();
+                    result[0] = q2.ToList();
+                }
+
+                // local
+                {
+                    context.LocalDebug = true;
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    IQueryable<int> q1 = pt1.Select(x => 100 + x);
+                    IQueryable<int> q2 = q1.Where(x => true);
+                    result[1] = q2.ToList();
+                }
+
+                // compare result
+                try
+                {
+                    Validate.Check(result);
+                }
+                catch (Exception ex)
+                {
+                    TestLog.Message("Error: " + ex.Message);
+                    passed &= false;
+                }
+            }
+            catch (Exception Ex)
+            {
+                TestLog.Message("Error: " + Ex.Message);
+                passed &= false;
+            }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
+            return passed;
+        }
+
+        public static bool MaterializeToStoreTerminated(DryadLinqContext context)
+        {
+            string testName = "MaterializeToStoreTerminated";
+            TestLog.TestStart(testName);
+
+            bool passed = true;
+            try
+            {
+                // cluster
+                {
+                    context.LocalDebug = false;
+
+                    string outFile_a = "unittest/output/MaterializeToStoreTerminated_a";
+                    string outFile_b = "unittest/output/MaterializeToStoreTerminated_b";
+
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    IQueryable<int> query = pt1.Select(x => 100 + x);
+                    var q1 = query.ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.containerName, outFile_a), true); //stream name w/o prefixed slash
+                    var q2 = query.Where(x => true).ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.containerName, outFile_b), true);  //stream name w/ prefixed slash
+                    DryadLinqQueryable.Submit(q1, q2); //materialize 
+                    var _unused2 = q1.Select(x => x); // Legal call, but BLOCKS 
+
+                    passed &= Validate.outFileExists(outFile_a);
+                    passed &= Validate.outFileExists(outFile_b);
+                }
+
+                // local
+                {
+                    context.LocalDebug = true;
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    IEnumerable<int> q1 = pt1.Select(x => 100 + x);
+                    IEnumerable<int> q2 = q1.Where(x => true);
+                    var _unused2 = q1.Select(x => x); // Legal call, but BLOCKS 
+                    // ToDo - how to verify that it blocks
+                }
+
+                //@TODO: assert that only one query execution occurred. 
+            }
+            catch (Exception Ex)
+            {
+                TestLog.Message("Error: " + Ex.Message);
+                passed &= false;
+            }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
+            return passed;
+        }
+
+        public static bool MaterializeNonToStoreTerminated(DryadLinqContext context)
+        {
+            string testName = "MaterializeNonToStoreTerminated";
+            TestLog.TestStart(testName);
+
+            bool passed = true;
+            try
+            {
+                IEnumerable<int>[] result = new IEnumerable<int>[2];
+
+                // cluster
+                {
+                    context.LocalDebug = false;
+
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    IQueryable<int> query = pt1.Select(x => 100 + x);
+                    DryadLinqQueryable.Submit(query);
+                    result[0] = query;
+                    //@TODO: assert that only one query execution occurred.
+                }
+
+                // local
+                {
+                    context.LocalDebug = true;
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    IQueryable<int> query = pt1.Select(x => 100 + x);
+                    result[1] = query;
+                }
+
+                // compare result
+                try
+                {
+                    Validate.Check(result);
+                }
+                catch (Exception ex)
+                {
+                    TestLog.Message("Error: " + ex.Message);
+                    passed &= false;
+                }
+            }
+            catch (Exception Ex)
+            {
+                TestLog.Message("Error: " + Ex.Message);
+                passed &= false;
+            }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
+            return passed;
+        }
+
+        public static bool EnumeratePlainData(DryadLinqContext context)
+        {
+            string testName = "EnumeratePlainData";
+            TestLog.TestStart(testName);
+
+            bool passed = true;
+            try
+            {
+                IEnumerable<int>[] result = new IEnumerable<int>[2];
+
+                // cluster
+                {
+                    context.LocalDebug = false;
+
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    result[0] = pt1;
+                }
+
+                // local
+                {
+                    context.LocalDebug = true;
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    result[1] = pt1;
+                }
+
+                // compare result
+                try
+                {
+                    Validate.Check(result);
+                }
+                catch (Exception ex)
+                {
+                    TestLog.Message("Error: " + ex.Message);
+                    passed &= false;
+                }
+            }
+            catch (Exception Ex)
+            {
+                TestLog.Message("Error: " + Ex.Message);
+                passed &= false;
+            }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
+            return passed;
+        }
+
+        public static bool CopyPlainDataViaToStoreSubmit(DryadLinqContext context)
+        {
+            string testName = "CopyPlainDataViaToStoreSubmit";
+            TestLog.TestStart(testName);
+
+            bool passed = true;
+            try
+            {
+                IEnumerable<int>[] result = new IEnumerable<int>[2];
+
+                // cluster
+                {
+                    context.LocalDebug = false;
+                    string outFile = "unittest/output/CopyPlainDataViaToStoreSubmit";
+
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    var q = pt1.ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.containerName, outFile), true);
+                    DryadLinqJobInfo info = q.Submit();
+                    info.Wait();
+
+                    result[0] = q.AsEnumerable();
+                    passed &= Validate.outFileExists(outFile);
+                }
+
+                // local
+                {
+                    context.LocalDebug = true;
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    result[1] = pt1.AsEnumerable();
+                }
+
+                // compare result
+                try
+                {
+                    Validate.Check(result);
+                }
+                catch (Exception ex)
+                {
+                    TestLog.Message("Error: " + ex.Message);
+                    passed &= false;
+                }
+            }
+            catch (Exception Ex)
+            {
+                TestLog.Message("Error: " + Ex.Message);
+                passed &= false;
+            }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
+            return passed;
+        }
+
+        public static bool CopyPlainDataViaToStoreMaterialize(DryadLinqContext context)
+        {
+            string testName = "CopyPlainDataViaToStoreMaterialize";
+            TestLog.TestStart(testName);
+
+            bool passed = true;
+            try
+            {
+                IEnumerable<int>[] result = new IEnumerable<int>[2];
+
+                // cluster
+                {
+                    context.LocalDebug = false;
+                    string outFile = "unittest/output/CopyPlainDataViaToStoreMaterialize";
+
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    IQueryable<int> q = pt1.ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.containerName, outFile), true);
+                    DryadLinqJobInfo info = DryadLinqQueryable.Submit(q);
+                    info.Wait();
+
+                    passed &= Validate.outFileExists(outFile);
+                    result[0] = q;
+                }
+
+                // local
+                {
+                    context.LocalDebug = true;
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    result[1] = pt1;
+                }
+
+                // compare result
+                try
+                {
+                    Validate.Check(result);
+                }
+                catch (Exception ex)
+                {
+                    TestLog.Message("Error: " + ex.Message);
+                    passed &= false;
+                }
+            }
+            catch (Exception Ex)
+            {
+                TestLog.Message("Error: " + Ex.Message);
+                passed &= false;
+            }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
+            return passed;
+        }
+
+        public static bool PlainEnumerableAsDryadQueryToStoreSubmit(DryadLinqContext context) 
+        {
+            string testName = "PlainEnumerableAsDryadQueryToStoreSubmit";
+            TestLog.TestStart(testName);
+
+            bool passed = true;
+            try
+            {
+                context.LocalDebug = false;
+                string outFile = "unittest/output/PlainEnumerableAsDryadQueryToStoreSubmit";
 
                 int[] plainData = { 5, 6, 7 };
 
-                var q = context.AsDryadQuery(plainData, CompressionScheme.None).ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.storageKey, Config.containerName, outFile);
+                var q = context.FromEnumerable(plainData)
+                               .ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.containerName, outFile));
                 DryadLinqJobInfo info = q.Submit();
                 info.Wait();
 
-                foreach (int x in q)
-                {
-                    //Console.WriteLine(x);
-                }
-
-                passed &= Utils.FileExists(Config.accountName, Config.storageKey, Config.containerName, outFile);
+                passed &= Validate.outFileExists(outFile);
             }
-            catch (DryadLinqException e)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
-        */
-        public static bool RepeatSubmit()
+
+        public static bool RepeatSubmit(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "RepeatSubmit";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                string outFile = "unittest/output/RepeatSubmit.txt";
+                // cluster
+                {
+                    context.LocalDebug = false;
+                    string outFile = "unittest/output/RepeatSubmit";
 
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.storageKey, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    var q = pt1.ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.containerName, outFile), true);
+                    DryadLinqJobInfo info1 = null;
+                    DryadLinqJobInfo info2 = null;
+                    try
+                    {
+                        info1 = q.Submit();
+                        info2 = q.Submit(); // should throw
 
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
+                        TestLog.Message("Error: Did not throw an exception");
+                        passed &= false;
+                    }
+                    catch (ArgumentException)
+                    {
+                        passed &= true;
+                    }
 
+                    //wait for any jobs to complete.
+                    if (info1 != null)
+                    {
+                        info1.Wait();
+                    }
 
-                var q = pt1.ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.storageKey, Config.containerName, outFile), true);
+                    if (info2 != null)
+                    {
+                        info2.Wait();
+                    }
+                }
+            }
+            catch (Exception Ex)
+            {
+                TestLog.Message("Error: " + Ex.Message);
+                passed &= false;
+            }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
+            return passed;
+        }
+
+        public static bool RepeatMaterialize(DryadLinqContext context)
+        {
+            string testName = "RepeatMaterialize";
+            TestLog.TestStart(testName);
+
+            bool passed = true;
+            try
+            {
+                context.LocalDebug = false;
+                string outFile = "unittest/output/RepeatMaterialize";
+
+                IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                var q = pt1.ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.containerName, outFile), true);
                 DryadLinqJobInfo info1 = null;
                 DryadLinqJobInfo info2 = null;
                 try
                 {
-                    info1 = q.Submit();
-                    info2 = q.Submit(); // does not throw
+                    info1 = DryadLinqQueryable.Submit(new[] { q }); // materialize
+                    info2 = DryadLinqQueryable.Submit(new[] { q }); // should throw
 
-                    if (!context.LocalDebug)
-                    {
-                        passed &= false;
-                    }
+                    TestLog.Message("Error: Did not throw an exception");
+                    passed &= false;
                 }
-                catch (ArgumentException)
+                catch (ArgumentException Ex)
                 {
+                    TestLog.Message("Error: " + Ex.Message);
                     passed &= true;
                 }
 
@@ -380,84 +675,33 @@ namespace DryadLinqTests
                     info2.Wait();
                 }
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
-        public static bool RepeatMaterialize()
+        public static bool MaterializeMentionsSameQueryTwice(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "MaterializeMentionsSameQueryTwice";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                string outFile = "unittest/output/RepeatMaterialize.txt";
+                context.LocalDebug = false;
+                string outFile = "unittest/output/MaterializeMentionsSameQueryTwice";
 
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.storageKey, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
-
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
-
-                var q = pt1.ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.storageKey, Config.containerName, outFile), true);
-                DryadLinqJobInfo info1 = null;
-                DryadLinqJobInfo info2 = null;
-                try
-                {
-                    info1 = DryadLinqQueryable.Submit(new[] { q }); //materialize
-                    info2 = DryadLinqQueryable.Submit(new[] { q }); //materialize // does not throw
-
-                    if (!context.LocalDebug)
-                    {
-                        passed &= false;
-                    }
-                }
-                catch (ArgumentException)
-                {
-                    passed &= true;
-                }
-
-                //wait for any jobs to complete.
-                if (info1 != null)
-                {
-                    info1.Wait();
-                }
-
-                if (info2 != null)
-                {
-                    info2.Wait();
-                }
-            }
-            catch (DryadLinqException)
-            {
-                passed &= false;
-            }
-            return passed;
-        }
-
-        public static bool MaterializeMentionsSameQueryTwice() // pass
-        {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
-            bool passed = true;
-            try
-            {
-                string outFile = "unittest/output/MaterializeMentionsSameQueryTwice.txt";
-
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.storageKey, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
-
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
-
-                var q = pt1.ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.storageKey, Config.containerName, outFile), true);
+                IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                var q = pt1.ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.containerName, outFile), true);
                 DryadLinqJobInfo info1 = null;
                 try
                 {
-                    info1 = DryadLinqQueryable.Submit(q, q); //materialize // throws
+                    info1 = DryadLinqQueryable.Submit(q, q); // materialize
                     passed &= false; // for Config.cluster execution, second materialize should throw;
                 }
                 catch (ArgumentException)
@@ -471,268 +715,430 @@ namespace DryadLinqTests
                     info1.Wait();
                 }
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
-        public static bool QueryOnDataBackedDLQ()
+        public static bool QueryOnDataBackedDLQ(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "QueryOnDataBackedDLQ";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                string outFile = "unittest/output/QueryOnDataBackedDLQ.txt";
+                IEnumerable<int>[] result = new IEnumerable<int>[2];
 
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
-
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
-                var q = pt1.Select(x => 100 + x);
-                var outPT = q.ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.containerName, outFile), true);
-                outPT.Submit();
-
-                var outPT2_dummy_notUsed = outPT.Select(x => x);  //BLOCKS HERE until the input is concrete 
-                // source.Expression returns an expression for the backingDataDLQ 
-                // CheckAndInitialize() on the backingData will block.
-
-                passed &= Utils.FileExists(Config.accountName, Config.storageKey, Config.containerName, outFile);
-
-                foreach (int x in outPT)
+                // cluster
                 {
-                    //Console.WriteLine(x);
+                    context.LocalDebug = false;
+                    string outFile = "unittest/output/QueryOnDataBackedDLQ";
+
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    IQueryable<int> q = pt1.Select(x => 100 + x);
+                    IQueryable<int> outPT = q.ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.containerName, outFile), true);
+                    outPT.Submit();
+
+                    IQueryable<int> outPT2_dummy_notUsed = outPT.Select(x => x);  //BLOCKS HERE until the input is concrete ???
+                    // source.Expression returns an expression for the backingDataDLQ 
+                    // CheckAndInitialize() on the backingData will block.
+
+                    passed &= Validate.outFileExists(outFile);
+                    result[0] = outPT;
+                }
+
+                // local
+                {
+                    context.LocalDebug = true;
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+
+                    IQueryable<int> q = pt1.Select(x => 100 + x);
+                    IQueryable<int> outPT2_dummy_notUsed = q.Select(x => x);
+                    result[1] = outPT2_dummy_notUsed;
+                }
+
+                // compare result
+                try
+                {
+                    Validate.Check(result);
+                }
+                catch (Exception ex)
+                {
+                    TestLog.Message("Error: " + ex.Message);
+                    passed &= false;
                 }
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
-        public static bool Bug11781_CountandFirstOrDefault()
+        public static bool Bug11781_CountandFirstOrDefault(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "Bug11781_CountandFirstOrDefault";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                string outFile = "unittest/output/Bug11781.out";
+                int y_cluster = 10;
+                int y_local =  100;
+                // cluster
+                {
+                    context.LocalDebug = false;
+                    string outFile = "unittest/output/Bug11781";
 
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    var c = pt1.Count();
 
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
+                    //Test CountAsQuery()
+                    var q = pt1.CountAsQuery().ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.containerName, outFile), true);
+                    DryadLinqJobInfo info = q.Submit();
+                    info.Wait();
 
-                //Test Count()
-                var c = pt1.Count();
+                    passed &= Validate.outFileExists(outFile);
 
-                //Test CountAsQuery()
-                var q = pt1.CountAsQuery().ToStore(outFile);
-                DryadLinqJobInfo info = q.Submit();
-                info.Wait();
+                    // Also test FirstOrDefault
+                    // the affected code for dlq.Execute() also has a branch for FirstOrDefault() and friends.
+                    y_cluster = pt1.FirstOrDefault();
+                }
 
-                passed &= Utils.FileExists(Config.accountName, Config.storageKey, Config.containerName, outFile);
+                // local
+                {
+                    context.LocalDebug = true;
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    //Test Count()
+                    var c = pt1.Count();
 
-                // Also test FirstOrDefault
-                // the affected code for dlq.Execute() also has a branch for FirstOrDefault() and friends.
-                int y = pt1.FirstOrDefault();
+                    //Test CountAsQuery()
+                    IQueryable<int> q = pt1.AsQueryable().CountAsQuery();
+
+                    // Also test FirstOrDefault
+                    // the affected code for dlq.Execute() also has a branch for FirstOrDefault() and friends.
+                    y_local = pt1.FirstOrDefault();
+                }
+
+                // compare result
+                if (y_cluster != y_local)
+                {
+                    passed &= false;
+                }
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
-        public static bool Bug11782_Aggregate()
+        public static bool Bug11782_Aggregate(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "Bug11782_Aggregate";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                string outFile = "unittest/output/Bug11782_Aggregate.out";
+                IEnumerable<int>[] result = new IEnumerable<int>[2];
 
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
+                // cluster
+                {
+                    context.LocalDebug = false;
+                    string outFile = "unittest/output/Bug11782_Aggregate";
 
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    //test Aggregate()
+                    int c = pt1.Select(x => x).Aggregate((x, y) => x + y);
 
-                //test Aggregate()
-                var c = pt1.Select(x => x).Aggregate((x, y) => x + y);
+                    //test AggregateAsQuery()
+                    var q = pt1.Select(x => x).AggregateAsQuery((x, y) => x + y).ToStore(outFile);
+                    DryadLinqJobInfo info = DryadLinqQueryable.Submit(q);
+                    info.Wait();
 
-                //test AggregateAsQuery()
-                var q = pt1.Select(x => x).AggregateAsQuery((x, y) => x + y).ToStore(outFile);
-                DryadLinqJobInfo info = DryadLinqQueryable.Submit(q);
-                info.Wait();
+                    passed &= Validate.outFileExists(outFile);
+                    result[0] = q;
+                }
 
-                passed &= Utils.FileExists(Config.accountName, Config.storageKey, Config.containerName, outFile);
+                // local
+                {
+                    context.LocalDebug = true;
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+
+                    //test Aggregate()
+                    int c = pt1.Select(x => x).Aggregate((x, y) => x + y);
+
+                    //test AggregateAsQuery()
+                    IQueryable<int> q = pt1.AsQueryable().Select(x => x).AggregateAsQuery((x, y) => x + y);
+                    result[1] = q;
+                }
+
+                // compare result
+                try
+                {
+                    Validate.Check(result);
+                }
+                catch (Exception ex)
+                {
+                    TestLog.Message("Error: " + ex.Message);
+                    passed &= false;
+                }
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
-        public static bool Bug11782_LowLevelQueryableManipulation()
+        public static bool Bug11782_LowLevelQueryableManipulation(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "Bug11782_LowLevelQueryableManipulation";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
+                // cluster
+                {
+                    context.LocalDebug = false;
 
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    Expression lambda = Expression.Lambda<Func<int, int>>(
+                            Expression.Constant(1),
+                            new[] { Expression.Parameter(typeof(int), "x") });
+                    var z = pt1.Provider.CreateQuery(
+                        Expression.Call(
+                            typeof(Queryable), "Select",
+                            new Type[] { pt1.ElementType, pt1.ElementType },
+                            pt1.Expression, Expression.Quote(lambda)));
 
-                Expression lambda = Expression.Lambda<Func<int, int>>(
-                        Expression.Constant(1),
-                        new[] { Expression.Parameter(typeof(int), "x") });
-                var z = pt1.Provider.CreateQuery(
-                    Expression.Call(
-                        typeof(Queryable), "Select",
-                        new Type[] { pt1.ElementType, pt1.ElementType },
-                        pt1.Expression, Expression.Quote(lambda)));
-
-                passed &= false; // the use of non-generic Provider.CreateQuery() should have thrown
+                    passed &= false; // the use of non-generic Provider.CreateQuery() should have thrown
+                }
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
-                passed &= true;
+                TestLog.Message("Error: " + Ex.Message);
+                passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
-        public static bool Bug11638_LongWhere()
+        public static bool Bug11638_LongWhere(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "Bug11638_LongWhere";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                string outFile = "unittest/output/BasicAPITests_LongWhere.out";
+                IEnumerable<int>[] result = new IEnumerable<int>[2];
 
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
+                // cluster
+                {
+                    context.LocalDebug = false;
+                    string outFile = "unittest/output/BasicAPITests_LongWhere";
 
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    IQueryable<int> q = pt1.Select(x => 100 + x);
+                    IQueryable<int> outPT = q.LongWhere((x, i) => true).ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.containerName, outFile), true);
+                    var info = outPT.Submit();
+                    info.Wait();
 
-                var q = pt1.Select(x => 100 + x);
-                var outPT = q.LongWhere((x, i) => true).ToStore(outFile);
-                var info = outPT.Submit();
-                info.Wait();
+                    passed &= Validate.outFileExists(outFile);
+                    result[0] = outPT.AsEnumerable();
+                }
 
-                passed &= Utils.FileExists(Config.accountName, Config.storageKey, Config.containerName, outFile);
+                // local
+                {
+                    context.LocalDebug = true;
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    IQueryable<int> q = pt1.Select(x => 100 + x);
+                    IQueryable<int> outPT = q.LongWhere((x, i) => true);
 
+                    result[1] = outPT;
+                }
+
+                // compare result
+                try
+                {
+                    Validate.Check(result);
+                }
+                catch (Exception ex)
+                {
+                    TestLog.Message("Error: " + ex.Message);
+                    passed &= false;
+                }
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
-        public static bool AssumeRangePartition()
+        public static bool AssumeRangePartition(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "AssumeRangePartition";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                string outFile = "unittest/output/BasicAPITests_AssumeRangePartition.out";
+                IEnumerable<int>[] result = new IEnumerable<int>[2];
 
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
+                // cluster
+                {
+                    context.LocalDebug = false;
+                    string outFile = "unittest/output/BasicAPITests_AssumeRangePartition";
 
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    var q = pt1.AssumeRangePartition(x => x, false)
+                               .Select(x => 100 + x).ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.containerName, outFile), true);
+                    var info = q.Submit();
 
-                var q =
-                    pt1
-                    .AssumeRangePartition(x => x, false)
-                    .Select(x => 100 + x).ToStore(outFile);
-                var info = q.Submit();
-                info.Wait();
+                    passed &= Validate.outFileExists(outFile);
+                    result[0] = q;
+                }
 
-                passed &= Utils.FileExists(Config.accountName, Config.storageKey, Config.containerName, outFile);
+                // local
+                {
+                    context.LocalDebug = true;
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    IQueryable<int> q = pt1.AssumeRangePartition(x => x, false)
+                                           .Select(x => 100 + x);
+                    result[1] = q;
+                }
 
+                // compare result
+                try
+                {
+                    Validate.Check(result);
+                }
+                catch (Exception ex)
+                {
+                    TestLog.Message("Error: " + ex.Message);
+                    passed &= false;
+                }
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
-        public static bool Bug11638_LongMethods()
+        public static bool Bug11638_LongMethods(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "Bug11638_LongMethods";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                string outFile = "unittest/output/Bug11638_LongMethods.out";
+                IEnumerable<int>[] result = new IEnumerable<int>[2];
 
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
+                // cluster
+                {
+                    context.LocalDebug = false;
+                    string outFile = "unittest/output/Bug11638_LongMethods";
 
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    var q = pt1.LongSelect((x, i) => x)
+                                .LongWhere((x, i) => true)
+                                .LongSelectMany((x, i) => new[] { x })
+                                .LongSelectMany((x, i) => new[] { x }, (i, seq) => seq)  //overload#2
+                                .LongTakeWhile((x, i) => true)
+                                .LongSkipWhile((x, i) => false)
+                                .ToStore(AzureUtils.ToAzureUri(Config.accountName, Config.containerName, outFile), true);
+                    var info = q.Submit();
+                    info.Wait();
 
-                var q =
-                    pt1
-                    .LongSelect((x, i) => x)
-                    .LongWhere((x, i) => true)
-                    .LongSelectMany((x, i) => new[] { x })
-                    .LongSelectMany((x, i) => new[] { x }, (i, seq) => seq)  //overload#2
-                    .LongTakeWhile((x, i) => true)
-                    .LongSkipWhile((x, i) => false)
-                    .ToStore(outFile);
-                var info = q.Submit();
-                info.Wait();
+                    passed &= Validate.outFileExists(outFile);
+                    result[0] = q;
+                }
 
-                passed &= Utils.FileExists(Config.accountName, Config.storageKey, Config.containerName, outFile);
+                // local
+                {
+                    context.LocalDebug = true;
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    IQueryable<int> q = pt1.LongSelect((x, i) => x)
+                                            .LongWhere((x, i) => true)
+                                            .LongSelectMany((x, i) => new[] { x })
+                                            .LongSelectMany((x, i) => new[] { x }, (i, seq) => seq)  //overload#2
+                                            .LongTakeWhile((x, i) => true)
+                                            .LongSkipWhile((x, i) => false);
 
+                    result[1] = q;
+                }
+
+                // compare result
+                try
+                {
+                    Validate.Check(result);
+                }
+                catch (Exception ex)
+                {
+                    TestLog.Message("Error: " + ex.Message);
+                    passed &= false;
+                }
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
-        public static bool ContextConfigIsReadOnly()
+        public static bool ContextConfigIsReadOnly(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
-            bool passed = true;
+            string testName = "ContextConfigIsReadOnly";
+            TestLog.TestStart(testName);
 
+            bool passed = true;
             try
             {
                 string jobName = context.JobFriendlyName;
                 context.JobFriendlyName = "bob";
                 context.JobFriendlyName = jobName;
             }
-            catch (NotSupportedException)
+            catch (NotSupportedException ex)
             {
+                TestLog.Message("Error: " + ex.Message);
                 passed &= false; // "an exception should not thrown";
             }
 
             try
             {
                 context.JobMinNodes = 120;
-                passed &= false; // "an exception should not thrown";
+                passed &= false; 
             }
             catch (NotSupportedException)
             {
@@ -742,7 +1148,7 @@ namespace DryadLinqTests
             try
             {
                 context.ResourcesToAdd.Add("blah");
-                passed &= false; // "an exception should not thrown";
+                passed &= false; 
             }
             catch (NotSupportedException)
             {
@@ -752,7 +1158,7 @@ namespace DryadLinqTests
             try
             {
                 context.ResourcesToRemove.Add("blah");
-                passed &= false; // "an exception should not thrown";
+                passed &= false; 
             }
             catch (NotSupportedException)
             {
@@ -762,7 +1168,7 @@ namespace DryadLinqTests
             try
             {
                 context.JobEnvironmentVariables.Add("bob", "bob");
-                passed &= false; // "an exception should not thrown";
+                passed &= false; 
             }
             catch (NotSupportedException)
             {
@@ -772,96 +1178,100 @@ namespace DryadLinqTests
             try
             {
                 context.EnableSpeculativeDuplication = false;
-                passed &= false; // "an exception should not thrown";
+                passed &= false; 
             }
             catch (NotSupportedException)
             {
                 //expected
             }
 
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
         public static bool ToggleSpeculativeDuplication()
         {
+            string testName = "ContextConfigIsReadOnly";
+            TestLog.TestStart(testName);
+
             var context = Utils.MakeBasicConfig(Config.cluster);
-            context.LocalExecution = false;
+            context.LocalDebug = false;
             bool passed = true;
             try
             {
-                passed &= !context.EnableSpeculativeDuplication; // "Speculative Duplication enabled by default"
-                context.EnableSpeculativeDuplication = true;
-                passed &= context.EnableSpeculativeDuplication; // "Failed to enable speculative duplication"
+                passed &= context.EnableSpeculativeDuplication; // "Speculative Duplication enabled by default"
                 context.EnableSpeculativeDuplication = false;
                 passed &= !context.EnableSpeculativeDuplication; // "Failed to disable speculative duplication"
-                context.EnableSpeculativeDuplication = false;
-                // ??? DryadLinqContext testContext = new DryadLinqContext(context);
-                // ??? passed &= !testContext.EnableSpeculativeDuplication; // "Speculative Duplication enabled after copy"
-
+                context.EnableSpeculativeDuplication = true;
+                passed &= context.EnableSpeculativeDuplication; // "Failed to ensable speculative duplication"
+                context.EnableSpeculativeDuplication = true;
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false; // "Enabling and disabling speculative duplication should not throw"
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
-        public static bool Bug15068_ConfigResourcesAPI()
+        public static bool Bug15068_ConfigResourcesAPI(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "Bug15068_ConfigResourcesAPI";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                context.HeadNode = "MIKELID7"; // ???
-                passed &= (context.ResourcesToAdd.IsReadOnly == false); // "isReadOnly should be false"
-                passed &= (context.ResourcesToRemove.IsReadOnly == false); // "isReadOnly should be false"
+                // cluster
+                {
+                    context.LocalDebug = false;
+                    context.HeadNode = "MIKELID7"; // ToDo - hard coded
+                    passed &= (context.ResourcesToAdd.IsReadOnly == false); // "isReadOnly should be false"
+                    passed &= (context.ResourcesToRemove.IsReadOnly == false); // "isReadOnly should be false"
 
-                //clear
-                context.ResourcesToAdd.Clear();
-                context.ResourcesToRemove.Clear();
+                    //clear
+                    context.ResourcesToAdd.Clear();
+                    context.ResourcesToRemove.Clear();
 
-                //add
-                context.ResourcesToAdd.Add("abc");
-                context.ResourcesToRemove.Add("def");
-                context.ResourcesToRemove.Add("ghi");
+                    //add
+                    context.ResourcesToAdd.Add("abc");
+                    context.ResourcesToRemove.Add("def");
+                    context.ResourcesToRemove.Add("ghi");
 
-                //index, count, getEnumerator
-                passed &= (context.ResourcesToAdd[0] == "abc"); // "wrong value"
-                passed &= (context.ResourcesToAdd.Count == 1); // "wrong value"
+                    //index, count, getEnumerator
+                    passed &= (context.ResourcesToAdd[0] == "abc"); // "wrong value"
+                    passed &= (context.ResourcesToAdd.Count == 1); // "wrong value"
 
-                passed &= (context.ResourcesToRemove[0] == "def"); // "wrong value"
-                passed &= (context.ResourcesToRemove.Where((x, i) => (i == 1)).First() == "ghi"); // "wrong value"
-                passed &= (context.ResourcesToRemove.Count == 2); // "wrong value"
+                    passed &= (context.ResourcesToRemove[0] == "def"); // "wrong value"
+                    passed &= (context.ResourcesToRemove.Where((x, i) => (i == 1)).First() == "ghi"); // "wrong value"
+                    passed &= (context.ResourcesToRemove.Count == 2); // "wrong value"
 
-                // ???
-                //// read-only.
-                //DryadLinqContext ctx = new DryadLinqContext(context);
-                //passed &= (ctx.ResourcesToAdd.IsReadOnly == true); // "isReadOnly should be true"
-                //passed &= (ctx.ResourcesToRemove.IsReadOnly == true); // "isReadOnly should be true"
-
-                // clone was taken.
-                context.ResourcesToAdd.Clear();
-                context.ResourcesToRemove.Clear();
-                // ???
-                //passed &= (ctx.ResourcesToAdd.Count == 1); // "should be unaffected"
-                //passed &= (ctx.ResourcesToRemove.Count == 2); // "should be unaffected"
+                    // clone was taken.
+                    context.ResourcesToAdd.Clear();
+                    context.ResourcesToRemove.Clear();
+                }
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
-        public static bool Bug14449_ContextShouldExposeVersionIDs()
+        public static bool Bug14449_ContextShouldExposeVersionIDs(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "Bug14449_ContextShouldExposeVersionIDs";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
-                // ???
+                //  NorSupported
                 //passed &= (context.Major >= 3); // "problem with HpcLinq client version"
                 //passed &= (context.Major >= 3); // "problem with HpcLinq server version"
 
@@ -869,69 +1279,59 @@ namespace DryadLinqTests
                 //passed &= (context.ServerVersion.Major >= 3); // "problem with Dsc server version"
 
             }
-            catch (DryadLinqException)
+            catch (Exception Ex)
             {
+                TestLog.Message("Error: " + Ex.Message);
                 passed &= false;
             }
+
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
-        public static bool Bug_16341_SubmitThrowsForDifferentContexts()
+        public static bool Bug_16341_SubmitThrowsForDifferentContexts(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "Bug_16341_SubmitThrowsForDifferentContexts";
+            TestLog.TestStart(testName);
             var context2 = new DryadLinqContext(Config.cluster);
-            context2.LocalExecution = false;
             bool passed = true;
             try
             {
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
+                // cluster
+                {
+                    context.LocalDebug = false;
+                    context2.LocalDebug = false;
 
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
-
-                IQueryable<LineRecord> input2 = context2.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
-
-                IQueryable<IEnumerable<int>> simple2 = input2.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt2 = simple2.Select(x => x.First());
-
-                DryadLinqQueryable.Submit(pt1, pt2);
-                passed &= false;
+                    IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                    IQueryable<int> pt2 = DataGenerator.GetSimpleFileSets(context2);
+                    DryadLinqQueryable.Submit(pt1, pt2);
+                    passed &= false;
+                }
             }
-            catch (DryadLinqException)
+            catch (Exception)
             {
             }
 
             try
             {
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.storageKey, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
-
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
-
-                IQueryable<LineRecord> input2 = context2.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.storageKey, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
-
-                IQueryable<IEnumerable<int>> simple2 = input2.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt2 = simple2.Select(x => x.First());
-
+                IQueryable<int> pt1 = DataGenerator.GetSimpleFileSets(context);
+                IQueryable<int> pt2 = DataGenerator.GetSimpleFileSets(context2);
                 DryadLinqQueryable.SubmitAndWait(pt1, pt2);
                 passed &= false;
             }
-            catch (DryadLinqException)
+            catch (Exception)
             {
             }
 
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 
-        public static bool Bug_16341_VariousTestsForSubmit()
+        public static bool Bug_16341_VariousTestsForSubmit(DryadLinqContext context)
         {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
+            string testName = "Bug_16341_VariousTestsForSubmit";
+            TestLog.TestStart(testName);
+
             bool passed = true;
             try
             {
@@ -939,18 +1339,7 @@ namespace DryadLinqTests
                 var badQ1 = data.AsQueryable().Select(x => 100 + x);
                 var badQ2 = data.AsQueryable().Select(x => 100 + x);
 
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
-
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> goodQ1 = simple.Select(x => x.First());
-
-                IQueryable<LineRecord> input_copy = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
-
-                IQueryable<IEnumerable<int>> simple_copy = input_copy.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> goodQ2 = simple_copy.Select(x => x.First());
-
+                IQueryable<int> goodQ1 = DataGenerator.GetSimpleFileSets(context);
 
                 try
                 {
@@ -1050,35 +1439,11 @@ namespace DryadLinqTests
                 }
 
             }
-            catch (DryadLinqException)
+            catch (Exception)
             {
             }
-            return passed;
-        }
 
-
-        public static bool template()
-        {
-            var context = new DryadLinqContext(Config.cluster);
-            context.LocalExecution = false;
-            bool passed = true;
-            try
-            {
-                string outFile = "unittest/output/x.txt";
-
-                IQueryable<LineRecord> input = context.FromStore<LineRecord>(AzureUtils.ToAzureUri(Config.accountName, Config.containerName,
-                                             "unittest/inputdata/SimpleFile.txt"));
-
-                IQueryable<IEnumerable<int>> simple = input.Apply(x => DataGenerator.CreateSimpleFileSets());
-                IQueryable<int> pt1 = simple.Select(x => x.First());
-
-                passed &= Utils.FileExists(Config.accountName, Config.storageKey, Config.containerName, outFile);
-
-            }
-            catch (DryadLinqException)
-            {
-                passed &= false;
-            }
+            TestLog.LogResult(new TestResult(testName, context, passed));
             return passed;
         }
 

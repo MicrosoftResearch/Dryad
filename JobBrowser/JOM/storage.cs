@@ -19,8 +19,6 @@ limitations under the License.
 
 */
 
-#undef USE_DSC
-#undef USE_TIDYFS
 
 using System;
 using System.Collections.Generic;

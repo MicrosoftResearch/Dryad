@@ -23,7 +23,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-using Microsoft.Research.Tools;
 
 namespace Microsoft.Research.JobObjectModel
 {
@@ -43,9 +42,9 @@ namespace Microsoft.Research.JobObjectModel
             this.addedControls = new List<Control>();
             this.propEditor = new Dictionary<string, TextBox>();
 
-            for (var i = ClusterConfiguration.ClusterType.Unknown+1; i < ClusterConfiguration.ClusterType.MaxUnused; i++)
+            foreach (var type in ClusterConfiguration.Available)
             {
-                this.comboBox_clusterType.Items.Add(i.ToString());
+                this.comboBox_clusterType.Items.Add(type.ToString());
             }
         }
 
@@ -72,6 +71,7 @@ namespace Microsoft.Research.JobObjectModel
             this.textBox_name.Text = props.Name;
             this.comboBox_clusterType.SelectedItem = props.Type.ToString();
 
+            this.propEditor.Clear();
             this.AddPropertiesToEdit(props.Properties);
         }
 
@@ -84,6 +84,8 @@ namespace Microsoft.Research.JobObjectModel
         /// <param name="props">Properties to add controls for.</param>
         private void AddPropertiesToEdit(List<PropertySetting> props)
         {
+            this.label_description.Text = this.config.Description;
+
             foreach (var prop in props)
             {
                 Label labl = new Label();
@@ -125,7 +127,7 @@ namespace Microsoft.Research.JobObjectModel
         {
             var type = (ClusterConfiguration.ClusterType)Enum.Parse(typeof(ClusterConfiguration.ClusterType), this.comboBox_clusterType.Text);
 
-            ClusterConfigurationSerialization ser = new ClusterConfigurationSerialization()
+            ClusterConfigurationSerialization ser = new ClusterConfigurationSerialization
             {
                 Name = this.textBox_name.Text,
                 Type = type,
@@ -150,13 +152,15 @@ namespace Microsoft.Research.JobObjectModel
 
         private void comboBox_clusterType_SelectedIndexChanged(object sender, EventArgs e)
         {
-            // initial setting for an existing configuration
-            if (this.config != null) return;
+            if (!this.canChangeType) 
+                // we are just editing the cluster properties
+                return;
 
             this.RemoveAddedProperties();
             var type = (ClusterConfiguration.ClusterType)Enum.Parse(typeof(ClusterConfiguration.ClusterType), this.comboBox_clusterType.Text);
             this.config = ClusterConfiguration.CreateConfiguration(type);
-            this.AddPropertiesToEdit(this.config.ExtractData().Properties);
+            var serialization = this.config.ExtractData();
+            this.AddPropertiesToEdit(serialization.Properties);
         }
     }
 }

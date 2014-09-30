@@ -132,9 +132,9 @@ namespace Microsoft.Research.DryadLinq
         protected internal List<Pair<ParameterExpression, DLinqQueryNode>> m_referencedQueries;
 
         internal DLinqQueryNode(QueryNodeType nodeType,
-                              DryadLinqQueryGen queryGen,
-                              Expression queryExpr,
-                              params DLinqQueryNode[] children)
+                                DryadLinqQueryGen queryGen,
+                                Expression queryExpr,
+                                params DLinqQueryNode[] children)
         {
             this.m_nodeType = nodeType;
             this.m_queryGen = queryGen;
@@ -527,7 +527,9 @@ namespace Microsoft.Research.DryadLinq
                     (child is DLinqTeeNode) || (child.IsForked) ||
                     (child is DLinqDoWhileNode) ||
                     (child is DLinqDummyNode) ||
-                    ((child is DLinqApplyNode) && ((DLinqApplyNode)child).IsWriteToStream));
+                    ((child is DLinqApplyNode) && ((DLinqApplyNode)child).IsWriteToStream) ||
+                    child.IsDistributeNode ||
+                    (this.IsStateful && child.IsStateful));
         }
 
         // Determine if the current node can be reduced with some of its children
@@ -582,25 +584,7 @@ namespace Microsoft.Research.DryadLinq
                     break;
                 }
             }
-            if (!canBePipelined) return false;
-
-            // Not reducible if this node has a child of distribute node:
-            foreach (DLinqQueryNode child in this.Children)
-            {
-                if (child.IsDistributeNode) return false;
-            }
-
-            // Not reducible if this node and one of its children are stateful:
-            bool hasState = this.IsStateful;
-            foreach (DLinqQueryNode child in this.Children)
-            {
-                if (child.IsStateful)
-                {
-                    if (hasState) return false;
-                    hasState = child.IsStateful;
-                }
-            }
-            return true;
+            return canBePipelined;
         }
 
         internal DLinqQueryNode PipelineReduce()
@@ -860,7 +844,8 @@ namespace Microsoft.Research.DryadLinq
             this.m_table = queryExpr.Value as DryadLinqQuery;
             if (this.m_table == null)
             {
-                throw DryadLinqException.Create(DryadLinqErrorCode.UnknownError, SR.InputMustBeDryadLinqSource, queryExpr);
+                throw DryadLinqException.Create(DryadLinqErrorCode.UnknownError, 
+                                                SR.InputMustBeDryadLinqSource, queryExpr);
             }
             if (!queryGen.Context.Equals(this.m_table.Context))
             {
@@ -873,7 +858,7 @@ namespace Microsoft.Research.DryadLinq
                                                 queryExpr);
             }
             this.m_opName = "Input";
-            this.m_outputDataSetInfo = ((DryadLinqQuery)this.m_table).DataSetInfo;
+            this.m_outputDataSetInfo = this.m_table.DataSetInfo;
             this.m_partitionCount = this.m_outputDataSetInfo.partitionInfo.Count;
             this.m_dynamicManager = DynamicManager.None;
         }
@@ -907,6 +892,10 @@ namespace Microsoft.Research.DryadLinq
                 XmlElement elem = queryDoc.CreateElement("Type");
                 Uri srcUri = this.m_table.DataSourceUri;
                 elem.InnerText = DataPath.GetStorageType(srcUri);
+                storageElem.AppendChild(elem);
+
+                elem = queryDoc.CreateElement("RecordType");
+                elem.InnerText = this.m_table.ElementType.ToString(); //metaData.ElemType.AssemblyQualifiedName;
                 storageElem.AppendChild(elem);
 
                 elem = queryDoc.CreateElement("SourceURI");
@@ -1004,6 +993,10 @@ namespace Microsoft.Research.DryadLinq
                 string sinkPath = this.m_outputUri.AbsoluteUri;
                 if (DataPath.IsPartitionedFile(this.m_outputUri))
                 {
+                    if (this.m_context.PlatformKind != PlatformKind.LOCAL)
+                    {
+                        throw new DryadLinqException("Output can't be partfile for non-local execution.");
+                    }
                     string uncPath = this.m_context.PartitionUncPath;
                     if (uncPath == null)
                     {
@@ -4284,6 +4277,7 @@ namespace Microsoft.Research.DryadLinq
         internal override bool IsStateful
         {
             get {
+                if (this.IsReadFromStream || this.IsWriteToStream) return false;
                 ExpressionInfo einfo = new ExpressionInfo(this.m_procLambda);
                 return einfo.IsExpensive;
             }
@@ -4292,10 +4286,10 @@ namespace Microsoft.Research.DryadLinq
         internal override Type[] OutputTypes
         {
             get {
-                Type[] procArgTypes = m_procLambda.Type.GetGenericArguments();
+                Type[] procArgTypes = this.m_procLambda.Type.GetGenericArguments();
                 Int32 idx = (this.IsWriteToStream) ? 0 : (procArgTypes.Length - 1);
-                Type procReturnType = procArgTypes[idx].GetGenericArguments()[0];
-                return new Type[] { procReturnType };
+                Type outputType = procArgTypes[idx].GetGenericArguments()[0];
+                return new Type[] { outputType };
             }
         }
 
@@ -4310,7 +4304,7 @@ namespace Microsoft.Research.DryadLinq
         internal bool IsWriteToStream
         {
             get {
-                Type[] procArgTypes = m_procLambda.Type.GetGenericArguments();
+                Type[] procArgTypes = this.m_procLambda.Type.GetGenericArguments();
                 return typeof(Stream).IsAssignableFrom(procArgTypes[1]);
             }
         }

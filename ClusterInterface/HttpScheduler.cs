@@ -90,10 +90,10 @@ namespace Microsoft.Research.Dryad.ClusterInterface
             return fileServer.Uri.AbsoluteUri;
         }
 
-        public IProcess NewProcess(IProcessWatcher watcher, string commandLine)
+        public IProcess NewProcess(IProcessWatcher watcher, string commandLine, string commandLineArguments)
         {
             ISchedulerProcess process = scheduler.NewProcess();
-            return new Process(process, watcher, commandLine, logger);
+            return new Process(process, watcher, commandLine, commandLineArguments, logger);
         }
 
         public void ScheduleProcess(IProcess ip, List<Affinity> affinities)
