@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/01/nuspec.xsd">
     <metadata minClientVersion="2.5">
         <id>Microsoft.Research.Dryad</id>
-        <version>0.2.0-beta</version>
+        <version>0.2.1-beta</version>
         <title>Dryad and DryadLINQ for YARN</title>
         <authors>bigdatadev@microsoft.com</authors>
         <owners>bigdatadev@microsoft.com,Microsoft</owners>
@@ -17,7 +17,7 @@ Dryad provides reliable, distributed computing on thousands of servers for large
         <language>en-US</language>
         <dependencies>
             <group targetFramework=".NETFramework4.5">
-                <dependency id="Microsoft.Research.Peloponnese.Client" version="0.8.0-beta" />
+                <dependency id="Microsoft.Research.Peloponnese.Client" version="0.8.1-beta" />
                 <!--<dependency id="zlib" version="1.2.8.6" />-->
             </group>
         </dependencies>

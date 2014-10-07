@@ -365,7 +365,15 @@ namespace Microsoft.Research.DryadLinq
         /// <summary>
         /// The name of the HDInsight cluster
         /// </summary>
-        public string HeadNode { get { return _cluster.Result.Name; } }
+        public string HeadNode { get
+        { 
+            AzureCluster cluster  =_cluster.Result;
+            if (cluster == null)
+            {
+                throw new ApplicationException("Cluster is not known: are your Powershell Azure defaults set?");
+            }
+            return cluster.Name;
+        } }
 
         private readonly AzureSubscriptions _azureSubscriptions;
         private readonly Task<AzureCluster> _cluster;
@@ -383,7 +391,14 @@ namespace Microsoft.Research.DryadLinq
             _azureSubscriptions = new AzureSubscriptions();
             _cluster = _azureSubscriptions.GetClusterAsync(clusterName);
             _dfsClient = _cluster.ContinueWith(
-                c => new AzureDfsClient(c.Result.StorageAccount, c.Result.StorageKey, "staging"));
+                c =>
+                {
+                    if (c.Result == null)
+                    {
+                        throw new ApplicationException("Cluster " + clusterName + " is not known: are your Powershell Azure defaults set?");
+                    }
+                    return new AzureDfsClient(c.Result.StorageAccount, c.Result.StorageKey, "staging");
+                });
         }
 
         /// <summary>
@@ -403,8 +418,15 @@ namespace Microsoft.Research.DryadLinq
                 _azureSubscriptions.AddAccount(storageAccount, storageKey);
             }
             _cluster = _azureSubscriptions.GetClusterAsync(clusterName)
-                                          .ContinueWith(t => { t.Result.SetStorageAccount(storageAccount, storageKey);
-                                                               return t.Result; });
+                                          .ContinueWith(c =>
+                                          {
+                                              if (c.Result == null)
+                                              {
+                                                  throw new ApplicationException("Cluster " + clusterName + " is not known: are your Powershell Azure defaults set?");
+                                              }
+                                              c.Result.SetStorageAccount(storageAccount, storageKey);
+                                              return c.Result;
+                                          });
             _dfsClient = _cluster.ContinueWith(
                 c => new AzureDfsClient(c.Result.StorageAccount, c.Result.StorageKey, storageContainer));
         }
