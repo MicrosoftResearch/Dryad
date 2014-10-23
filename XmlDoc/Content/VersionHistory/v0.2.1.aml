@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<topic id="df5c1170-1a0b-48e5-978d-25f999dad1c9" revisionNumber="1">
+  <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <introduction>
+      <para>Version 0.2.1 was released on October 6th 2014</para>
+    </introduction>
+
+    <section>
+      <title>Changes in this release</title>
+      <content>
+        <list class="bullet">
+          <listItem>
+            <para>Updated to reflect bug fixes in Peloponnese.</para>
+          </listItem>
+
+        </list>
+      </content>
+    </section>
+
+    <relatedTopics>
+      <link xlink:href="a5d9b686-8282-4120-ae0e-5a9f11a2ac0b"/>
+    </relatedTopics>
+  </developerConceptualDocument>
+</topic>
