@@ -1,37 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shfbBuild product="Sandcastle Help File Builder" version="2014.5.31.0" projectFile="D:\Users\misard\src\Dryad\XmlDoc\XmlDoc.shfbproj" started="9/30/2014 2:26:33 PM">
+<shfbBuild product="Sandcastle Help File Builder" version="2014.5.31.0" projectFile="C:\src\Dryad\XmlDoc\XmlDoc.shfbproj" started="10/23/2014 10:23:53 AM">
 <buildStep step="Initializing">
 Finding tools...
 The Sandcastle tools are located in &#39;C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\&#39;
 Locating components in the following folder(s):
-   D:\Users\misard\src\Dryad\XmlDoc
+   C:\src\Dryad\XmlDoc
 Using presentation style &#39;VS2010&#39; located in &#39;C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010&#39;
 </buildStep>
 <buildStep step="ValidatingDocumentationSources">
 Validating and copying documentation source information
-Source: D:\Users\misard\src\Dryad\bin\release\Microsoft.Research.DryadLinq.XML
-Source: D:\Users\misard\src\Dryad\bin\release\Microsoft.Research.DryadLinq.dll
-    Found assembly &#39;D:\Users\misard\src\Dryad\bin\release\Microsoft.Research.DryadLinq.dll&#39;
+Source: C:\src\Dryad\bin\release\Microsoft.Research.DryadLinq.XML
+Source: C:\src\Dryad\bin\release\Microsoft.Research.DryadLinq.dll
+    Found assembly &#39;C:\src\Dryad\bin\release\Microsoft.Research.DryadLinq.dll&#39;
 
 References to include (excluding framework assemblies):
     None
 
 Copying XML comments files
-    D:\Users\misard\src\Dryad\bin\release\Microsoft.Research.DryadLinq.xml -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Microsoft.Research.DryadLinq.xml
+    C:\src\Dryad\bin\release\Microsoft.Research.DryadLinq.xml -&gt; C:\src\Dryad\XmlDoc\Help\Working\Microsoft.Research.DryadLinq.xml
 </buildStep>
 <buildStep step="GenerateSharedContent">
 Generating shared content files (en-US, English (United States))...
-    Last step completed in 00:00:00.0050
+    Last step completed in 00:00:00.0130
 </buildStep>
 <buildStep step="GenerateApiFilter">
 Generating API filter for MRefBuilder...
-    Last step completed in 00:00:00.0090
+    Last step completed in 00:00:00.0190
 </buildStep>
 <buildStep step="GenerateReflectionInfo">
 Generating reflection information...
 [C:\Program Files (x86)\MSBuild\12.0\bin\MSBuild.exe]
-Build started 9/30/2014 2:26:33 PM.
-Project &quot;D:\Users\misard\src\Dryad\XmlDoc\Help\Working\GenerateRefInfo.proj&quot; on node 1 (default targets).
+Build started 10/23/2014 10:23:54 AM.
+Project &quot;C:\src\Dryad\XmlDoc\Help\Working\GenerateRefInfo.proj&quot; on node 1 (default targets).
 PrepareForBuild:
   Creating directory &quot;obj\Debug\&quot;.
 GenerateRefInfo:
@@ -45,18 +45,18 @@ GenerateRefInfo:
   Copyright c 2006-2014, Microsoft Corporation, All Rights Reserved.
   Portions Copyright c 2006-2014, Eric Woodruff, All Rights Reserved.
   Applying XSL transformation &#39;C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\ProductionTransforms\MergeDuplicates.xsl&#39;.
-Done Building Project &quot;D:\Users\misard\src\Dryad\XmlDoc\Help\Working\GenerateRefInfo.proj&quot; (default targets).
+Done Building Project &quot;C:\src\Dryad\XmlDoc\Help\Working\GenerateRefInfo.proj&quot; (default targets).
 
 Build succeeded.
 
-Time Elapsed 00:00:00.66
-    Last step completed in 00:00:00.7346
+Time Elapsed 00:00:00.78
+    Last step completed in 00:00:00.8636
 </buildStep>
 <buildStep step="TransformReflectionInfo">
 Transforming reflection output...
 [C:\Program Files (x86)\MSBuild\12.0\bin\MSBuild.exe]
-Build started 9/30/2014 2:26:34 PM.
-Project &quot;D:\Users\misard\src\Dryad\XmlDoc\Help\Working\TransformManifest.proj&quot; on node 1 (default targets).
+Build started 10/23/2014 10:23:55 AM.
+Project &quot;C:\src\Dryad\XmlDoc\Help\Working\TransformManifest.proj&quot; on node 1 (default targets).
 TransformManifest:
   XslTransform (v2014.5.31.0)
   Copyright c 2006-2014, Microsoft Corporation, All Rights Reserved.
@@ -71,16 +71,16 @@ TransformManifest:
   Copyright c 2006-2014, Microsoft Corporation, All Rights Reserved.
   Portions Copyright c 2006-2014, Eric Woodruff, All Rights Reserved.
   Applying XSL transformation &#39;C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\ProductionTransforms\ReflectionToManifest.xsl&#39;.
-Done Building Project &quot;D:\Users\misard\src\Dryad\XmlDoc\Help\Working\TransformManifest.proj&quot; (default targets).
+Done Building Project &quot;C:\src\Dryad\XmlDoc\Help\Working\TransformManifest.proj&quot; (default targets).
 
 Build succeeded.
 
-Time Elapsed 00:00:00.54
-    Last step completed in 00:00:00.6285
+Time Elapsed 00:00:00.62
+    Last step completed in 00:00:00.7075
 </buildStep>
 <buildStep step="GenerateNamespaceSummaries">
 Generating namespace summary information...
-    Last step completed in 00:00:00.1121
+    Last step completed in 00:00:00.1051
 </buildStep>
 <buildStep step="CopyConceptualContent">
 Copying conceptual content...
@@ -88,128 +88,131 @@ Copying standard token shared content file...
 Checking for other token files...
 Checking for code snippets files...
 Copying images and creating the media map file...
-    D:\Users\misard\src\Dryad\XmlDoc\Media\Dryad on Azure Architecture.png -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Media\Dryad on Azure Architecture.png
+    C:\src\Dryad\XmlDoc\Media\Dryad on Azure Architecture.png -&gt; C:\src\Dryad\XmlDoc\Help\Working\Media\Dryad on Azure Architecture.png
 Generating conceptual topic files
-    Parsing topic file &#39;D:\Users\misard\src\Dryad\XmlDoc\Content\Welcome.aml&#39;
-    D:\Users\misard\src\Dryad\XmlDoc\Content\Welcome.aml -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\ddueXml\e203b95e-0737-40f6-9c16-fc84484a5bad.xml
-    Parsing topic file &#39;D:\Users\misard\src\Dryad\XmlDoc\Content\GettingStarted.aml&#39;
-    D:\Users\misard\src\Dryad\XmlDoc\Content\GettingStarted.aml -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\ddueXml\4a617e67-0920-46e4-9223-5effbac46b3d.xml
-    Parsing topic file &#39;D:\Users\misard\src\Dryad\XmlDoc\Content\GettingStarted\QuickStart.aml&#39;
-    D:\Users\misard\src\Dryad\XmlDoc\Content\GettingStarted\QuickStart.aml -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\ddueXml\e992fd94-c956-481d-82e6-dbdf45daa722.xml
-    Parsing topic file &#39;D:\Users\misard\src\Dryad\XmlDoc\Content\GettingStarted\SettingUpCluster.aml&#39;
-    D:\Users\misard\src\Dryad\XmlDoc\Content\GettingStarted\SettingUpCluster.aml -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\ddueXml\4aefe670-7b2b-4c05-9a65-6c60ff13c3b5.xml
-    Parsing topic file &#39;D:\Users\misard\src\Dryad\XmlDoc\Content\GettingStarted\Building the Job Browser.aml&#39;
-    D:\Users\misard\src\Dryad\XmlDoc\Content\GettingStarted\Building the Job Browser.aml -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\ddueXml\91822db3-8a00-4307-ad8a-595c94f449b0.xml
-    Parsing topic file &#39;D:\Users\misard\src\Dryad\XmlDoc\Content\Resources.aml&#39;
-    D:\Users\misard\src\Dryad\XmlDoc\Content\Resources.aml -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\ddueXml\1ef96122-dbe3-4815-a81f-7b5a72bf9f4f.xml
-    Parsing topic file &#39;D:\Users\misard\src\Dryad\XmlDoc\Content\Resources\Running a job on HDInsight.aml&#39;
-    D:\Users\misard\src\Dryad\XmlDoc\Content\Resources\Running a job on HDInsight.aml -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\ddueXml\3596a79f-0714-43b0-b49a-ea9eeccb7326.xml
-    Parsing topic file &#39;D:\Users\misard\src\Dryad\XmlDoc\Content\VersionHistory\VersionHistory.aml&#39;
-    D:\Users\misard\src\Dryad\XmlDoc\Content\VersionHistory\VersionHistory.aml -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\ddueXml\a5d9b686-8282-4120-ae0e-5a9f11a2ac0b.xml
-    Parsing topic file &#39;D:\Users\misard\src\Dryad\XmlDoc\Content\VersionHistory\v0.2.0.aml&#39;
-    D:\Users\misard\src\Dryad\XmlDoc\Content\VersionHistory\v0.2.0.aml -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\ddueXml\bbba8118-81fb-4997-a55c-b75ea829d721.xml
-    Parsing topic file &#39;D:\Users\misard\src\Dryad\XmlDoc\Content\VersionHistory\v0.1.2.aml&#39;
-    D:\Users\misard\src\Dryad\XmlDoc\Content\VersionHistory\v0.1.2.aml -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\ddueXml\a2eaaf5d-f1d8-4319-844e-a458cc72e4db.xml
-    Last step completed in 00:00:00.1101
+    Parsing topic file &#39;C:\src\Dryad\XmlDoc\Content\Welcome.aml&#39;
+    C:\src\Dryad\XmlDoc\Content\Welcome.aml -&gt; C:\src\Dryad\XmlDoc\Help\Working\ddueXml\e203b95e-0737-40f6-9c16-fc84484a5bad.xml
+    Parsing topic file &#39;C:\src\Dryad\XmlDoc\Content\GettingStarted.aml&#39;
+    C:\src\Dryad\XmlDoc\Content\GettingStarted.aml -&gt; C:\src\Dryad\XmlDoc\Help\Working\ddueXml\4a617e67-0920-46e4-9223-5effbac46b3d.xml
+    Parsing topic file &#39;C:\src\Dryad\XmlDoc\Content\GettingStarted\QuickStart.aml&#39;
+    C:\src\Dryad\XmlDoc\Content\GettingStarted\QuickStart.aml -&gt; C:\src\Dryad\XmlDoc\Help\Working\ddueXml\e992fd94-c956-481d-82e6-dbdf45daa722.xml
+    Parsing topic file &#39;C:\src\Dryad\XmlDoc\Content\GettingStarted\SettingUpCluster.aml&#39;
+    C:\src\Dryad\XmlDoc\Content\GettingStarted\SettingUpCluster.aml -&gt; C:\src\Dryad\XmlDoc\Help\Working\ddueXml\4aefe670-7b2b-4c05-9a65-6c60ff13c3b5.xml
+    Parsing topic file &#39;C:\src\Dryad\XmlDoc\Content\GettingStarted\Building the Job Browser.aml&#39;
+    C:\src\Dryad\XmlDoc\Content\GettingStarted\Building the Job Browser.aml -&gt; C:\src\Dryad\XmlDoc\Help\Working\ddueXml\91822db3-8a00-4307-ad8a-595c94f449b0.xml
+    Parsing topic file &#39;C:\src\Dryad\XmlDoc\Content\Resources.aml&#39;
+    C:\src\Dryad\XmlDoc\Content\Resources.aml -&gt; C:\src\Dryad\XmlDoc\Help\Working\ddueXml\1ef96122-dbe3-4815-a81f-7b5a72bf9f4f.xml
+    Parsing topic file &#39;C:\src\Dryad\XmlDoc\Content\Resources\Running a job on HDInsight.aml&#39;
+    C:\src\Dryad\XmlDoc\Content\Resources\Running a job on HDInsight.aml -&gt; C:\src\Dryad\XmlDoc\Help\Working\ddueXml\3596a79f-0714-43b0-b49a-ea9eeccb7326.xml
+    Parsing topic file &#39;C:\src\Dryad\XmlDoc\Content\VersionHistory\VersionHistory.aml&#39;
+    C:\src\Dryad\XmlDoc\Content\VersionHistory\VersionHistory.aml -&gt; C:\src\Dryad\XmlDoc\Help\Working\ddueXml\a5d9b686-8282-4120-ae0e-5a9f11a2ac0b.xml
+    Parsing topic file &#39;C:\src\Dryad\XmlDoc\Content\VersionHistory\v0.2.1.aml&#39;
+    C:\src\Dryad\XmlDoc\Content\VersionHistory\v0.2.1.aml -&gt; C:\src\Dryad\XmlDoc\Help\Working\ddueXml\df5c1170-1a0b-48e5-978d-25f999dad1c9.xml
+    Parsing topic file &#39;C:\src\Dryad\XmlDoc\Content\VersionHistory\v0.2.0.aml&#39;
+    C:\src\Dryad\XmlDoc\Content\VersionHistory\v0.2.0.aml -&gt; C:\src\Dryad\XmlDoc\Help\Working\ddueXml\bbba8118-81fb-4997-a55c-b75ea829d721.xml
+    Parsing topic file &#39;C:\src\Dryad\XmlDoc\Content\VersionHistory\v0.1.2.aml&#39;
+    C:\src\Dryad\XmlDoc\Content\VersionHistory\v0.1.2.aml -&gt; C:\src\Dryad\XmlDoc\Help\Working\ddueXml\a2eaaf5d-f1d8-4319-844e-a458cc72e4db.xml
+    Last step completed in 00:00:00.1121
 </buildStep>
 <buildStep step="CreateConceptualTopicConfigs">
 Creating conceptual topic configuration files...
     Companion files
     _ContentMetadata_.xml
     ConceptualManifest.xml
-    Last step completed in 00:00:00.0190
+    Last step completed in 00:00:00.0470
 </buildStep>
 <buildStep step="CopyAdditionalContent">
 Copying additional content files...
 No additional content to copy
-    Last step completed in 00:00:00.0010
+    Last step completed in 00:00:00.0030
 </buildStep>
 <buildStep step="MergeTablesOfContents">
 Merging conceptual and additional tables of contents...
-    Last step completed in 00:00:00.0000
+    Last step completed in 00:00:00.0040
 </buildStep>
 <buildStep step="GenerateIntermediateTableOfContents">
 Generating intermediate table of contents file...
 [C:\Program Files (x86)\MSBuild\12.0\bin\MSBuild.exe]
-Build started 9/30/2014 2:26:35 PM.
-Project &quot;D:\Users\misard\src\Dryad\XmlDoc\Help\Working\GenerateIntermediateTOC.proj&quot; on node 1 (default targets).
+Build started 10/23/2014 10:23:56 AM.
+Project &quot;C:\src\Dryad\XmlDoc\Help\Working\GenerateIntermediateTOC.proj&quot; on node 1 (default targets).
 GenerateIntermediateTOC:
   XslTransform (v2014.5.31.0)
   Copyright c 2006-2014, Microsoft Corporation, All Rights Reserved.
   Portions Copyright c 2006-2014, Eric Woodruff, All Rights Reserved.
   Applying XSL transformation &#39;C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\\ProductionTransforms\CreateVSToc.xsl&#39;.
-Done Building Project &quot;D:\Users\misard\src\Dryad\XmlDoc\Help\Working\GenerateIntermediateTOC.proj&quot; (default targets).
+Done Building Project &quot;C:\src\Dryad\XmlDoc\Help\Working\GenerateIntermediateTOC.proj&quot; (default targets).
 
 Build succeeded.
 
-Time Elapsed 00:00:00.09
+Time Elapsed 00:00:00.11
 Generating conceptual content intermediate TOC file...
-    Last step completed in 00:00:00.1631
+    Last step completed in 00:00:00.1932
 </buildStep>
 <buildStep step="CreateBuildAssemblerConfigs">
 Creating Sandcastle configuration files...
     sandcastle.config
     conceptual.config
-    Last step completed in 00:00:00.2022
+    Last step completed in 00:00:00.2752
 </buildStep>
 <buildStep step="MergeCustomConfigs">
 Merging custom build component configurations
-D:\Users\misard\src\Dryad\XmlDoc\Help\Working\sandcastle.config
-D:\Users\misard\src\Dryad\XmlDoc\Help\Working\conceptual.config
+C:\src\Dryad\XmlDoc\Help\Working\sandcastle.config
+C:\src\Dryad\XmlDoc\Help\Working\conceptual.config
     Removing unused ExampleComponent.
-    Last step completed in 00:00:00.1421
+    Last step completed in 00:00:00.0841
 </buildStep>
 <buildStep step="BuildConceptualTopics">
 Building conceptual help topics...
 [C:\Program Files (x86)\MSBuild\12.0\bin\MSBuild.exe]
-Build started 9/30/2014 2:26:35 PM.
-Project &quot;D:\Users\misard\src\Dryad\XmlDoc\Help\Working\BuildConceptualTopics.proj&quot; on node 1 (default targets).
+Build started 10/23/2014 10:23:56 AM.
+Project &quot;C:\src\Dryad\XmlDoc\Help\Working\BuildConceptualTopics.proj&quot; on node 1 (default targets).
 BuildConceptualTopics:
   BuildAssembler (v2014.5.31.0)
   Copyright c 2006-2014, Microsoft Corporation, All Rights Reserved.
   Portions Copyright c 2006-2014, Eric Woodruff, All Rights Reserved.
   Loading configuration...
   Processing topics...
-  Processed 10 topic(s)
+  Processed 11 topic(s)
   CopyFromIndexComponent: &quot;metadata&quot; in-memory cache entries used: 1 of 15.
-Done Building Project &quot;D:\Users\misard\src\Dryad\XmlDoc\Help\Working\BuildConceptualTopics.proj&quot; (default targets).
+Done Building Project &quot;C:\src\Dryad\XmlDoc\Help\Working\BuildConceptualTopics.proj&quot; (default targets).
 
 Build succeeded.
 
-Time Elapsed 00:00:03.31
-    Last step completed in 00:00:03.5559
+Time Elapsed 00:00:05.69
+    Last step completed in 00:00:05.8667
 </buildStep>
 <buildStep step="BuildReferenceTopics">
 Building reference help topics...
 [C:\Program Files (x86)\MSBuild\12.0\bin\MSBuild.exe]
-Build started 9/30/2014 2:26:39 PM.
-Project &quot;D:\Users\misard\src\Dryad\XmlDoc\Help\Working\BuildReferenceTopics.proj&quot; on node 1 (default targets).
+Build started 10/23/2014 10:24:02 AM.
+Project &quot;C:\src\Dryad\XmlDoc\Help\Working\BuildReferenceTopics.proj&quot; on node 1 (default targets).
 BuildReferenceTopics:
   BuildAssembler (v2014.5.31.0)
   Copyright c 2006-2014, Microsoft Corporation, All Rights Reserved.
   Portions Copyright c 2006-2014, Eric Woodruff, All Rights Reserved.
   Loading configuration...
   Processing topics...
-BuildAssembler : warning : ResolveReferenceLinksComponent: [M:Microsoft.Research.DryadLinq.DryadLinqCluster.Client(Microsoft.Research.DryadLinq.DryadLinqContext)] MSDN URL not found for target &#39;T:Microsoft.Research.Peloponnese.ClusterUtils.ClusterClient&#39;. [D:\Users\misard\src\Dryad\XmlDoc\Help\Working\BuildReferenceTopics.proj]
-BuildAssembler : warning : ResolveReferenceLinksComponent: [P:Microsoft.Research.DryadLinq.DryadLinqCluster.DfsClient] MSDN URL not found for target &#39;T:Microsoft.Research.Peloponnese.Shared.DfsClient&#39;. [D:\Users\misard\src\Dryad\XmlDoc\Help\Working\BuildReferenceTopics.proj]
-BuildAssembler : warning : ResolveReferenceLinksComponent: [M:Microsoft.Research.DryadLinq.DryadLinqYarnCluster.Client(Microsoft.Research.DryadLinq.DryadLinqContext)] MSDN URL not found for target &#39;T:Microsoft.Research.Peloponnese.ClusterUtils.ClusterClient&#39;. [D:\Users\misard\src\Dryad\XmlDoc\Help\Working\BuildReferenceTopics.proj]
-BuildAssembler : warning : ResolveReferenceLinksComponent: [P:Microsoft.Research.DryadLinq.DryadLinqYarnCluster.DfsClient] MSDN URL not found for target &#39;T:Microsoft.Research.Peloponnese.Shared.DfsClient&#39;. [D:\Users\misard\src\Dryad\XmlDoc\Help\Working\BuildReferenceTopics.proj]
+BuildAssembler : warning : ResolveReferenceLinksComponent: [M:Microsoft.Research.DryadLinq.DryadLinqCluster.Client(Microsoft.Research.DryadLinq.DryadLinqContext)] MSDN URL not found for target &#39;T:Microsoft.Research.Peloponnese.ClusterUtils.ClusterClient&#39;. [C:\src\Dryad\XmlDoc\Help\Working\BuildReferenceTopics.proj]
+BuildAssembler : warning : ResolveReferenceLinksComponent: [P:Microsoft.Research.DryadLinq.DryadLinqCluster.DfsClient] MSDN URL not found for target &#39;T:Microsoft.Research.Peloponnese.Shared.DfsClient&#39;. [C:\src\Dryad\XmlDoc\Help\Working\BuildReferenceTopics.proj]
+BuildAssembler : warning : ResolveReferenceLinksComponent: [M:Microsoft.Research.DryadLinq.DryadLinqYarnCluster.Client(Microsoft.Research.DryadLinq.DryadLinqContext)] MSDN URL not found for target &#39;T:Microsoft.Research.Peloponnese.ClusterUtils.ClusterClient&#39;. [C:\src\Dryad\XmlDoc\Help\Working\BuildReferenceTopics.proj]
+BuildAssembler : warning : ResolveReferenceLinksComponent: [P:Microsoft.Research.DryadLinq.DryadLinqYarnCluster.DfsClient] MSDN URL not found for target &#39;T:Microsoft.Research.Peloponnese.Shared.DfsClient&#39;. [C:\src\Dryad\XmlDoc\Help\Working\BuildReferenceTopics.proj]
   Processed 479 topic(s)
   4 warning(s)
   CopyFromIndexComponent: &quot;reflection&quot; in-memory cache entries used: 11 of 15.
   CopyFromIndexComponent: &quot;comments&quot; in-memory cache entries used: 3 of 30.
-Done Building Project &quot;D:\Users\misard\src\Dryad\XmlDoc\Help\Working\BuildReferenceTopics.proj&quot; (default targets).
+  ResolveReferenceLinksComponent: New MSDN content ID cache size: 182 entries
+Done Building Project &quot;C:\src\Dryad\XmlDoc\Help\Working\BuildReferenceTopics.proj&quot; (default targets).
 
 Build succeeded.
 
-Time Elapsed 00:00:15.95
-    Last step completed in 00:00:16.0401
+Time Elapsed 00:01:13.40
+    Last step completed in 00:01:13.5114
 </buildStep>
 <buildStep step="CombiningIntermediateTocFiles">
 Combining conceptual and API intermediate TOC files...
 
 Clearing any prior web output
-    Last step completed in 00:00:00.1882
+    Last step completed in 00:00:00.0090
 </buildStep>
 <buildStep step="ExtractingHtmlInfo">
 Extracting HTML info for HTML Help 1 and/or website...
@@ -220,111 +223,111 @@ E-Mail: Eric@EWoodruff.us
 
 Using LCID &#39;1033&#39;, code page &#39;65001&#39;, encoding charset &#39;UTF-8&#39;.
 
-Processing website files in D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website
-Processed 489 HTML files
+Processing website files in C:\src\Dryad\XmlDoc\Help\Working\Output\Website
+Processed 490 HTML files
 Sorting keywords and generating See Also indices
-Saving website keyword index to D:\Users\misard\src\Dryad\XmlDoc\Help\Working\WebKI.xml
-Saving website table of contents to D:\Users\misard\src\Dryad\XmlDoc\Help\Working\WebTOC.xml
-    Last step completed in 00:00:01.9176
+Saving website keyword index to C:\src\Dryad\XmlDoc\Help\Working\WebKI.xml
+Saving website table of contents to C:\src\Dryad\XmlDoc\Help\Working\WebTOC.xml
+    Last step completed in 00:00:04.3186
 </buildStep>
 <buildStep step="CopyStandardHelpContent">
 Copying standard help content...
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\alert_caution.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\alert_caution.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\alert_note.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\alert_note.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\alert_security.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\alert_security.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\CFW.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\CFW.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\CodeExample.png -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\CodeExample.png
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\favicon.ico -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\favicon.ico
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\footer_slice.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\footer_slice.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\privclass.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\privclass.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\privdelegate.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\privdelegate.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\privenumeration.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\privenumeration.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\privevent.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\privevent.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\privextension.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\privextension.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\privfield.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\privfield.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\privinterface.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\privinterface.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\privmethod.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\privmethod.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\privproperty.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\privproperty.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\privstructure.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\privstructure.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\protclass.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\protclass.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\protdelegate.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\protdelegate.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\protenumeration.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\protenumeration.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\protevent.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\protevent.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\protextension.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\protextension.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\protfield.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\protfield.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\protinterface.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\protinterface.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\protmethod.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\protmethod.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\protoperator.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\protoperator.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\protproperty.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\protproperty.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\protstructure.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\protstructure.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\pubclass.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\pubclass.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\pubdelegate.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\pubdelegate.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\pubenumeration.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\pubenumeration.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\pubevent.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\pubevent.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\pubextension.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\pubextension.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\pubfield.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\pubfield.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\pubinterface.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\pubinterface.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\pubmethod.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\pubmethod.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\puboperator.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\puboperator.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\pubproperty.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\pubproperty.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\pubstructure.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\pubstructure.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\slMobile.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\slMobile.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\static.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\static.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\tabLeftBG.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\tabLeftBG.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\tabRightBG.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\tabRightBG.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\xna.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\xna.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\scripts\branding.js -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\scripts\branding.js
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-cs-CZ.css -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-cs-CZ.css
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-de-DE.css -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-de-DE.css
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-en-US.css -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-en-US.css
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-es-ES.css -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-es-ES.css
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-fr-FR.css -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-fr-FR.css
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-Help1.css -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-Help1.css
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-Help2.css -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-Help2.css
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-HelpViewer.css -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-HelpViewer.css
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-it-IT.css -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-it-IT.css
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-ja-JP.css -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-ja-JP.css
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-ko-KR.css -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-ko-KR.css
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-pl-PL.css -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-pl-PL.css
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-pt-BR.css -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-pt-BR.css
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-ru-RU.css -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-ru-RU.css
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-tr-TR.css -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-tr-TR.css
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-zh-CN.css -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-zh-CN.css
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-zh-TW.css -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-zh-TW.css
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding.css -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding.css
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\CloseSearch.png -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\CloseSearch.png
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\CollapseAll.png -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\CollapseAll.png
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\Collapsed.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\Collapsed.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\Expanded.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\Expanded.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\favicon.ico -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\favicon.ico
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\FillNode.aspx -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\FillNode.aspx
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\FillNode.php -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\FillNode.php
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\Index.aspx -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\Index.aspx
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\Index.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\Index.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\index.html -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\index.html
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\index.php -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\index.php
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\Item.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\Item.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\LoadIndexKeywords.aspx -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\LoadIndexKeywords.aspx
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\LoadIndexKeywords.php -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\LoadIndexKeywords.php
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\Search.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\Search.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\SearchHelp.aspx -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\SearchHelp.aspx
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\SearchHelp.inc.php -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\SearchHelp.inc.php
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\SearchHelp.php -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\SearchHelp.php
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\Splitter.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\Splitter.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\SyncTOC.gif -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\SyncTOC.gif
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\TOC.css -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\TOC.css
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\TOC.js -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\TOC.js
-C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\Web.Config -&gt; D:\Users\misard\src\Dryad\XmlDoc\Help\Working\Output\Website\Web.Config
-    Last step completed in 00:00:00.3643
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\alert_caution.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\alert_caution.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\alert_note.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\alert_note.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\alert_security.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\alert_security.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\CFW.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\CFW.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\CodeExample.png -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\CodeExample.png
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\favicon.ico -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\favicon.ico
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\footer_slice.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\footer_slice.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\privclass.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\privclass.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\privdelegate.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\privdelegate.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\privenumeration.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\privenumeration.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\privevent.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\privevent.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\privextension.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\privextension.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\privfield.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\privfield.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\privinterface.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\privinterface.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\privmethod.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\privmethod.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\privproperty.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\privproperty.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\privstructure.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\privstructure.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\protclass.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\protclass.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\protdelegate.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\protdelegate.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\protenumeration.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\protenumeration.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\protevent.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\protevent.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\protextension.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\protextension.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\protfield.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\protfield.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\protinterface.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\protinterface.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\protmethod.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\protmethod.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\protoperator.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\protoperator.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\protproperty.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\protproperty.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\protstructure.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\protstructure.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\pubclass.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\pubclass.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\pubdelegate.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\pubdelegate.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\pubenumeration.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\pubenumeration.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\pubevent.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\pubevent.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\pubextension.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\pubextension.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\pubfield.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\pubfield.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\pubinterface.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\pubinterface.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\pubmethod.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\pubmethod.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\puboperator.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\puboperator.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\pubproperty.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\pubproperty.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\pubstructure.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\pubstructure.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\slMobile.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\slMobile.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\static.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\static.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\tabLeftBG.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\tabLeftBG.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\tabRightBG.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\tabRightBG.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\icons\xna.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\icons\xna.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\scripts\branding.js -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\scripts\branding.js
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-cs-CZ.css -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-cs-CZ.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-de-DE.css -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-de-DE.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-en-US.css -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-en-US.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-es-ES.css -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-es-ES.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-fr-FR.css -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-fr-FR.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-Help1.css -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-Help1.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-Help2.css -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-Help2.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-HelpViewer.css -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-HelpViewer.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-it-IT.css -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-it-IT.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-ja-JP.css -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-ja-JP.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-ko-KR.css -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-ko-KR.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-pl-PL.css -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-pl-PL.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-pt-BR.css -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-pt-BR.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-ru-RU.css -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-ru-RU.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-tr-TR.css -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-tr-TR.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-zh-CN.css -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-zh-CN.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding-zh-TW.css -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding-zh-TW.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\styles\branding.css -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\styles\branding.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\CloseSearch.png -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\CloseSearch.png
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\CollapseAll.png -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\CollapseAll.png
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\Collapsed.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\Collapsed.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\Expanded.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\Expanded.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\favicon.ico -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\favicon.ico
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\FillNode.aspx -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\FillNode.aspx
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\FillNode.php -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\FillNode.php
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\Index.aspx -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\Index.aspx
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\Index.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\Index.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\index.html -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\index.html
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\index.php -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\index.php
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\Item.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\Item.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\LoadIndexKeywords.aspx -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\LoadIndexKeywords.aspx
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\LoadIndexKeywords.php -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\LoadIndexKeywords.php
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\Search.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\Search.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\SearchHelp.aspx -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\SearchHelp.aspx
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\SearchHelp.inc.php -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\SearchHelp.inc.php
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\SearchHelp.php -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\SearchHelp.php
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\Splitter.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\Splitter.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\SyncTOC.gif -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\SyncTOC.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\TOC.css -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\TOC.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\TOC.js -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\TOC.js
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2010\..\LegacyWeb\Web.Config -&gt; C:\src\Dryad\XmlDoc\Help\Working\Output\Website\Web.Config
+    Last step completed in 00:00:00.4193
 </buildStep>
 <buildStep step="GenerateHelpFormatTableOfContents">
 Generating website table of contents file...
-    Last step completed in 00:00:00.0000
+    Last step completed in 00:00:00.0010
 </buildStep>
 <buildStep step="GenerateFullTextIndex">
 Generating full-text index for the website...
 
-    Last step completed in 00:00:01.2360
+    Last step completed in 00:00:01.4440
 </buildStep>
 <buildStep step="CopyingWebsiteFiles">
 Copying website files to output folder...
@@ -335,16 +338,16 @@ Copied 300 files
 Copied 400 files
 Copied 500 files
 Copied 600 files
-Copied 606 files for the website content
-    Last step completed in 00:00:00.7036
+Copied 607 files for the website content
+    Last step completed in 00:00:00.8286
 </buildStep>
 <buildStep step="CleanIntermediates">
 Removing intermediate files...
-    Last step completed in 00:00:00.2332
+    Last step completed in 00:00:00.2392
 </buildStep>
 <buildStep step="Completed">
 
-Build completed successfully at 09/30/2014 02:27 PM.  Total time: 00:00:26.9421
+Build completed successfully at 10/23/2014 10:25 AM.  Total time: 00:01:29.6730
 
 </buildStep>
 </shfbBuild>
